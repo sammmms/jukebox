@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Party Jukebox</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .vinyl-spin {
+      animation: spin 14s linear infinite;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .paused {
+      animation-play-state: paused;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f1117;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2a2e3f;
+      border-radius: 999px;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 14px;
+      width: 14px;
+      border-radius: 50%;
+      background: #ffffff;
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(236, 72, 153, 0.6);
+      margin-top: -4px;
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 6px;
+      cursor: pointer;
+      background: #272a38;
+      border-radius: 999px;
+    }
+    /* Dragging classes */
+    .sortable-ghost {
+      opacity: 0.3;
+      border-color: #ec4899 !important;
+      background: rgba(236, 72, 153, 0.1) !important;
+    }
+    .sortable-chosen {
+      cursor: grabbing;
+    }
+  </style>
+</head>
+<body class="bg-[#0a0c10] text-gray-100 min-h-screen pb-24 selection:bg-pink-500 selection:text-white">
+
+  <!-- Top Navigation & Profile Bar -->
+  <header class="sticky top-0 z-30 bg-[#0e1118]/85 backdrop-blur-md border-b border-gray-800/60 px-4 py-3">
+    <div class="max-w-xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-pink-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-pink-500/20 text-white font-extrabold text-sm">
+          ♫
+        </div>
+        <div>
+          <h1 class="text-base font-bold tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">Party Jukebox</h1>
+          <div class="flex items-center gap-1.5">
+            <span id="connection-dot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="connection-text" class="text-[11px] text-gray-400 font-medium">Connected to Mac</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Refresh Button -->
+      <button onclick="fetchStatus()" class="p-2 rounded-xl bg-gray-800/60 hover:bg-gray-800 text-gray-300 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- User Selector Pills -->
+    <div class="max-w-xl mx-auto mt-3">
+      <div class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1.5">You are DJing as:</div>
+      <div class="grid grid-cols-4 gap-1.5" id="user-pills">
+        <button onclick="selectUser('Leo')" data-user="Leo" class="user-pill flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold border transition-all duration-200 border-gray-800 bg-gray-900/60 text-gray-400 hover:border-blue-500/50">
+          <span class="w-2 h-2 rounded-full bg-blue-500"></span> Leo
+        </button>
+        <button onclick="selectUser('Andrew')" data-user="Andrew" class="user-pill flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold border transition-all duration-200 border-gray-800 bg-gray-900/60 text-gray-400 hover:border-emerald-500/50">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Andrew
+        </button>
+        <button onclick="selectUser('Cia')" data-user="Cia" class="user-pill flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold border transition-all duration-200 border-gray-800 bg-gray-900/60 text-gray-400 hover:border-pink-500/50">
+          <span class="w-2 h-2 rounded-full bg-pink-500"></span> Cia
+        </button>
+        <button onclick="selectUser('Sam')" data-user="Sam" class="user-pill flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold border transition-all duration-200 border-gray-800 bg-gray-900/60 text-gray-400 hover:border-amber-500/50">
+          <span class="w-2 h-2 rounded-full bg-amber-500"></span> Sam
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-xl mx-auto px-4 mt-4 space-y-5">
+
+    <!-- NOW PLAYING CARD -->
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-b from-[#181c28] to-[#121520] border border-gray-800/80 p-4 shadow-xl shadow-black/40">
+      <div class="flex items-center gap-4">
+        <!-- Vinyl Thumbnail -->
+        <div class="relative w-20 h-20 shrink-0">
+          <img id="now-thumbnail" src="https://via.placeholder.com/150" alt="Cover" class="w-full h-full object-cover rounded-xl shadow-md border border-gray-700/50">
+          <div id="vinyl-disc" class="absolute -right-2 top-0 w-20 h-20 rounded-full border-2 border-gray-900/80 bg-black/70 -z-10 vinyl-spin paused flex items-center justify-center">
+            <div class="w-6 h-6 rounded-full bg-pink-500/80 border border-white/20"></div>
+          </div>
+        </div>
+
+        <!-- Meta -->
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-pink-500/20 text-pink-400 border border-pink-500/30">NOW PLAYING</span>
+            <span id="now-added-by" class="text-[11px] text-gray-400 truncate"></span>
+          </div>
+          <h2 id="now-title" class="text-base font-bold text-white truncate mt-1">No song playing</h2>
+          <p id="now-artist" class="text-xs font-medium text-gray-400 truncate">Connect YouTube Music</p>
+        </div>
+
+        <!-- Play/Pause & Skip Controls -->
+        <div class="flex items-center gap-2">
+          <button onclick="togglePlay()" class="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-transform">
+            <svg id="play-icon" class="w-5 h-5 translate-x-0.5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+            <svg id="pause-icon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+            </svg>
+          </button>
+          <button onclick="skipNext()" title="Skip song" class="w-9 h-9 rounded-full bg-gray-800 text-gray-200 hover:text-white flex items-center justify-center hover:bg-gray-700 active:scale-95 transition-all">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- READ-ONLY REAL-TIME TIMELINE -->
+      <div class="mt-4 pointer-events-none select-none">
+        <div class="w-full bg-gray-800/80 rounded-full h-2 overflow-hidden relative">
+          <div id="progress-bar" class="bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <div class="flex justify-between text-[11px] text-gray-400 font-semibold mt-1.5 px-0.5">
+          <span id="time-elapsed">0:00</span>
+          <span id="time-duration">0:00</span>
+        </div>
+      </div>
+
+      <!-- SPEAKER VOLUME SLIDER -->
+      <div class="mt-3 pt-3 border-t border-gray-800/60 flex items-center gap-3">
+        <button onclick="toggleMuteQuick()" class="text-gray-400 hover:text-white transition-colors shrink-0">
+          <svg id="vol-icon" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+          </svg>
+        </button>
+        <div class="flex-1 flex items-center gap-2">
+          <input type="range" id="volume-slider" min="0" max="100" value="70" oninput="handleVolumeInput(this.value)"
+                 class="w-full accent-pink-500 cursor-pointer">
+          <span id="volume-label" class="text-[11px] font-bold text-gray-400 w-9 text-right shrink-0">70%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABS: SEARCH vs PASTE -->
+    <div>
+      <div class="flex rounded-xl bg-gray-900/80 p-1 border border-gray-800">
+        <button onclick="switchTab('search')" id="tab-search" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-gray-800 text-white shadow-sm flex items-center justify-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          Search YouTube Music
+        </button>
+        <button onclick="switchTab('paste')" id="tab-paste" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white flex items-center justify-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+          </svg>
+          Paste YouTube Link
+        </button>
+      </div>
+
+      <!-- TAB CONTENT: SEARCH -->
+      <div id="content-search" class="mt-3 space-y-3">
+        <div class="relative">
+          <input type="text" id="search-input" placeholder="Search songs, artists (e.g. Coldplay, Bruno Mars)..."
+                 class="w-full bg-[#121520] border border-gray-800 rounded-xl px-4 py-3 pl-10 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-pink-500/80 focus:ring-1 focus:ring-pink-500/80 transition-all">
+          <svg class="w-4 h-4 text-gray-500 absolute left-3.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <div id="search-spinner" class="hidden absolute right-3.5 top-3.5">
+            <div class="w-4 h-4 border-2 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        </div>
+
+        <!-- Search Results Container -->
+        <div id="search-results" class="space-y-2 max-h-72 overflow-y-auto pr-1"></div>
+      </div>
+
+      <!-- TAB CONTENT: PASTE -->
+      <div id="content-paste" class="mt-3 hidden space-y-3">
+        <div class="p-4 rounded-xl bg-[#121520] border border-gray-800 space-y-3">
+          <p class="text-xs text-gray-400">Paste any video link from YouTube or YouTube Music:</p>
+          <input type="text" id="paste-input" placeholder="https://music.youtube.com/watch?v=... or https://youtu.be/..."
+                 class="w-full bg-gray-900 border border-gray-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-pink-500">
+          <button onclick="submitPaste()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-indigo-600 text-white text-xs font-bold shadow-md hover:opacity-90 active:scale-[0.99] transition-all flex items-center justify-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Add to Queue
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPCOMING QUEUE LIST (DRAGGABLE TO REORDER) -->
+    <div class="space-y-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <h3 class="text-sm font-bold text-gray-200 tracking-wide">Upcoming Queue</h3>
+          <span id="queue-count" class="px-2 py-0.5 rounded-full text-[11px] bg-gray-800 text-gray-400 font-semibold">0</span>
+        </div>
+        <div class="text-[11px] text-gray-400 flex items-center gap-1.5 font-medium">
+          <span class="text-pink-400">⠿ Drag to move</span>
+          <span>•</span>
+          <span>🔥 Upvote to bump</span>
+        </div>
+      </div>
+
+      <div id="queue-list" class="space-y-2">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+
+    <!-- ROOM ACTIVITY FEED / HISTORY -->
+    <div class="pt-4 border-t border-gray-800/80 space-y-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <h3 class="text-sm font-bold text-gray-200 tracking-wide flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-pink-500"></span>
+            Room Activity Feed
+          </h3>
+          <span class="text-[11px] text-gray-500 font-medium">(Who did what)</span>
+        </div>
+      </div>
+
+      <div id="activity-list" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-gray-900/95 border border-gray-700 text-white text-xs font-semibold shadow-2xl transition-all duration-300 opacity-0 pointer-events-none translate-y-4 flex items-center gap-2">
+    <span>Notification</span>
+  </div>
+
+  <script>
+    // State
+    let currentUser = localStorage.getItem('jukebox_user') || 'Sam';
+    let currentSongData = null;
+    let searchDebounceTimeout = null;
+    let volumeDebounceTimeout = null;
+    let sortableInstance = null;
+    let currentUpcomingList = [];
+
+    // Local Smooth Timeline State
+    let currentVideoId = '';
+    let currentElapsed = 0;
+    let songDuration = 0;
+    let isPlaying = false;
+    let lastTickTimestamp = Date.now();
+
+    const userColors = {
+      'Leo': { bg: 'bg-blue-500/20', text: 'text-blue-400', border: 'border-blue-500/40', pill: 'border-blue-500 bg-blue-500/10 text-white' },
+      'Andrew': { bg: 'bg-emerald-500/20', text: 'text-emerald-400', border: 'border-emerald-500/40', pill: 'border-emerald-500 bg-emerald-500/10 text-white' },
+      'Cia': { bg: 'bg-pink-500/20', text: 'text-pink-400', border: 'border-pink-500/40', pill: 'border-pink-500 bg-pink-500/10 text-white' },
+      'Sam': { bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500/40', pill: 'border-amber-500 bg-amber-500/10 text-white' },
+      'System': { bg: 'bg-gray-800', text: 'text-gray-400', border: 'border-gray-700', pill: '' }
+    };
+
+    function selectUser(user) {
+      currentUser = user;
+      localStorage.setItem('jukebox_user', user);
+      document.querySelectorAll('.user-pill').forEach(pill => {
+        const u = pill.getAttribute('data-user');
+        if (u === currentUser) {
+          pill.className = `user-pill flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-bold border transition-all duration-200 ${userColors[u].pill}`;
+        } else {
+          pill.className = 'user-pill flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold border transition-all duration-200 border-gray-800 bg-gray-900/60 text-gray-400 hover:border-gray-700';
+        }
+      });
+      showToast(`DJ set to: ${user}`);
+      fetchStatus();
+    }
+
+    // Tab Switching
+    function switchTab(tab) {
+      if (tab === 'search') {
+        document.getElementById('content-search').classList.remove('hidden');
+        document.getElementById('content-paste').classList.add('hidden');
+        document.getElementById('tab-search').className = 'flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-gray-800 text-white shadow-sm flex items-center justify-center gap-1.5';
+        document.getElementById('tab-paste').className = 'flex-1 py-2 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white flex items-center justify-center gap-1.5';
+      } else {
+        document.getElementById('content-search').classList.add('hidden');
+        document.getElementById('content-paste').classList.remove('hidden');
+        document.getElementById('tab-paste').className = 'flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-gray-800 text-white shadow-sm flex items-center justify-center gap-1.5';
+        document.getElementById('tab-search').className = 'flex-1 py-2 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white flex items-center justify-center gap-1.5';
+      }
+    }
+
+    // Format Seconds to mm:ss
+    function formatTime(sec) {
+      if (!sec || isNaN(sec) || sec < 0) return '0:00';
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    function timeAgo(ts) {
+      const diff = Math.floor((Date.now() - ts) / 1000);
+      if (diff < 5) return 'Just now';
+      if (diff < 60) return `${diff}s ago`;
+      const m = Math.floor(diff / 60);
+      if (m < 60) return `${m}m ago`;
+      const h = Math.floor(m / 60);
+      return `${h}h ago`;
+    }
+
+    // Toast Helper
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerHTML = `<span>${msg}</span>`;
+      toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+      toast.classList.add('opacity-100', 'translate-y-0');
+      setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+      }, 2500);
+    }
+
+    // Update UI from Status
+    function updateUI(status) {
+      if (!status || !status.online) {
+        document.getElementById('connection-dot').className = 'w-2 h-2 rounded-full bg-red-500';
+        document.getElementById('connection-text').textContent = 'Connecting to Mac...';
+        return;
+      }
+
+      document.getElementById('connection-dot').className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+      document.getElementById('connection-text').textContent = 'Connected to Mac';
+
+      // Current Song
+      const song = status.current;
+      currentSongData = song;
+      if (song && song.title) {
+        document.getElementById('now-title').textContent = song.title;
+        document.getElementById('now-artist').textContent = song.artist || song.album || '';
+        document.getElementById('now-thumbnail').src = song.imageSrc || 'https://via.placeholder.com/150';
+        
+        const addedByEl = document.getElementById('now-added-by');
+        if (song.addedBy) {
+          addedByEl.textContent = `• Added by ${song.addedBy}`;
+        } else {
+          addedByEl.textContent = '';
+        }
+
+        // Check if song changed
+        if (song.videoId !== currentVideoId) {
+          currentVideoId = song.videoId;
+          currentElapsed = song.currentElapsed || 0;
+          lastTickTimestamp = Date.now();
+        } else {
+          // If paused, sync strictly
+          if (song.isPaused) {
+            currentElapsed = song.currentElapsed || 0;
+            lastTickTimestamp = Date.now();
+          } else if (typeof song.currentElapsed === 'number') {
+            // If playing, check drift. Only calibrate if drift > 1.5s (smooth ticker handles the rest)
+            const drift = Math.abs(song.currentElapsed - currentElapsed);
+            if (drift > 1.5) {
+              currentElapsed = song.currentElapsed;
+              lastTickTimestamp = Date.now();
+            }
+          }
+        }
+
+        isPlaying = !song.isPaused;
+        songDuration = song.songDuration || 0;
+
+        // Play/Pause State
+        const vinyl = document.getElementById('vinyl-disc');
+        const playIcon = document.getElementById('play-icon');
+        const pauseIcon = document.getElementById('pause-icon');
+
+        if (!isPlaying) {
+          vinyl.classList.add('paused');
+          playIcon.classList.remove('hidden');
+          pauseIcon.classList.add('hidden');
+        } else {
+          vinyl.classList.remove('paused');
+          playIcon.classList.add('hidden');
+          pauseIcon.classList.remove('hidden');
+        }
+
+        document.getElementById('time-duration').textContent = formatTime(songDuration);
+        renderTimeline(currentElapsed);
+      }
+
+      // Real Speaker Volume
+      if (status.volume && typeof status.volume.state === 'number') {
+        const volSlider = document.getElementById('volume-slider');
+        const volLabel = document.getElementById('volume-label');
+        if (!volSlider.matches(':active')) {
+          volSlider.value = status.volume.state;
+          volLabel.textContent = `${status.volume.state}%`;
+        }
+      }
+
+      // Queue List (FILTER ONLY UPCOMING SONGS!)
+      renderQueue(status.queue || [], status.selectedIndex ?? -1);
+
+      // Activity Feed
+      renderActivity(status.activity || []);
+    }
+
+    // Read-Only Timeline Render
+    function renderTimeline(elapsedSec) {
+      const percent = songDuration > 0 ? Math.min((elapsedSec / songDuration) * 100, 100) : 0;
+      document.getElementById('progress-bar').style.width = `${percent}%`;
+      document.getElementById('time-elapsed').textContent = formatTime(Math.floor(elapsedSec));
+    }
+
+    // Client Ticker - Steady progression, no resets!
+    setInterval(() => {
+      if (isPlaying && songDuration > 0) {
+        const now = Date.now();
+        const delta = (now - lastTickTimestamp) / 1000;
+        lastTickTimestamp = now;
+        currentElapsed = Math.min(currentElapsed + delta, songDuration);
+        renderTimeline(currentElapsed);
+      } else {
+        lastTickTimestamp = Date.now();
+      }
+    }, 200);
+
+    // Volume Slider Handler (Controls Real Mac Speaker Output!)
+    function handleVolumeInput(val) {
+      document.getElementById('volume-label').textContent = `${val}%`;
+      clearTimeout(volumeDebounceTimeout);
+      volumeDebounceTimeout = setTimeout(async () => {
+        try {
+          await fetch('/api/control/volume', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ volume: Number(val), user: currentUser })
+          });
+        } catch (e) {
+          console.error(e);
+        }
+      }, 100);
+    }
+
+    function toggleMuteQuick() {
+      const slider = document.getElementById('volume-slider');
+      const newVol = Number(slider.value) > 0 ? 0 : 70;
+      slider.value = newVol;
+      handleVolumeInput(newVol);
+    }
+
+    // Render Queue: ONLY SONGS AFTER SELECTED INDEX ARE UPCOMING!
+    function renderQueue(queue, selectedIndex) {
+      const queueList = document.getElementById('queue-list');
+      const countEl = document.getElementById('queue-count');
+
+      // Filter: Songs already played OR currently playing are completely excluded!
+      const activeVideoId = currentSongData?.videoId || '';
+      let upcoming = [];
+      if (selectedIndex >= 0) {
+        upcoming = queue.filter(item => item.rawIndex > selectedIndex && item.videoId !== activeVideoId);
+      } else {
+        upcoming = queue.filter(item => !item.selected && item.videoId !== activeVideoId);
+      }
+
+      currentUpcomingList = upcoming;
+      countEl.textContent = upcoming.length;
+
+      if (upcoming.length === 0) {
+        queueList.innerHTML = `
+          <div class="p-6 rounded-xl bg-gray-900/40 border border-gray-800/60 text-center">
+            <p class="text-xs text-gray-500">Antrean kosong. Jadilah yang pertama request lagu!</p>
+          </div>
+        `;
+        return;
+      }
+
+      queueList.innerHTML = upcoming.map((item, idx) => {
+        const userStyle = userColors[item.addedBy] || { bg: 'bg-gray-800', text: 'text-gray-400', border: 'border-gray-700' };
+        const hasVoted = item.votedUsers && item.votedUsers.includes(currentUser);
+        const voteBtnClass = hasVoted
+          ? 'bg-gradient-to-r from-pink-500 to-indigo-600 text-white shadow-md shadow-pink-500/20'
+          : 'bg-gray-800/80 hover:bg-gray-800 text-gray-300 border border-gray-700/60';
+
+        return `
+          <div data-raw-index="${item.rawIndex}" data-idx="${idx}"
+               class="queue-item flex items-center gap-2.5 p-2.5 rounded-xl bg-[#121520] border border-gray-800/80 hover:border-gray-700 transition-all select-none">
+            
+            <!-- Drag Handle -->
+            <div class="drag-handle py-2 px-1 text-gray-500 hover:text-pink-400 cursor-grab active:cursor-grabbing shrink-0 flex items-center">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <circle cx="9" cy="5" r="1.5"/>
+                <circle cx="15" cy="5" r="1.5"/>
+                <circle cx="9" cy="12" r="1.5"/>
+                <circle cx="15" cy="12" r="1.5"/>
+                <circle cx="9" cy="19" r="1.5"/>
+                <circle cx="15" cy="19" r="1.5"/>
+              </svg>
+            </div>
+
+            <span class="text-xs font-bold text-gray-500 w-3 text-center shrink-0">${idx + 1}</span>
+            <img src="${item.thumbnail || 'https://via.placeholder.com/60'}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-gray-800 pointer-events-none">
+            
+            <div class="flex-1 min-w-0">
+              <h4 class="text-xs font-bold text-white truncate">${item.title}</h4>
+              <p class="text-[11px] text-gray-400 truncate">${item.artist}</p>
+              ${item.addedBy ? `
+                <span class="inline-block mt-0.5 px-1.5 py-0.2 rounded-md text-[9px] font-bold ${userStyle.bg} ${userStyle.text} border ${userStyle.border}">
+                  by ${item.addedBy}
+                </span>
+              ` : ''}
+            </div>
+
+            <!-- Upvote Button (Raises queue priority) -->
+            <button onclick="upvoteSong('${item.videoId}', '${item.title.replace(/'/g, "\\'")}')"
+                    title="${hasVoted ? 'Cancel vote' : 'Upvote to play next!'}"
+                    class="px-2 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 active:scale-95 transition-all ${voteBtnClass}">
+              <svg class="w-3.5 h-3.5 ${hasVoted ? 'text-white' : 'text-pink-400'}" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 4l-8 8h5v8h6v-8h5z"/>
+              </svg>
+              <span>${item.upvotes || 0}</span>
+            </button>
+
+            <!-- Remove Button -->
+            <button onclick="removeSong(${item.rawIndex}, '${item.title.replace(/'/g, "\\'")}')"
+                    title="Remove from queue"
+                    class="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 active:scale-90 transition-all">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      // Initialize SortableJS for Drag-and-Drop Reordering
+      if (sortableInstance) {
+        sortableInstance.destroy();
+      }
+
+      sortableInstance = new Sortable(queueList, {
+        animation: 180,
+        handle: '.drag-handle',
+        ghostClass: 'sortable-ghost',
+        chosenClass: 'sortable-chosen',
+        onEnd: async function (evt) {
+          const oldIndex = evt.oldIndex;
+          const newIndex = evt.newIndex;
+          if (oldIndex === newIndex) return;
+
+          const movedItem = currentUpcomingList[oldIndex];
+          const targetItem = currentUpcomingList[newIndex];
+          if (!movedItem || !targetItem) return;
+
+          showToast(`Moving "${movedItem.title}" to position #${newIndex + 1}...`);
+
+          try {
+            await fetch('/api/queue/move', {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                fromIndex: movedItem.rawIndex,
+                toIndex: targetItem.rawIndex,
+                user: currentUser,
+                title: movedItem.title,
+                targetPosition: newIndex + 1
+              })
+            });
+            showToast(`✓ Moved "${movedItem.title}"`);
+          } catch (err) {
+            console.error('Drag move error:', err);
+            showToast('Failed to move song');
+            fetchStatus();
+          }
+        }
+      });
+    }
+
+    function renderActivity(logs) {
+      const container = document.getElementById('activity-list');
+      if (!logs || logs.length === 0) {
+        container.innerHTML = `<div class="p-3 text-center text-xs text-gray-500">Belum ada aktivitas di ruangan ini.</div>`;
+        return;
+      }
+
+      const actionIcons = {
+        'add': { icon: '➕', label: 'added' },
+        'skip': { icon: '⏭️', label: 'skipped' },
+        'pause': { icon: '⏸️', label: 'paused' },
+        'play': { icon: '▶️', label: 'played' },
+        'remove': { icon: '🗑️', label: 'removed' },
+        'move': { icon: '⠿', label: '' },
+        'upvote': { icon: '🔥', label: 'upvoted' },
+        'unvote': { icon: '↩️', label: 'cancelled vote on' },
+        'volume': { icon: '🔊', label: '' },
+        'start': { icon: '🚀', label: '' }
+      };
+
+      container.innerHTML = logs.map(item => {
+        const userStyle = userColors[item.user] || { bg: 'bg-gray-800', text: 'text-gray-300', border: 'border-gray-700' };
+        const meta = actionIcons[item.action] || { icon: '•', label: item.action };
+
+        return `
+          <div class="flex items-center justify-between text-xs py-1.5 px-3 rounded-xl bg-gray-900/60 border border-gray-800/80">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-sm shrink-0">${meta.icon}</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${userStyle.bg} ${userStyle.text}">
+                ${item.user}
+              </span>
+              <span class="text-gray-300 truncate">
+                ${meta.label} <span class="font-semibold text-white">${item.details}</span>
+              </span>
+            </div>
+            <span class="text-[10px] text-gray-500 shrink-0 ml-2">${timeAgo(item.timestamp)}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Search Handler with Debounce
+    const searchInput = document.getElementById('search-input');
+    searchInput.addEventListener('input', (e) => {
+      const q = e.target.value.trim();
+      clearTimeout(searchDebounceTimeout);
+      if (!q) {
+        document.getElementById('search-results').innerHTML = '';
+        return;
+      }
+
+      document.getElementById('search-spinner').classList.remove('hidden');
+      searchDebounceTimeout = setTimeout(async () => {
+        try {
+          const res = await fetch('/api/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: q })
+          });
+          const data = await res.json();
+          renderSearchResults(data.results || []);
+        } catch (err) {
+          console.error(err);
+        } finally {
+          document.getElementById('search-spinner').classList.add('hidden');
+        }
+      }, 350);
+    });
+
+    function renderSearchResults(results) {
+      const container = document.getElementById('search-results');
+      if (results.length === 0) {
+        container.innerHTML = `<div class="p-4 text-center text-xs text-gray-500">No songs found</div>`;
+        return;
+      }
+
+      container.innerHTML = results.map(item => `
+        <div class="flex items-center gap-3 p-2 rounded-xl bg-gray-900/80 border border-gray-800 hover:border-gray-700 transition-colors">
+          <img src="${item.thumbnail || 'https://via.placeholder.com/60'}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-gray-800">
+          <div class="flex-1 min-w-0">
+            <h5 class="text-xs font-bold text-white truncate">${item.title}</h5>
+            <p class="text-[11px] text-gray-400 truncate">${item.artist}</p>
+          </div>
+          <button onclick='queueTrack(${JSON.stringify(item).replace(/'/g, "&#39;")})'
+                  class="px-3 py-1.5 rounded-lg bg-pink-500/20 text-pink-400 hover:bg-pink-500 hover:text-white border border-pink-500/30 text-xs font-bold active:scale-95 transition-all flex items-center gap-1">
+            + Queue
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // Queue Song
+    async function queueTrack(track) {
+      try {
+        const res = await fetch('/api/queue', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            input: track.videoId,
+            user: currentUser,
+            title: track.title,
+            artist: track.artist,
+            thumbnail: track.thumbnail
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`✓ "${track.title}" added to queue by ${currentUser}!`);
+        } else {
+          showToast(`Error: ${data.error || 'Failed to add'}`);
+        }
+      } catch (err) {
+        showToast('Failed to connect to Jukebox server');
+      }
+    }
+
+    // Paste Link Submit
+    async function submitPaste() {
+      const input = document.getElementById('paste-input').value.trim();
+      if (!input) return;
+
+      try {
+        const res = await fetch('/api/queue', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            input,
+            user: currentUser
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('paste-input').value = '';
+          showToast(`✓ Link queued by ${currentUser}!`);
+        } else {
+          showToast(`Error: ${data.error || 'Invalid link'}`);
+        }
+      } catch (err) {
+        showToast('Failed to queue link');
+      }
+    }
+
+    // Remove Song from Queue
+    async function removeSong(index, title) {
+      try {
+        const res = await fetch(`/api/queue/${index}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user: currentUser, title })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`🗑️ "${title}" removed by ${currentUser}`);
+        } else {
+          showToast('Failed to remove song');
+        }
+      } catch (err) {
+        showToast('Error removing song');
+      }
+    }
+
+    // Playback Controls
+    async function togglePlay() {
+      await fetch('/api/control/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user: currentUser })
+      });
+    }
+
+    async function skipNext() {
+      await fetch('/api/control/next', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user: currentUser })
+      });
+      showToast(`Skipped by ${currentUser}`);
+    }
+
+    // Upvote Song
+    async function upvoteSong(videoId, title) {
+      try {
+        const res = await fetch('/api/upvote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ videoId, user: currentUser, title })
+        });
+        const data = await res.json();
+        if (data.hasVoted) {
+          showToast(`🔥 Upvoted! Lagu naik prioritas antrean.`);
+        } else {
+          showToast(`Vote dibatalkan.`);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // Initial Fetch
+    async function fetchStatus() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        updateUI(data);
+      } catch (err) {
+        updateUI({ online: false });
+      }
+    }
+
+    // Real-Time Events (Server-Sent Events)
+    function setupSSE() {
+      const evtSource = new EventSource('/api/events');
+      evtSource.onmessage = function(event) {
+        try {
+          const data = JSON.parse(event.data);
+          updateUI({ online: true, ...data });
+        } catch (e) {}
+      };
+      evtSource.onerror = function() {
+        updateUI({ online: false });
+      };
+    }
+
+    // Start
+    selectUser(currentUser);
+    fetchStatus();
+    setupSSE();
+  </script>
+</body>
+</html>
