@@ -95,19 +95,13 @@ function isCloudflaredRunning() {
 }
 
 async function main() {
-  console.log(`${c.cyan}🔍 [1/3] Memeriksa YouTube Music Desktop...${c.reset}`);
-  const ytmOk = await checkYTM();
-  if (ytmOk) {
-    console.log(`${c.emerald}   ✅ YouTube Music Desktop terhubung & aktif di port 26538!${c.reset}`);
-  } else {
-    console.log(`${c.amber}   ⚠️  YouTube Music Desktop belum terdeteksi.${c.reset}`);
-    console.log(`${c.gray}      Tips: Buka YouTube Music Desktop -> Settings -> Integrations ->`);
-    console.log(`      Aktifkan 'Companion Server' (Port 26538). Server Jukebox tetap berjalan${c.reset}`);
-    console.log(`${c.gray}      dan akan otomatis terhubung begitu YouTube Music dibuka.${c.reset}`);
-  }
+  console.log(`${c.emerald}🚀 [1/3] Party Jukebox Standalone Audio Engine siap!${c.reset}`);
+  console.log(`${c.gray}   (Aplikasi berjalan mandiri tanpa perlu membuka YouTube Music Desktop lagi).${c.reset}`);
+
+  const isQuickTunnel = process.argv.includes('--public') || process.argv.includes('--quick-tunnel');
 
   if (TUNNEL_TOKEN) {
-    console.log(`\n${c.cyan}🌐 [2/3] Memeriksa Cloudflare Tunnel (${c.bold}https://dj.wsnsam.my.id${c.reset}${c.cyan})...${c.reset}`);
+    console.log(`\n${c.cyan}🌐 [2/3] Memeriksa Cloudflare Tunnel Pribadi (${c.bold}https://dj.wsnsam.my.id${c.reset}${c.cyan})...${c.reset}`);
     const cloudflaredPath = findCloudflared();
     const alreadyRunning = isCloudflaredRunning();
 
@@ -132,12 +126,27 @@ async function main() {
         console.warn(`${c.rose}   ⚠️  Gagal menjalankan cloudflared: ${err.message}${c.reset}`);
       });
     }
+  } else if (isQuickTunnel) {
+    console.log(`\n${c.cyan}🌐 [2/3] Membuka Cloudflare Quick Tunnel Publik (On-the-fly)...${c.reset}`);
+    const cloudflaredPath = findCloudflared();
+    if (cloudflaredPath) {
+      tunnelProcess = spawn(cloudflaredPath, ['tunnel', '--url', 'http://localhost:3000'], {
+        stdio: ['ignore', 'pipe', 'pipe']
+      });
+
+      tunnelProcess.stderr.on('data', (d) => {
+        const match = d.toString().match(/https:\/\/[a-zA-Z0-9-]+\.trycloudflare\.com/);
+        if (match) {
+          console.log(`${c.emerald}   ⚡ Link Publik Berhasil Dibuat: ${c.bold}${c.pink}${match[0]}${c.reset}`);
+        }
+      });
+    }
   } else {
-    console.log(`\n${c.cyan}🌐 [2/3] Mode Akses: Jaringan Lokal WiFi & Auto-Address${c.reset}`);
-    console.log(`${c.gray}   (Domain pribadi dj.wsnsam.my.id dimatikan untuk publik; gunakan --tunnel bila host Sam).${c.reset}`);
+    console.log(`\n${c.cyan}🌐 [2/3] Mode Akses: Jaringan Lokal WiFi & Hotspot Tethering${c.reset}`);
+    console.log(`${c.gray}   (Host bisa mengaktifkan link publik internet sewaktu-waktu langsung dari UI web).${c.reset}`);
   }
 
-  console.log(`\n${c.cyan}🎶 [3/3] Menjalankan Server Jukebox Lokal...${c.reset}`);
+  console.log(`\n${c.cyan}🎶 [3/3] Menjalankan Server Jukebox Standalone...${c.reset}`);
   const serverProcess = spawn('node', ['server.js'], {
     cwd: ROOT_DIR,
     stdio: 'inherit'

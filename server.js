@@ -3,13 +3,15 @@ const cors = require('cors');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
-const { exec } = require('child_process');
+const { exec, spawn } = require('child_process');
 const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const APP_VERSION = '2.6.0';
+
 const YTM_API = 'http://localhost:26538';
-const YTM_WS = 'ws://localhost:26538/api/v1/ws';
+let isYtmConnected = false;
 
 app.use(cors());
 app.use(express.json());
@@ -23,28 +25,131 @@ app.use(express.static(path.join(__dirname, 'public'), {
   }
 }));
 
-// Persisted Data Storage (data/social_queue.json & data/played_history.json)
+// Persisted Data Storage
 const DATA_DIR = path.join(__dirname, 'data');
 if (!fs.existsSync(DATA_DIR)) {
   try { fs.mkdirSync(DATA_DIR, { recursive: true }); } catch (e) {}
 }
+const PARTY_QUEUE_FILE = path.join(DATA_DIR, 'party_queue.json');
 const SOCIAL_QUEUE_FILE = path.join(DATA_DIR, 'social_queue.json');
 const PLAYED_HISTORY_FILE = path.join(DATA_DIR, 'played_history.json');
 
-// In-memory social tracking for queued tracks: videoId -> { user, addedAt, title, artist, thumbnail }
+// --- INTERNAL MASTER QUEUE & STATE ---
+let partyQueue = [];
 const socialQueue = new Map();
-// Upvotes: videoId -> Set of users who voted
 const upvotes = new Map();
-// Activity Feed / History Log: Array of { id, user, action, details, timestamp }
+
+let currentSong = {
+  videoId: '',
+  title: 'No song playing',
+  artist: '',
+  thumbnail: '',
+  imageSrc: '',
+  songDuration: 0,
+  elapsedSeconds: 0,
+  isPaused: true,
+  addedBy: 'Host',
+  startedAt: 0
+};
+
+const DEFAULT_STARTER_TRACK = {
+  videoId: 'bu7nU9Mhpyo',
+  title: '告白气球 (Love Confession)',
+  artist: '周杰伦 Jay Chou',
+  thumbnail: 'https://i.ytimg.com/vi/bu7nU9Mhpyo/hqdefault.jpg',
+  imageSrc: 'https://i.ytimg.com/vi/bu7nU9Mhpyo/hqdefault.jpg',
+  songDuration: 215,
+  elapsedSeconds: 0,
+  isPaused: true,
+  addedBy: 'Party Jukebox',
+  startedAt: Date.now()
+};
+
 const activityLogs = [];
-// Dynamic DJ Profiles Registry: Set of all active/known party DJs
 const knownDJs = new Set();
-// Previously Played Songs History
 const playedHistory = [];
-// In-memory lyrics cache
 const lyricsCache = new Map();
 
-// Load persisted social queue & history on boot
+// Quick Tunnel Management
+let quickTunnelProcess = null;
+let dynamicPublicUrl = process.env.PUBLIC_URL || null;
+
+function findCloudflaredBin() {
+  const isWin = process.platform === 'win32';
+  const binName = isWin ? 'cloudflared.exe' : 'cloudflared';
+  const candidates = [
+    '/opt/homebrew/bin/cloudflared',
+    '/usr/local/bin/cloudflared',
+    path.join(__dirname, 'bin', binName)
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) return c;
+  }
+  try {
+    const cmd = isWin ? `where ${binName}` : `which ${binName}`;
+    const p = execSync(cmd, { stdio: 'pipe' }).toString().trim().split('\n')[0];
+    if (p && fs.existsSync(p)) return p;
+  } catch (e) {}
+  return 'cloudflared';
+}
+
+function startQuickTunnel(port = PORT) {
+  return new Promise((resolve) => {
+    if (dynamicPublicUrl) return resolve(dynamicPublicUrl);
+
+    const bin = findCloudflaredBin();
+    try {
+      console.log(`🌐 Memulai Cloudflare Quick Tunnel untuk port ${port}...`);
+      quickTunnelProcess = spawn(bin, ['tunnel', '--url', `http://localhost:${port}`], {
+        stdio: ['ignore', 'pipe', 'pipe']
+      });
+
+      let resolved = false;
+      const timeout = setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          resolve(dynamicPublicUrl);
+        }
+      }, 12000);
+
+      const checkData = (data) => {
+        const text = data.toString();
+        const match = text.match(/https:\/\/[a-zA-Z0-9-]+\.trycloudflare\.com/);
+        if (match && !resolved) {
+          resolved = true;
+          clearTimeout(timeout);
+          dynamicPublicUrl = match[0];
+          console.log(`⚡ Quick Tunnel Berhasil Dibuat! URL Publik: ${dynamicPublicUrl}`);
+          broadcastUpdate();
+          resolve(dynamicPublicUrl);
+        }
+      };
+
+      quickTunnelProcess.stdout.on('data', checkData);
+      quickTunnelProcess.stderr.on('data', checkData);
+
+      quickTunnelProcess.on('exit', () => {
+        dynamicPublicUrl = null;
+        quickTunnelProcess = null;
+        broadcastUpdate();
+      });
+    } catch (err) {
+      console.warn('Gagal menjalankan Quick Tunnel:', err.message);
+      resolve(null);
+    }
+  });
+}
+
+function stopQuickTunnel() {
+  if (quickTunnelProcess) {
+    try { quickTunnelProcess.kill('SIGTERM'); } catch (e) {}
+    quickTunnelProcess = null;
+    dynamicPublicUrl = null;
+    broadcastUpdate();
+  }
+}
+
+// Load persisted state
 try {
   if (fs.existsSync(SOCIAL_QUEUE_FILE)) {
     const raw = JSON.parse(fs.readFileSync(SOCIAL_QUEUE_FILE, 'utf8'));
@@ -53,8 +158,31 @@ try {
       if (v && v.user) knownDJs.add(v.user);
     }
   }
-} catch (e) {
-  console.warn('Could not load persisted social queue:', e.message);
+} catch (e) {}
+
+try {
+  if (fs.existsSync(PARTY_QUEUE_FILE)) {
+    const raw = JSON.parse(fs.readFileSync(PARTY_QUEUE_FILE, 'utf8'));
+    if (raw) {
+      if (raw.currentSong && raw.currentSong.videoId) {
+        currentSong = {
+          ...raw.currentSong,
+          imageSrc: raw.currentSong.thumbnail || raw.currentSong.imageSrc || '',
+          isPaused: true
+        };
+      }
+      if (Array.isArray(raw.partyQueue)) {
+        partyQueue = raw.partyQueue;
+        partyQueue.forEach(item => {
+          if (item && item.addedBy) knownDJs.add(item.addedBy);
+        });
+      }
+    }
+  }
+} catch (e) {}
+
+if (!currentSong.videoId) {
+  currentSong = { ...DEFAULT_STARTER_TRACK };
 }
 
 try {
@@ -62,16 +190,18 @@ try {
     const raw = JSON.parse(fs.readFileSync(PLAYED_HISTORY_FILE, 'utf8'));
     if (Array.isArray(raw)) playedHistory.push(...raw.slice(0, 60));
   }
-} catch (e) {
-  console.warn('Could not load persisted history:', e.message);
+} catch (e) {}
+
+function persistPartyQueue() {
+  try {
+    fs.writeFileSync(PARTY_QUEUE_FILE, JSON.stringify({ currentSong, partyQueue }, null, 2));
+  } catch (e) {}
 }
 
 function persistSocialQueue() {
   try {
     const obj = {};
-    for (const [k, v] of socialQueue.entries()) {
-      obj[k] = v;
-    }
+    for (const [k, v] of socialQueue.entries()) obj[k] = v;
     fs.writeFileSync(SOCIAL_QUEUE_FILE, JSON.stringify(obj, null, 2));
   } catch (e) {}
 }
@@ -82,11 +212,29 @@ function persistPlayedHistory() {
   } catch (e) {}
 }
 
-// --- AUTO-VACANT PARTY HOST MANAGEMENT (v2.3.0) ---
-const HOST_VACANT_TIMEOUT_MS = 60 * 1000; // 60s without heartbeat -> Auto-Vacant
+// Check YouTube Music Desktop connection (Transfer engine)
+async function checkYtmConnection() {
+  try {
+    const res = await fetch(`${YTM_API}/api/v1/song`, { signal: AbortSignal.timeout(1200) });
+    const prev = isYtmConnected;
+    isYtmConnected = res.ok;
+    if (!prev && isYtmConnected) {
+      console.log('⚡ YouTube Music Desktop terhubung! Lagu tamu akan ditransfer langsung ke YouTube Music.');
+      broadcastUpdate();
+    }
+  } catch (e) {
+    isYtmConnected = false;
+  }
+  return isYtmConnected;
+}
+setInterval(checkYtmConnection, 4000);
+checkYtmConnection();
+
+// --- AUTO-VACANT PARTY HOST MANAGEMENT ---
+const HOST_VACANT_TIMEOUT_MS = 60 * 1000;
 let partyHost = {
-  name: null,          // e.g. "DJ Sam" or null (Vacant)
-  token: null,         // Session token for host device ownership verification
+  name: null,
+  token: null,
   claimedAt: null,
   lastHeartbeat: null
 };
@@ -103,8 +251,6 @@ function checkHostVacant() {
   }
   return false;
 }
-
-// Periodically check for host vacancy every 10 seconds
 setInterval(checkHostVacant, 10000);
 
 function getPartyHostInfo() {
@@ -120,12 +266,9 @@ function getPartyHostInfo() {
 
 let currentVolume = 70;
 let isMuted = false;
-let userExplicitlyPaused = false;
-let lastAutoResumeTime = 0;
 
 function addPlayedHistory(track) {
   if (!track || !track.title || track.title === 'No song playing') return;
-  // If the latest item in history is the same track, avoid duplicate
   if (playedHistory.length > 0 && (playedHistory[0].videoId === track.videoId || playedHistory[0].title === track.title)) {
     return;
   }
@@ -150,24 +293,62 @@ function resolveAddedBy(videoId, queue = [], title = '') {
   if (title) {
     const cleanT = title.trim().toLowerCase();
     for (const [k, v] of socialQueue.entries()) {
-      if (v && v.title && v.title.trim().toLowerCase() === cleanT) {
-        return v.user;
-      }
+      if (v && v.title && v.title.trim().toLowerCase() === cleanT) return v.user;
     }
   }
-  if (liveSong && (liveSong.videoId === videoId || (title && liveSong.title === title)) && liveSong.addedBy && liveSong.addedBy !== 'Autoplay / Host') {
-    return liveSong.addedBy;
-  }
-  if (Array.isArray(queue)) {
-    const inQueue = queue.find(q => (videoId && q.videoId === videoId) || (title && q.title === title));
-    if (inQueue && inQueue.addedBy) return inQueue.addedBy;
-  }
-  const inHistory = playedHistory.find(h => (videoId && h.videoId === videoId) || (title && h.title === title));
-  if (inHistory && inHistory.addedBy) return inHistory.addedBy;
   return 'Autoplay / Host';
 }
 
-// Cross-Platform System Volume Control (Mac OS, Windows, Linux)
+function advanceNextTrack(skippedByUser = null) {
+  if (currentSong && currentSong.videoId && currentSong.title !== 'No song playing') {
+    addPlayedHistory(currentSong);
+  }
+
+  if (partyQueue.length > 0) {
+    const nextItem = partyQueue.shift();
+    currentSong = {
+      videoId: nextItem.videoId,
+      title: nextItem.title,
+      artist: nextItem.artist || '',
+      thumbnail: nextItem.thumbnail || '',
+      imageSrc: nextItem.thumbnail || '',
+      songDuration: nextItem.songDuration || 0,
+      elapsedSeconds: 0,
+      isPaused: false,
+      addedBy: nextItem.addedBy || 'Host',
+      startedAt: Date.now()
+    };
+  } else {
+    currentSong = {
+      videoId: '',
+      title: 'No song playing',
+      artist: '',
+      thumbnail: '',
+      imageSrc: '',
+      songDuration: 0,
+      elapsedSeconds: 0,
+      isPaused: true,
+      addedBy: 'Host',
+      startedAt: 0
+    };
+  }
+
+  playbackTracker.videoId = currentSong.videoId;
+  playbackTracker.elapsed = 0;
+  playbackTracker.lastReportedElapsed = -1;
+  playbackTracker.isPaused = currentSong.isPaused;
+  playbackTracker.songDuration = currentSong.songDuration;
+  playbackTracker.lastUpdated = Date.now();
+
+  persistPartyQueue();
+  if (skippedByUser) {
+    addActivity(skippedByUser, 'skip', currentSong.title || 'song');
+  }
+  broadcastUpdate();
+  return currentSong;
+}
+
+// Volume Controls
 function getSystemVolume() {
   return new Promise((resolve) => {
     if (process.platform === 'darwin') {
@@ -185,25 +366,20 @@ function getSystemVolume() {
 function setSystemVolume(vol) {
   return new Promise((resolve) => {
     if (process.platform === 'darwin') {
-      exec(`osascript -e "set volume output volume ${vol}"`, (err) => {
-        resolve(!err);
-      });
+      exec(`osascript -e "set volume output volume ${vol}"`, (err) => resolve(!err));
     } else if (process.platform === 'linux') {
-      exec(`amixer -D pulse sset Master ${vol}% 2>/dev/null || pactl set-sink-volume @DEFAULT_SINK@ ${vol}% 2>/dev/null`, () => {
-        resolve(true);
-      });
+      exec(`amixer -D pulse sset Master ${vol}% 2>/dev/null || pactl set-sink-volume @DEFAULT_SINK@ ${vol}% 2>/dev/null`, () => resolve(true));
     } else {
       resolve(true);
     }
   });
 }
 
+// Clean title and lyrics parser
 function cleanSongTitle(title, artist = '') {
   if (!title) return '';
   let clean = title;
-  // Remove Chinese/Japanese brackets content if it's metadata like 【Official MV】 or 【片尾曲】
   clean = clean.replace(/【(?:Official|MV|Music Video|官方|HD|4K|完整版|高畫質|片尾曲|主題曲|原聲帶|翻唱|Cover)[^】]*】/gi, '');
-  // Extract title inside 《...》 if present, e.g. Eric周興哲《怎麼了 What's Wrong》
   const guillemetMatch = clean.match(/《([^》]+)》/);
   if (guillemetMatch) {
     clean = guillemetMatch[1];
@@ -211,7 +387,6 @@ function cleanSongTitle(title, artist = '') {
     const bracketMatch = clean.match(/【([^】]+)】/);
     if (bracketMatch) clean = bracketMatch[1];
   }
-  // Strip common video noise & tags
   clean = clean
     .replace(/\b(?:official\s*(?:video|audio|music\s*video|lyric\s*video|mv)?|music\s*video|lyric\s*video|mv|hd|4k)\b/gi, '')
     .replace(/\((?:official\s*(?:video|audio|music\s*video|lyric\s*video)?|mv|hd|4k|lyrics?)\)/gi, '')
@@ -226,7 +401,6 @@ function cleanSongTitle(title, artist = '') {
     .replace(/\s+/g, ' ')
     .trim();
 
-  // If title has "Artist - Song", strip artist prefix if redundant
   if (clean.includes(' - ')) {
     const parts = clean.split(' - ');
     if (parts.length === 2) {
@@ -237,7 +411,6 @@ function cleanSongTitle(title, artist = '') {
       }
     }
   }
-
   return clean || title.trim();
 }
 
@@ -245,9 +418,7 @@ function parseLrc(lrcString) {
   if (!lrcString) return [];
   let offsetMs = 0;
   const offsetMatch = lrcString.match(/\[offset:\s*([+-]?\d+)\]/i);
-  if (offsetMatch) {
-    offsetMs = parseInt(offsetMatch[1], 10) || 0;
-  }
+  if (offsetMatch) offsetMs = parseInt(offsetMatch[1], 10) || 0;
   const offsetSec = offsetMs / 1000;
 
   const lines = lrcString.split('\n');
@@ -263,9 +434,7 @@ function parseLrc(lrcString) {
       const ms = parseInt(msStr, 10);
       const time = Math.max(0, min * 60 + sec + ms / 1000 + offsetSec);
       const text = match[4].trim();
-      if (text) {
-        result.push({ time, text });
-      }
+      if (text) result.push({ time, text });
     }
   }
   return result.sort((a, b) => a.time - b.time);
@@ -276,11 +445,9 @@ async function fetchLyrics(title, artist, duration) {
   const cleanArtist = (artist || '').replace(/\s*•.*$/, '').trim();
   const cacheKey = `${cleanTitle.toLowerCase()}---${cleanArtist.toLowerCase()}`;
 
-  if (lyricsCache.has(cacheKey)) {
-    return lyricsCache.get(cacheKey);
-  }
+  if (lyricsCache.has(cacheKey)) return lyricsCache.get(cacheKey);
 
-  const userAgent = 'PartyJukebox/2.5.1 (https://github.com/sammmms/jukebox)';
+  const userAgent = 'PartyJukebox/2.6.0 (https://github.com/sammmms/jukebox)';
 
   async function tryGet(tName, aName, dur) {
     try {
@@ -300,17 +467,9 @@ async function fetchLyrics(title, artist, duration) {
   }
 
   try {
-    let data = null;
+    let data = await tryGet(cleanTitle, cleanArtist, duration);
+    if (!data && duration && duration > 0) data = await tryGet(cleanTitle, cleanArtist, 0);
 
-    // 1. Exact clean title and artist lookup with duration
-    data = await tryGet(cleanTitle, cleanArtist, duration);
-
-    // 2. If not found, try without duration restriction (often ±2s variance in database)
-    if (!data && duration && duration > 0) {
-      data = await tryGet(cleanTitle, cleanArtist, 0);
-    }
-
-    // 3. If title has sub-components (e.g. Chinese & English: "怎么了 What's Wrong"), try individual segments
     if (!data && (cleanTitle.includes(' ') || cleanTitle.includes('-') || cleanTitle.includes('/'))) {
       const segments = cleanTitle.split(/[\s\-\/]+/).filter(p => p.length >= 2);
       for (const seg of segments) {
@@ -319,7 +478,6 @@ async function fetchLyrics(title, artist, duration) {
       }
     }
 
-    // 4. Fallback search with strict match verification (never pick random different track)
     if (!data) {
       try {
         const searchRes = await fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(cleanTitle + ' ' + cleanArtist)}`, {
@@ -329,7 +487,6 @@ async function fetchLyrics(title, artist, duration) {
         if (searchRes.ok) {
           const list = await searchRes.json();
           if (Array.isArray(list) && list.length > 0) {
-            // Find item with exact duration match (±4s) OR title overlap
             let best = null;
             if (duration && duration > 0) {
               best = list.find(item => item.syncedLyrics && Math.abs(item.duration - duration) <= 4)
@@ -368,7 +525,6 @@ async function fetchLyrics(title, artist, duration) {
     lyricsCache.set(cacheKey, result);
     return result;
   } catch (err) {
-    console.error('Lyrics error:', err.message);
     return { hasLyrics: false, error: 'Gagal mengambil lirik' };
   }
 }
@@ -380,7 +536,7 @@ function addActivity(user, action, details) {
   const item = {
     id: Date.now() + '-' + Math.random().toString(36).slice(2, 6),
     user: user || 'Someone',
-    action, // 'add' | 'skip' | 'pause' | 'play' | 'remove' | 'move' | 'upvote' | 'unvote' | 'volume' | 'join'
+    action,
     details: details || '',
     timestamp: Date.now()
   };
@@ -389,92 +545,48 @@ function addActivity(user, action, details) {
   return item;
 }
 
-addActivity('System', 'start', 'Party Jukebox server active');
+addActivity('System', 'start', 'Party Jukebox Engine active');
 
-// Robust playback timeline tracker (Independent of YTM desktop reporting 0s)
 const playbackTracker = {
-  videoId: '',
+  videoId: currentSong.videoId || '',
   elapsed: 0,
   lastReportedElapsed: -1,
-  isPaused: true,
-  songDuration: 0,
+  isPaused: currentSong.isPaused,
+  songDuration: currentSong.songDuration || 0,
   lastUpdated: Date.now()
 };
 
-// Tracks the exact metadata of the currently playing song to avoid 1-song shift mismatch in playedHistory
-let previousSongRecord = null;
-
 function updatePlaybackTracker(freshSong) {
   if (!freshSong || !freshSong.videoId) return;
-
   const now = Date.now();
   const duration = freshSong.songDuration || playbackTracker.songDuration || 0;
   playbackTracker.songDuration = duration;
 
-  // 1. New song detected!
   if (freshSong.videoId !== playbackTracker.videoId) {
-    // Record the song that just ended with its EXACT original metadata!
-    if (previousSongRecord && previousSongRecord.videoId && previousSongRecord.title && previousSongRecord.title !== 'No song playing') {
-      addPlayedHistory(previousSongRecord);
+    if (playbackTracker.videoId && currentSong.title && currentSong.title !== 'No song playing') {
+      addPlayedHistory({ ...currentSong, playedAt: now });
     }
-
-    // Now update previousSongRecord to represent this fresh song
-    previousSongRecord = {
-      videoId: freshSong.videoId,
-      title: freshSong.title,
-      artist: freshSong.artist || '',
-      thumbnail: freshSong.imageSrc || freshSong.thumbnail || '',
-      addedBy: freshSong.addedBy || 'Autoplay / Host',
-      playedAt: now
-    };
-
     playbackTracker.videoId = freshSong.videoId;
-    playbackTracker.elapsed = (typeof freshSong.elapsedSeconds === 'number' && freshSong.elapsedSeconds > 0)
-      ? freshSong.elapsedSeconds
-      : 0;
+    playbackTracker.elapsed = freshSong.elapsedSeconds || 0;
     playbackTracker.lastReportedElapsed = freshSong.elapsedSeconds ?? -1;
     playbackTracker.isPaused = freshSong.isPaused ?? false;
     playbackTracker.lastUpdated = now;
     return;
   }
 
-  // 2. Play/Pause state changed
   if (typeof freshSong.isPaused === 'boolean' && freshSong.isPaused !== playbackTracker.isPaused) {
-    // Watchdog for Made for Kids / COPPA auto-pausing:
-    // If YouTube paused the song unexpectedly without any user clicking pause, auto-resume!
-    if (freshSong.isPaused && !userExplicitlyPaused && freshSong.videoId && now - lastAutoResumeTime > 2000) {
-      lastAutoResumeTime = now;
-      console.log('⚡ YouTube auto-paused (Made for Kids / Miniplayer restriction). Auto-resuming playback...');
-      setTimeout(() => {
-        fetch(`${YTM_API}/api/v1/play`, { method: 'POST' }).catch(() => {});
-      }, 350);
-      return;
-    }
-
     if (!playbackTracker.isPaused) {
-      // Was playing, now pausing -> freeze elapsed at current calculated time
       const delta = (now - playbackTracker.lastUpdated) / 1000;
       playbackTracker.elapsed = Math.min(playbackTracker.elapsed + delta, duration || 9999);
     }
     playbackTracker.isPaused = freshSong.isPaused;
     playbackTracker.lastUpdated = now;
-    if (typeof freshSong.elapsedSeconds === 'number' && freshSong.elapsedSeconds > 0) {
-      playbackTracker.lastReportedElapsed = freshSong.elapsedSeconds;
-    }
     return;
   }
 
-  // 3. Genuine Seek detected: YTM reported a new elapsedSeconds that significantly differs from our tracked elapsed
-  if (
-    typeof freshSong.elapsedSeconds === 'number' &&
-    freshSong.elapsedSeconds >= 0 &&
-    freshSong.elapsedSeconds !== playbackTracker.lastReportedElapsed
-  ) {
+  if (typeof freshSong.elapsedSeconds === 'number' && freshSong.elapsedSeconds >= 0 && freshSong.elapsedSeconds !== playbackTracker.lastReportedElapsed) {
     const currentCalc = getCalculatedElapsed();
-    const diff = Math.abs(freshSong.elapsedSeconds - currentCalc);
-
-    // If difference is more than 3 seconds, user sought in the app
-    if (diff > 3) {
+    if (Math.abs(freshSong.elapsedSeconds - currentCalc) > 3) {
       playbackTracker.elapsed = freshSong.elapsedSeconds;
       playbackTracker.lastUpdated = now;
     }
@@ -483,86 +595,31 @@ function updatePlaybackTracker(freshSong) {
 }
 
 function getCalculatedElapsed() {
-  if (playbackTracker.isPaused) {
-    return Math.floor(playbackTracker.elapsed);
-  }
+  if (playbackTracker.isPaused) return Math.floor(playbackTracker.elapsed);
   const delta = (Date.now() - playbackTracker.lastUpdated) / 1000;
   const total = playbackTracker.elapsed + delta;
   const max = playbackTracker.songDuration > 0 ? playbackTracker.songDuration : 9999;
   return Math.floor(Math.min(total, max));
 }
 
-// Hang / Stalled Playback Auto-Recovery Watchdog
-let hangDetectionCount = 0;
-let lastHangSkipTime = 0;
-
-function checkPlaybackHang(freshSong) {
-  if (!freshSong || !freshSong.videoId || userExplicitlyPaused) {
-    hangDetectionCount = 0;
-    return;
-  }
-
-  const now = Date.now();
-  const duration = freshSong.songDuration || playbackTracker.songDuration || 0;
-  const elapsed = getCalculatedElapsed();
-
-  // If a song has finished (elapsed >= duration + 2s), but player hasn't progressed to next song
-  if (duration > 0 && elapsed >= duration + 2 && !playbackTracker.isPaused) {
-    hangDetectionCount++;
-    if (hangDetectionCount >= 2 && now - lastHangSkipTime > 6000) {
-      lastHangSkipTime = now;
-      hangDetectionCount = 0;
-      console.warn(`⚡ Watchdog: Lagu "${freshSong.title}" selesai (${elapsed}s/${duration}s) tapi tidak berganti otomatis. Memicu next...`);
-      fetch(`${YTM_API}/api/v1/next`, { method: 'POST' }).catch(() => {});
-    }
-  } else {
-    hangDetectionCount = 0;
-  }
-}
-
-// Real-time Song Cache
-let liveSong = {
-  title: 'No song playing',
-  artist: 'Connect YouTube Music',
-  album: '',
-  imageSrc: '',
-  isPaused: true,
-  songDuration: 0,
-  elapsedSeconds: 0,
-  videoId: '',
-  addedBy: 'Autoplay / Sam'
-};
-
-// Helper to extract video ID from various YouTube URL formats
 function extractVideoId(input) {
   if (!input || typeof input !== 'string') return null;
   input = input.trim();
-  // Direct 11-char ID
   if (/^[a-zA-Z0-9_-]{11}$/.test(input)) return input;
-  // Standard and shortened URLs, including shorts and live
-  const match = input.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/|live\/)|music\.youtube\.com\/watch\?v=)([^#&?]{11})/);
-  if (match) return match[1];
-  // Parse query parameter v= if full URL
-  try {
-    const url = new URL(input);
-    const v = url.searchParams.get('v');
-    if (v && /^[a-zA-Z0-9_-]{11}$/.test(v)) return v;
-  } catch (e) {}
+  const watchMatch = input.match(/(?:music\.)?youtube\.com\/watch\?(?:.*&)?v=([a-zA-Z0-9_-]{11})/);
+  if (watchMatch) return watchMatch[1];
+  const shortMatch = input.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+  if (shortMatch) return shortMatch[1];
+  const embedMatch = input.match(/youtube\.com\/(?:embed|shorts|v)\/([a-zA-Z0-9_-]{11})/);
+  if (embedMatch) return embedMatch[1];
   return null;
 }
 
-// Validates track validity & availability on YouTube Music
 async function validateYouTubeMusicTrack(videoId) {
   if (!videoId || typeof videoId !== 'string' || !/^[a-zA-Z0-9_-]{11}$/.test(videoId.trim())) {
-    return {
-      valid: false,
-      error: 'Format Video ID YouTube tidak valid (harus 11 karakter).'
-    };
+    return { valid: false, error: 'Format Video ID YouTube tidak valid (harus 11 karakter).' };
   }
-
   const cleanId = videoId.trim();
-
-  // 1. YouTube oEmbed check: confirms the video exists and is public on YouTube
   let oembedData = null;
   try {
     const oembedRes = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${cleanId}&format=json`, {
@@ -572,47 +629,11 @@ async function validateYouTubeMusicTrack(videoId) {
       },
       signal: AbortSignal.timeout(3500)
     });
-    // ONLY reject if YouTube explicitly returns 404 (does not exist/deleted).
-    // If rate-limited (429), forbidden (403), or network glitch, do NOT block the track!
     if (oembedRes.status === 404) {
-      return {
-        valid: false,
-        error: 'Lagu/video tidak ditemukan di YouTube (404 Not Found), telah dihapus, atau disetel privat.'
-      };
+      return { valid: false, error: 'Lagu/video tidak ditemukan di YouTube (404 Not Found), telah dihapus, atau disetel privat.' };
     }
-    if (oembedRes.ok) {
-      oembedData = await oembedRes.json();
-    }
-  } catch (err) {
-    console.warn(`[ValidateTrack] oEmbed check warning for ${cleanId}:`, err.message);
-  }
-
-  // 2. YouTube Music Catalog check: confirms the video is accessible in YouTube Music
-  try {
-    const ytmRes = await fetch(`https://music.youtube.com/watch?v=${cleanId}`, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept-Language': 'en-US,en;q=0.9'
-      },
-      signal: AbortSignal.timeout(3500)
-    });
-
-    if (ytmRes.ok) {
-      const html = await ytmRes.text();
-      const hasOgTitle = html.includes('property="og:title"');
-      const isGenericYTM = html.includes('<title>YouTube Music</title>') && !hasOgTitle;
-      const isDeprecatedNotice = html.includes('Browser Anda sudah tidak digunakan lagi') && !hasOgTitle;
-
-      if (isGenericYTM || isDeprecatedNotice) {
-        return {
-          valid: false,
-          error: 'Video ini tidak tersedia di katalog YouTube Music (tidak dapat diputar di aplikasi musik).'
-        };
-      }
-    }
-  } catch (err) {
-    console.warn(`[ValidateTrack] YTM catalog check warning for ${cleanId}:`, err.message);
-  }
+    if (oembedRes.ok) oembedData = await oembedRes.json();
+  } catch (err) {}
 
   return {
     valid: true,
@@ -622,218 +643,29 @@ async function validateYouTubeMusicTrack(videoId) {
   };
 }
 
-// Fetch currently playing song from YouTube Music Desktop
-async function fetchCurrentSongFromYTM() {
-  try {
-    const res = await fetch(`${YTM_API}/api/v1/song`);
-    if (!res.ok) return null;
-    const song = await res.json();
-    return {
-      title: song.title || 'Unknown Title',
-      artist: song.artist || 'Unknown Artist',
-      album: song.album || '',
-      imageSrc: song.imageSrc || '',
-      isPaused: song.isPaused ?? true,
-      songDuration: song.songDuration || 0,
-      elapsedSeconds: song.elapsedSeconds || 0,
-      videoId: song.videoId || '',
-      addedBy: resolveAddedBy(song.videoId, [], song.title)
-    };
-  } catch (err) {
-    return null;
-  }
-}
-
-// Connect to YTM WebSocket
-function connectYTMWebSocket() {
-  try {
-    const ws = new WebSocket(YTM_WS);
-
-    ws.onopen = () => {
-      console.log('⚡ Connected to YouTube Music WebSocket for instant live events!');
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const msg = JSON.parse(event.data);
-        if (msg.type === 'PLAYER_INFO' || msg.type === 'VIDEO_CHANGED') {
-          if (msg.song) {
-            const paused = msg.isPlaying ? false : (msg.song.isPaused ?? true);
-            liveSong = {
-              title: msg.song.title || 'Unknown Title',
-              artist: msg.song.artist || 'Unknown Artist',
-              album: msg.song.album || '',
-              imageSrc: msg.song.imageSrc || '',
-              isPaused: paused,
-              songDuration: msg.song.songDuration || 0,
-              elapsedSeconds: msg.position ?? msg.song.elapsedSeconds ?? 0,
-              videoId: msg.song.videoId || '',
-              addedBy: resolveAddedBy(msg.song.videoId, [], msg.song.title)
-            };
-            updatePlaybackTracker(liveSong);
-            broadcastUpdate();
-          }
-        } else if (msg.type === 'PLAYER_STATE_CHANGED') {
-          liveSong.isPaused = !msg.isPlaying;
-          updatePlaybackTracker(liveSong);
-          broadcastUpdate();
-        } else if (msg.type === 'POSITION_CHANGED') {
-          if (typeof msg.position === 'number' && msg.position > 1) {
-            playbackTracker.elapsed = msg.position;
-            playbackTracker.lastUpdated = Date.now();
-            broadcastUpdate();
-          }
-        } else if (msg.type === 'VOLUME_CHANGED') {
-          if (typeof msg.volume === 'number') currentVolume = msg.volume;
-          if (typeof msg.muted === 'boolean') isMuted = msg.muted;
-          broadcastUpdate();
-        }
-      } catch (e) {
-        console.error('WS message parse error:', e);
-      }
-    };
-
-    ws.onerror = () => {};
-    ws.onclose = () => {
-      setTimeout(connectYTMWebSocket, 3000);
-    };
-  } catch (err) {
-    setTimeout(connectYTMWebSocket, 3000);
-  }
-}
-
-// Fetch and parse queue from YouTube Music Desktop
-async function getQueueData() {
-  try {
-    const res = await fetch(`${YTM_API}/api/v1/queue`);
-    if (!res.ok) return { queue: [], selectedIndex: -1 };
-    const data = await res.json();
-    const items = data.items || [];
-
-    let selectedIndex = -1;
-    const queue = [];
-
-    for (let index = 0; index < items.length; index++) {
-      const item = items[index];
-      const r = item.playlistPanelVideoRenderer ||
-                item.playlistPanelVideoWrapperRenderer?.primaryRenderer?.playlistPanelVideoRenderer;
-      if (!r) continue;
-
-      const isSelected = r.selected === true;
-      if (isSelected) selectedIndex = index;
-
-      const videoId = r.videoId;
-      const title = r.title?.runs?.[0]?.text || 'Untitled';
-      const artist = r.longBylineText?.runs?.map(x => x.text).join('') ||
-                     r.shortBylineText?.runs?.map(x => x.text).join('') || '';
-      const thumbnails = r.thumbnail?.thumbnails || [];
-      const thumbnail = thumbnails[thumbnails.length - 1]?.url || '';
-
-      const social = socialQueue.get(videoId);
-      const voters = upvotes.get(videoId);
-      const voteCount = voters ? voters.size : 0;
-      const votedUsers = voters ? Array.from(voters) : [];
-
-      queue.push({
-        rawIndex: index,
-        videoId,
-        title,
-        artist,
-        thumbnail,
-        selected: isSelected,
-        addedBy: social?.user || null,
-        addedAt: social?.addedAt || null,
-        upvotes: voteCount,
-        votedUsers
-      });
-    }
-
-    // Fallback: If YTM didn't mark any song as selected, check liveSong.videoId
-    if (selectedIndex === -1 && liveSong && liveSong.videoId) {
-      const matchIdx = queue.findIndex(q => q.videoId === liveSong.videoId);
-      if (matchIdx !== -1) {
-        selectedIndex = matchIdx;
-        queue[matchIdx].selected = true;
-      }
-    }
-
-    // Seed previously played songs from queue history if not yet recorded
-    if (selectedIndex > 0) {
-      for (let i = selectedIndex - 1; i >= 0; i--) {
-        const past = queue[i];
-        if (past && past.title) {
-          const already = playedHistory.some(p => (past.videoId && p.videoId === past.videoId) || p.title === past.title);
-          if (!already) {
-            playedHistory.push({
-              id: 'past-' + past.rawIndex + '-' + (past.videoId || Math.random().toString(36).slice(2, 6)),
-              videoId: past.videoId || '',
-              title: past.title,
-              artist: past.artist || '',
-              thumbnail: past.thumbnail || '',
-              addedBy: past.addedBy || 'Autoplay / Sam',
-              playedAt: Date.now() - (selectedIndex - i) * 180000
-            });
-          }
-        }
-      }
-    }
-
-    return { queue, selectedIndex };
-  } catch (err) {
-    return { queue: [], selectedIndex: -1 };
-  }
-}
-
-// Reorder queue in YouTube Music based on vote counts
-async function reorderQueueByVotes() {
-  try {
-    const { queue, selectedIndex } = await getQueueData();
-    if (queue.length <= 1) return;
-
-    const startIndex = selectedIndex >= 0 ? selectedIndex + 1 : 0;
-    if (startIndex >= queue.length - 1) return;
-
-    let moved = false;
-    for (let i = startIndex + 1; i < queue.length; i++) {
-      const currentVotes = queue[i].upvotes;
-
-      let targetIndex = i;
-      while (targetIndex > startIndex) {
-        const prevVotes = queue[targetIndex - 1].upvotes;
-        if (currentVotes > prevVotes) {
-          targetIndex--;
-        } else {
-          break;
-        }
-      }
-
-      if (targetIndex !== i) {
-        await fetch(`${YTM_API}/api/v1/queue/${queue[i].rawIndex}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ toIndex: queue[targetIndex].rawIndex })
-        });
-        moved = true;
-        break;
-      }
-    }
-
-    if (moved) {
-      setTimeout(broadcastUpdate, 300);
-    }
-  } catch (err) {
-    console.error('Reorder error:', err);
-  }
-}
-
-// Search YouTube Music
+// Direct YouTube Music Search via Innertube WEB_REMIX API
 async function searchYouTubeMusic(query) {
   try {
-    const res = await fetch(`${YTM_API}/api/v1/search`, {
+    const res = await fetch('https://music.youtube.com/youtubei/v1/search?prettyPrint=false', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query })
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      },
+      body: JSON.stringify({
+        context: {
+          client: {
+            clientName: 'WEB_REMIX',
+            clientVersion: '1.20231204.01.00',
+            hl: 'id',
+            gl: 'ID'
+          }
+        },
+        query: query
+      }),
+      signal: AbortSignal.timeout(6000)
     });
+
     if (!res.ok) return [];
     const data = await res.json();
     const tabs = data?.contents?.tabbedSearchResultsRenderer?.tabs;
@@ -866,7 +698,8 @@ async function searchYouTubeMusic(query) {
         const card = section.musicCardShelfRenderer;
         const title = card.title?.runs?.[0]?.text;
         const artist = card.subtitle?.runs?.map(r => r.text).join('');
-        const videoId = card.title?.runs?.[0]?.navigationEndpoint?.watchEndpoint?.videoId;
+        const videoId = card.title?.runs?.[0]?.navigationEndpoint?.watchEndpoint?.videoId
+          || card.buttons?.[0]?.buttonRenderer?.command?.watchEndpoint?.videoId;
         const thumbnails = card.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails || [];
         const thumbnail = thumbnails[thumbnails.length - 1]?.url || '';
         if (videoId && title && !seenIds.has(videoId)) {
@@ -888,21 +721,125 @@ async function searchYouTubeMusic(query) {
 
     return results.slice(0, 20);
   } catch (err) {
-    console.error('Search error:', err);
     return [];
   }
 }
 
-const APP_VERSION = '2.5.1';
+// Unified Current Song Fetcher (Bridges with YouTube Music Desktop if active)
+async function getUnifiedCurrentSong() {
+  if (isYtmConnected) {
+    try {
+      const res = await fetch(`${YTM_API}/api/v1/song`, { signal: AbortSignal.timeout(1500) });
+      if (res.ok) {
+        const s = await res.json();
+        const mapped = {
+          title: s.title || 'Unknown Title',
+          artist: s.artist || 'Unknown Artist',
+          album: s.album || '',
+          imageSrc: s.imageSrc || '',
+          thumbnail: s.imageSrc || '',
+          isPaused: s.isPaused ?? true,
+          songDuration: s.songDuration || 0,
+          elapsedSeconds: s.elapsedSeconds || 0,
+          videoId: s.videoId || '',
+          addedBy: resolveAddedBy(s.videoId, [], s.title)
+        };
+        updatePlaybackTracker(mapped);
+        currentSong = mapped;
+        return mapped;
+      }
+    } catch (e) {
+      isYtmConnected = false;
+    }
+  }
+
+  return {
+    ...currentSong,
+    currentElapsed: getCalculatedElapsed(),
+    isPaused: playbackTracker.isPaused
+  };
+}
+
+// Unified Queue Fetcher (Reads YTM Desktop Queue if active, else internal partyQueue)
+async function getUnifiedQueue() {
+  if (isYtmConnected) {
+    try {
+      const res = await fetch(`${YTM_API}/api/v1/queue`, { signal: AbortSignal.timeout(1500) });
+      if (res.ok) {
+        const data = await res.json();
+        const items = data.items || [];
+        const queue = [];
+        let selectedIndex = -1;
+
+        for (let index = 0; index < items.length; index++) {
+          const item = items[index];
+          const r = item.playlistPanelVideoRenderer ||
+                    item.playlistPanelVideoWrapperRenderer?.primaryRenderer?.playlistPanelVideoRenderer;
+          if (!r) continue;
+
+          const isSelected = r.selected === true;
+          if (isSelected) selectedIndex = index;
+
+          const videoId = r.videoId;
+          const title = r.title?.runs?.[0]?.text || 'Untitled';
+          const artist = r.longBylineText?.runs?.map(x => x.text).join('') ||
+                         r.shortBylineText?.runs?.map(x => x.text).join('') || '';
+          const thumbnails = r.thumbnail?.thumbnails || [];
+          const thumbnail = thumbnails[thumbnails.length - 1]?.url || '';
+
+          const social = socialQueue.get(videoId);
+          const voters = upvotes.get(videoId);
+          const voteCount = voters ? voters.size : 0;
+          const votedUsers = voters ? Array.from(voters) : [];
+
+          queue.push({
+            rawIndex: index,
+            videoId,
+            title,
+            artist,
+            thumbnail,
+            selected: isSelected,
+            addedBy: social?.user || null,
+            addedAt: social?.addedAt || null,
+            upvotes: voteCount,
+            votedUsers
+          });
+        }
+        return { queue, selectedIndex };
+      }
+    } catch (e) {
+      isYtmConnected = false;
+    }
+  }
+
+  const formattedQueue = partyQueue.map((item, idx) => ({
+    rawIndex: idx,
+    videoId: item.videoId,
+    title: item.title,
+    artist: item.artist,
+    thumbnail: item.thumbnail,
+    selected: false,
+    addedBy: item.addedBy,
+    addedAt: item.addedAt,
+    upvotes: item.upvotes || 0,
+    votedUsers: item.votedUsers || []
+  }));
+
+  return { queue: formattedQueue, selectedIndex: -1 };
+}
 
 // --- API ROUTES ---
 
 // 0. Version Endpoint
 app.get('/api/version', (req, res) => {
-  res.json({ version: APP_VERSION, name: 'Party Jukebox' });
+  res.json({
+    version: APP_VERSION,
+    name: 'Party Jukebox',
+    playbackEngine: isYtmConnected ? 'ytm_desktop' : 'standalone'
+  });
 });
 
-// 0.1 Host Management Endpoints (Auto-Vacant System v2.3.0)
+// 0.1 Host Management Endpoints
 app.get('/api/host', (req, res) => {
   res.json({ partyHost: getPartyHostInfo() });
 });
@@ -916,7 +853,6 @@ app.post('/api/host/claim', (req, res) => {
   const cleanName = name.trim().slice(0, 25);
   const hostToken = token || (Date.now() + '-' + Math.random().toString(36).slice(2, 8));
 
-  // Can claim if currently vacant, or if existing token matches, or if forced
   if (partyHost.name === null || partyHost.token === token || force) {
     const prevHost = partyHost.name;
     partyHost = {
@@ -959,6 +895,17 @@ app.post('/api/host/release', (req, res) => {
   res.json({ success: true, partyHost: getPartyHostInfo() });
 });
 
+// Dynamic Public Tunnel Toggles
+app.post('/api/host/tunnel/start', async (req, res) => {
+  const url = await startQuickTunnel(PORT);
+  res.json({ success: Boolean(url), publicUrl: url });
+});
+
+app.post('/api/host/tunnel/stop', (req, res) => {
+  stopQuickTunnel();
+  res.json({ success: true, publicUrl: null });
+});
+
 // 0.2 Register / Join as Dynamic DJ / Guest
 app.post('/api/dj/join', (req, res) => {
   const { name } = req.body || {};
@@ -975,38 +922,37 @@ app.post('/api/dj/join', (req, res) => {
   res.json({ success: true, name: cleanName, djs: Array.from(knownDJs), partyHost: getPartyHostInfo() });
 });
 
-// 1. Status (Now Playing + Queue + Volume + Activity Feed)
+// 1. Status
 app.get('/api/status', async (req, res) => {
-  // Prevent all browser & intermediary proxy caching for real-time fidelity
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
 
-  const [freshSong, { queue, selectedIndex }, sysVol] = await Promise.all([
-    fetchCurrentSongFromYTM(),
-    getQueueData(),
+  const [liveCurrent, { queue, selectedIndex }, sysVol] = await Promise.all([
+    getUnifiedCurrentSong(),
+    getUnifiedQueue(),
     getSystemVolume()
   ]);
 
-  if (freshSong) {
-    freshSong.addedBy = resolveAddedBy(freshSong.videoId, queue, freshSong.title);
-    liveSong = freshSong;
-    updatePlaybackTracker(freshSong);
-  }
   currentVolume = sysVol;
-
   const currentIp = getLocalIp();
 
+  // Determine active public address
+  const activePublicUrl = dynamicPublicUrl || (process.env.PUBLIC_URL || (process.env.CLOUDFLARE_TUNNEL_TOKEN ? 'https://dj.wsnsam.my.id' : null));
+
   res.json({
-    online: liveSong.videoId !== '',
+    online: true,
+    standalone: !isYtmConnected,
+    playbackEngine: isYtmConnected ? 'ytm_desktop' : 'standalone',
     version: APP_VERSION,
     host: {
       ip: currentIp,
       url: `http://${currentIp}:${PORT}`,
-      publicUrl: process.env.PUBLIC_URL || (process.env.CLOUDFLARE_TUNNEL_TOKEN ? 'https://dj.wsnsam.my.id' : null)
+      publicUrl: activePublicUrl,
+      isTunnelActive: Boolean(dynamicPublicUrl || process.env.CLOUDFLARE_TUNNEL_TOKEN)
     },
     current: {
-      ...liveSong,
+      ...liveCurrent,
       currentElapsed: getCalculatedElapsed(),
       isPaused: playbackTracker.isPaused
     },
@@ -1020,7 +966,7 @@ app.get('/api/status', async (req, res) => {
   });
 });
 
-// 2. Search
+// 2. Direct Search
 app.post('/api/search', async (req, res) => {
   const { query } = req.body;
   if (!query || typeof query !== 'string') {
@@ -1030,7 +976,7 @@ app.post('/api/search', async (req, res) => {
   res.json({ results });
 });
 
-// 3. Add to Queue (with strict validation & verification against invalid songs)
+// 3. Add to Queue / Transfer Song to YouTube Music
 app.post('/api/queue', async (req, res) => {
   const { input, user, title, artist, thumbnail } = req.body;
   const videoId = extractVideoId(input);
@@ -1039,7 +985,6 @@ app.post('/api/queue', async (req, res) => {
     return res.status(400).json({ error: 'Format link atau ID YouTube tidak valid.' });
   }
 
-  // 1. Strict Validation: verify existence & catalog availability on YouTube Music
   const validation = await validateYouTubeMusicTrack(videoId);
   if (!validation.valid) {
     return res.status(422).json({ error: validation.error });
@@ -1048,56 +993,99 @@ app.post('/api/queue', async (req, res) => {
   const songTitle = title || validation.title || 'Song';
   const songArtist = artist || validation.artist || '';
   const songThumb = thumbnail || validation.thumbnail || '';
+  const songUser = user || 'Anonymous';
 
-  try {
-    // 2. Queue into YouTube Music Desktop Companion
-    const queueRes = await fetch(`${YTM_API}/api/v1/queue`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        videoId,
-        insertPosition: 'INSERT_AT_END'
-      })
-    });
+  // 1. If YouTube Music Desktop is connected: Transfer song directly into YouTube Music app!
+  if (isYtmConnected) {
+    try {
+      const qRes = await fetch(`${YTM_API}/api/v1/queue`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ videoId, insertPosition: 'INSERT_AT_END' })
+      });
 
-    if (!queueRes.ok && queueRes.status !== 204) {
-      return res.status(503).json({ error: 'Gagal menghubungi YouTube Music Desktop. Pastikan aplikasi aktif.' });
+      if (qRes.ok || qRes.status === 204) {
+        socialQueue.set(videoId, {
+          user: songUser,
+          addedAt: Date.now(),
+          title: songTitle,
+          artist: songArtist,
+          thumbnail: songThumb
+        });
+        persistSocialQueue();
+        addActivity(songUser, 'add', `transfer "${songTitle}" ke YouTube Music`);
+        broadcastUpdate();
+        return res.json({
+          success: true,
+          videoId,
+          title: songTitle,
+          user: songUser,
+          transferredToYTM: true
+        });
+      }
+    } catch (e) {
+      console.warn('YTM queue transfer failed, falling back to standalone queue:', e.message);
     }
+  }
 
-    // 3. Background Verification log (non-blocking to prevent false rejections on large queues)
-    setTimeout(async () => {
-      try {
-        const { queue: currentQueue } = await getQueueData();
-        const isEnqueued = Array.isArray(currentQueue) && currentQueue.some(item => item.videoId === videoId);
-        if (!isEnqueued) {
-          console.log(`[Queue] Note: Track ${videoId} enqueued to companion API; queue may be paginated.`);
-        }
-      } catch (e) {}
-    }, 500);
-
-    // 4. Save to social tracking only upon verified enqueue!
-    socialQueue.set(videoId, {
-      user: user || 'Anonymous',
-      addedAt: Date.now(),
+  // 2. Standalone Queue:
+  if (!currentSong.videoId || currentSong.title === 'No song playing') {
+    currentSong = {
+      videoId,
       title: songTitle,
       artist: songArtist,
-      thumbnail: songThumb
-    });
-    persistSocialQueue();
+      thumbnail: songThumb,
+      imageSrc: songThumb,
+      songDuration: 0,
+      elapsedSeconds: 0,
+      isPaused: false,
+      addedBy: songUser,
+      startedAt: Date.now()
+    };
+    playbackTracker.videoId = videoId;
+    playbackTracker.elapsed = 0;
+    playbackTracker.lastReportedElapsed = -1;
+    playbackTracker.isPaused = false;
+    playbackTracker.lastUpdated = Date.now();
 
-    addActivity(user, 'add', songTitle);
+    addActivity(songUser, 'add', `memutar "${songTitle}"`);
+    persistPartyQueue();
     broadcastUpdate();
 
-    res.json({
+    return res.json({
       success: true,
       videoId,
       title: songTitle,
-      user: user || 'Anonymous'
+      user: songUser,
+      isPlayingNow: true
     });
-  } catch (err) {
-    console.error('Queue error:', err);
-    res.status(500).json({ error: 'Gagal terhubung ke YouTube Music Desktop' });
   }
+
+  const queueItem = {
+    id: Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+    videoId,
+    title: songTitle,
+    artist: songArtist,
+    thumbnail: songThumb,
+    songDuration: 0,
+    addedBy: songUser,
+    addedAt: Date.now(),
+    upvotes: 0,
+    votedUsers: []
+  };
+
+  partyQueue.push(queueItem);
+  addActivity(songUser, 'add', songTitle);
+  persistPartyQueue();
+  broadcastUpdate();
+
+  res.json({
+    success: true,
+    videoId,
+    title: songTitle,
+    user: songUser,
+    isPlayingNow: false
+  });
 });
 
 // 4. Remove from Queue
@@ -1105,171 +1093,206 @@ app.delete('/api/queue/:index', async (req, res) => {
   const index = Number(req.params.index);
   const { user, title } = req.body || {};
 
-  if (isNaN(index)) {
-    return res.status(400).json({ error: 'Invalid queue index' });
+  if (isNaN(index)) return res.status(400).json({ error: 'Invalid queue index' });
+
+  if (isYtmConnected) {
+    try {
+      await fetch(`${YTM_API}/api/v1/queue/${index}`, { method: 'DELETE' });
+      addActivity(user, 'remove', title || 'a song');
+      setTimeout(broadcastUpdate, 250);
+      return res.json({ success: true, removedIndex: index });
+    } catch (e) {}
   }
 
-  try {
-    const response = await fetch(`${YTM_API}/api/v1/queue/${index}`, {
-      method: 'DELETE'
-    });
-
-    if (!response.ok && response.status !== 204) {
-      return res.status(500).json({ error: 'Failed to remove song from desktop app' });
-    }
-
-    addActivity(user, 'remove', title || 'a song');
-    setTimeout(broadcastUpdate, 200);
-    res.json({ success: true, removedIndex: index });
-  } catch (err) {
-    console.error('Delete queue error:', err);
-    res.status(500).json({ error: 'Connection error' });
+  if (index >= 0 && index < partyQueue.length) {
+    const removed = partyQueue.splice(index, 1)[0];
+    persistPartyQueue();
+    addActivity(user, 'remove', title || removed?.title || 'a song');
+    broadcastUpdate();
+    return res.json({ success: true, removedIndex: index });
   }
+
+  res.status(400).json({ error: 'Index out of bounds' });
 });
 
-// 5. Move / Reorder Queue Item (Drag and Drop)
+// 5. Move Queue Item
 app.patch('/api/queue/move', async (req, res) => {
   const { fromIndex, toIndex, user, title, targetPosition } = req.body;
 
   if (typeof fromIndex !== 'number' || typeof toIndex !== 'number') {
-    return res.status(400).json({ error: 'fromIndex and toIndex are required numbers' });
+    return res.status(400).json({ error: 'fromIndex and toIndex are required' });
   }
 
-  try {
-    const moveRes = await fetch(`${YTM_API}/api/v1/queue/${fromIndex}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ toIndex })
-    });
-
-    if (!moveRes.ok && moveRes.status !== 204) {
-      return res.status(500).json({ error: 'Failed to move song in desktop app' });
-    }
-
-    addActivity(user, 'move', `dragged "${title || 'song'}" to #${targetPosition || (toIndex + 1)}`);
-    setTimeout(broadcastUpdate, 200);
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Move error:', err);
-    res.status(500).json({ error: 'Failed to move song' });
+  if (isYtmConnected) {
+    try {
+      await fetch(`${YTM_API}/api/v1/queue/${fromIndex}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ toIndex })
+      });
+      addActivity(user, 'move', `dragged "${title || 'song'}" to #${targetPosition || (toIndex + 1)}`);
+      setTimeout(broadcastUpdate, 250);
+      return res.json({ success: true });
+    } catch (e) {}
   }
+
+  if (fromIndex >= 0 && fromIndex < partyQueue.length && toIndex >= 0 && toIndex < partyQueue.length) {
+    const [movedItem] = partyQueue.splice(fromIndex, 1);
+    partyQueue.splice(toIndex, 0, movedItem);
+    persistPartyQueue();
+    addActivity(user, 'move', `dragged "${title || movedItem.title || 'song'}" to #${targetPosition || (toIndex + 1)}`);
+    broadcastUpdate();
+    return res.json({ success: true });
+  }
+
+  res.status(400).json({ error: 'Index out of bounds' });
 });
 
-// 6. Upvote a Song (And dynamically bump it up!)
+// 6. Upvote a Song
 app.post('/api/upvote', async (req, res) => {
   const { videoId, user, title } = req.body;
-  if (!videoId || !user) {
-    return res.status(400).json({ error: 'videoId and user are required' });
+  if (!videoId || !user) return res.status(400).json({ error: 'videoId and user are required' });
+
+  if (isYtmConnected) {
+    if (!upvotes.has(videoId)) upvotes.set(videoId, new Set());
+    const votes = upvotes.get(videoId);
+    let hasVoted = false;
+    if (votes.has(user)) {
+      votes.delete(user);
+      hasVoted = false;
+      addActivity(user, 'unvote', title || 'a song');
+    } else {
+      votes.add(user);
+      hasVoted = true;
+      addActivity(user, 'upvote', title || 'a song');
+    }
+    broadcastUpdate();
+    return res.json({ success: true, votes: votes.size, hasVoted });
   }
 
-  if (!upvotes.has(videoId)) {
-    upvotes.set(videoId, new Set());
-  }
+  const item = partyQueue.find(q => q.videoId === videoId);
+  if (!item) return res.status(404).json({ error: 'Song not found in queue' });
 
-  const votes = upvotes.get(videoId);
+  if (!Array.isArray(item.votedUsers)) item.votedUsers = [];
+  const idx = item.votedUsers.indexOf(user);
   let hasVoted = false;
-  if (votes.has(user)) {
-    votes.delete(user);
+  if (idx !== -1) {
+    item.votedUsers.splice(idx, 1);
     hasVoted = false;
-    addActivity(user, 'unvote', title || 'a song');
+    addActivity(user, 'unvote', title || item.title || 'a song');
   } else {
-    votes.add(user);
+    item.votedUsers.push(user);
     hasVoted = true;
-    addActivity(user, 'upvote', title || 'a song');
+    addActivity(user, 'upvote', title || item.title || 'a song');
   }
 
-  await reorderQueueByVotes();
+  item.upvotes = item.votedUsers.length;
+  partyQueue.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
+  persistPartyQueue();
   broadcastUpdate();
-  res.json({ success: true, votes: votes.size, hasVoted });
+  res.json({ success: true, votes: item.upvotes, hasVoted });
 });
 
-// 7. Controls (Toggle, Next, Volume) - NO SEEK PER USER REQUEST
+// 7. Playback Controls
 app.post('/api/control/toggle', async (req, res) => {
   const { user } = req.body;
-  try {
-    await fetch(`${YTM_API}/api/v1/toggle-play`, { method: 'POST' });
-    playbackTracker.isPaused = !playbackTracker.isPaused;
-    userExplicitlyPaused = playbackTracker.isPaused; // Set true if user paused, false if user resumed
-    playbackTracker.lastUpdated = Date.now();
-    liveSong.isPaused = playbackTracker.isPaused;
 
-    addActivity(user, liveSong.isPaused ? 'pause' : 'play', liveSong.title);
-    broadcastUpdate();
-    res.json({ success: true, isPaused: liveSong.isPaused });
-  } catch (e) {
-    res.status(500).json({ error: 'Control error' });
+  if (isYtmConnected) {
+    try {
+      await fetch(`${YTM_API}/api/v1/toggle-play`, { method: 'POST' });
+      playbackTracker.isPaused = !playbackTracker.isPaused;
+      playbackTracker.lastUpdated = Date.now();
+      addActivity(user, playbackTracker.isPaused ? 'pause' : 'play', currentSong.title);
+      setTimeout(broadcastUpdate, 200);
+      return res.json({ success: true, isPaused: playbackTracker.isPaused });
+    } catch (e) {}
   }
+
+  if (!currentSong.videoId) return res.json({ success: false, error: 'No song loaded' });
+  currentSong.isPaused = !currentSong.isPaused;
+  playbackTracker.isPaused = currentSong.isPaused;
+  playbackTracker.lastUpdated = Date.now();
+  addActivity(user, currentSong.isPaused ? 'pause' : 'play', currentSong.title);
+  persistPartyQueue();
+  broadcastUpdate();
+  res.json({ success: true, isPaused: currentSong.isPaused });
 });
 
 app.post('/api/control/next', async (req, res) => {
   const { user } = req.body;
-  userExplicitlyPaused = false; // Reset pause state when skipping to next track
-  try {
-    const skippedTitle = liveSong.title || 'Song';
-    const { queue, selectedIndex } = await getQueueData();
 
-    let skipped = false;
-
-    // 1. If there is a next song in the queue, jump to it directly via SET_INDEX
-    if (selectedIndex >= 0 && selectedIndex + 1 < queue.length) {
-      const targetIndex = queue[selectedIndex + 1].rawIndex;
-      const resp = await fetch(`${YTM_API}/api/v1/queue`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ index: targetIndex })
-      });
-      if (resp.ok || resp.status === 204) {
-        skipped = true;
-      }
-    }
-
-    // 2. If no next song in queue or index jump didn't succeed, fallback to POST /api/v1/next
-    if (!skipped) {
-      await fetch(`${YTM_API}/api/v1/next`, { method: 'POST' }).catch(() => {});
-    }
-
-    // 3. Reset playbackTracker to immediately reflect transition
-    playbackTracker.elapsed = 0;
-    playbackTracker.lastReportedElapsed = -1;
-    playbackTracker.lastUpdated = Date.now();
-
-    addActivity(user, 'skip', skippedTitle);
-    setTimeout(syncAndBroadcast, 500);
-    res.json({ success: true, skipped });
-  } catch (e) {
-    console.error('Skip error:', e);
-    res.status(500).json({ error: 'Control error' });
+  if (isYtmConnected) {
+    try {
+      await fetch(`${YTM_API}/api/v1/next`, { method: 'POST' });
+      addActivity(user, 'skip', currentSong.title || 'song');
+      playbackTracker.elapsed = 0;
+      playbackTracker.lastReportedElapsed = -1;
+      playbackTracker.lastUpdated = Date.now();
+      setTimeout(broadcastUpdate, 350);
+      return res.json({ success: true, engine: 'ytm_desktop' });
+    } catch (e) {}
   }
+
+  const skipped = advanceNextTrack(user);
+  res.json({ success: true, current: skipped });
 });
 
-// Volume endpoint: controls Mac OS system output volume directly!
+app.post('/api/control/ended', (req, res) => {
+  const { videoId, user } = req.body || {};
+  if (!videoId || videoId === currentSong.videoId) {
+    const next = advanceNextTrack(user || 'Host Audio Engine');
+    return res.json({ success: true, current: next });
+  }
+  res.json({ success: false, reason: 'Track mismatch' });
+});
+
 app.post('/api/control/volume', async (req, res) => {
   const { volume, user } = req.body;
-  if (typeof volume !== 'number') {
-    return res.status(400).json({ error: 'volume number is required' });
-  }
+  if (typeof volume !== 'number') return res.status(400).json({ error: 'volume number is required' });
 
   const vol = Math.max(0, Math.min(100, Math.round(volume)));
   currentVolume = vol;
 
   await setSystemVolume(vol);
 
-  fetch(`${YTM_API}/api/v1/volume`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ volume: vol })
-  }).catch(() => {});
+  if (isYtmConnected) {
+    fetch(`${YTM_API}/api/v1/volume`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ volume: vol })
+    }).catch(() => {});
+  }
 
-  addActivity(user, 'volume', `set speaker volume to ${vol}%`);
+  addActivity(user, 'volume', `set volume to ${vol}%`);
   broadcastUpdate();
   res.json({ success: true, volume: vol });
 });
 
-// 8. Lyrics Endpoint (LRCLib API with real-time sync LRC parser)
+app.post('/api/player/sync', (req, res) => {
+  const { videoId, elapsed, duration, isPaused } = req.body || {};
+  if (videoId && currentSong.videoId === videoId) {
+    if (typeof elapsed === 'number' && elapsed >= 0) {
+      playbackTracker.elapsed = elapsed;
+      currentSong.elapsedSeconds = elapsed;
+      playbackTracker.lastUpdated = Date.now();
+    }
+    if (typeof duration === 'number' && duration > 0) {
+      currentSong.songDuration = duration;
+      playbackTracker.songDuration = duration;
+    }
+    if (typeof isPaused === 'boolean') {
+      currentSong.isPaused = isPaused;
+      playbackTracker.isPaused = isPaused;
+    }
+  }
+  res.json({ success: true });
+});
+
+// 8. Lyrics Endpoint
 app.get('/api/lyrics', async (req, res) => {
-  const title = req.query.title || liveSong.title;
-  const artist = req.query.artist || liveSong.artist;
-  const duration = Number(req.query.duration) || liveSong.songDuration;
+  const title = req.query.title || currentSong.title;
+  const artist = req.query.artist || currentSong.artist;
+  const duration = Number(req.query.duration) || currentSong.songDuration;
 
   if (!title || title === 'No song playing') {
     return res.json({ hasLyrics: false, error: 'Tidak ada lagu yang sedang diputar' });
@@ -1279,12 +1302,12 @@ app.get('/api/lyrics', async (req, res) => {
   res.json(lyrics);
 });
 
-// 9. Played History Endpoint
+// 9. Played History
 app.get('/api/history', (req, res) => {
   res.json({ history: playedHistory });
 });
 
-// 10. Server-Sent Events (Live real-time updates for all phones)
+// 10. Server-Sent Events
 const clients = new Set();
 
 app.get('/api/events', (req, res) => {
@@ -1294,33 +1317,35 @@ app.get('/api/events', (req, res) => {
   res.flushHeaders();
 
   clients.add(res);
-
-  req.on('close', () => {
-    clients.delete(res);
-  });
+  req.on('close', () => clients.delete(res));
 });
-
-async function syncAndBroadcast() {
-  const fresh = await fetchCurrentSongFromYTM();
-  if (fresh) {
-    liveSong = fresh;
-    updatePlaybackTracker(fresh);
-    checkPlaybackHang(fresh);
-  }
-  broadcastUpdate();
-}
 
 async function broadcastUpdate() {
   if (clients.size === 0) return;
-  const { queue, selectedIndex } = await getQueueData();
+
+  const [liveCurrent, { queue, selectedIndex }] = await Promise.all([
+    getUnifiedCurrentSong(),
+    getUnifiedQueue()
+  ]);
+
+  const activePublicUrl = dynamicPublicUrl || (process.env.PUBLIC_URL || (process.env.CLOUDFLARE_TUNNEL_TOKEN ? 'https://dj.wsnsam.my.id' : null));
+
   const payload = `data: ${JSON.stringify({
     current: {
-      ...liveSong,
+      ...liveCurrent,
       currentElapsed: getCalculatedElapsed(),
       isPaused: playbackTracker.isPaused
     },
     queue,
     selectedIndex,
+    standalone: !isYtmConnected,
+    playbackEngine: isYtmConnected ? 'ytm_desktop' : 'standalone',
+    host: {
+      ip: localIp,
+      url: `http://${localIp}:${PORT}`,
+      publicUrl: activePublicUrl,
+      isTunnelActive: Boolean(dynamicPublicUrl || process.env.CLOUDFLARE_TUNNEL_TOKEN)
+    },
     partyHost: getPartyHostInfo(),
     djs: Array.from(knownDJs),
     volume: { state: currentVolume, isMuted },
@@ -1337,26 +1362,26 @@ async function broadcastUpdate() {
   }
 }
 
-// Background sync loop: check HTTP every 2s
-setInterval(syncAndBroadcast, 2000);
+// Background sync loop
+setInterval(async () => {
+  if (isYtmConnected) {
+    await checkYtmConnection();
+    broadcastUpdate();
+  }
+}, 2500);
 
-// Helper to get local IP (Prioritizes Wi-Fi en0/wlan0 over VPN/tun)
 function getLocalIp() {
   const interfaces = os.networkInterfaces();
   for (const name of ['en0', 'en1', 'wlan0', 'eth0']) {
     if (interfaces[name]) {
       for (const iface of interfaces[name]) {
-        if (iface.family === 'IPv4' && !iface.internal) {
-          return iface.address;
-        }
+        if (iface.family === 'IPv4' && !iface.internal) return iface.address;
       }
     }
   }
   for (const name of Object.keys(interfaces)) {
     for (const iface of interfaces[name]) {
-      if (iface.family === 'IPv4' && !iface.internal) {
-        return iface.address;
-      }
+      if (iface.family === 'IPv4' && !iface.internal) return iface.address;
     }
   }
   return 'localhost';
@@ -1364,16 +1389,6 @@ function getLocalIp() {
 
 const localIp = getLocalIp();
 
-// Start WebSocket connection to YTM
-connectYTMWebSocket();
-
-// Initial song and volume fetch
-fetchCurrentSongFromYTM().then(s => {
-  if (s) {
-    liveSong = s;
-    updatePlaybackTracker(s);
-  }
-});
 getSystemVolume().then(v => {
   currentVolume = v;
 });
@@ -1381,12 +1396,15 @@ getSystemVolume().then(v => {
 app.listen(PORT, '0.0.0.0', () => {
   const localUrl = `http://${localIp}:${PORT}`;
   console.log('\n======================================================');
-  console.log('🎵  PARTY JUKEBOX (READ-ONLY ACCURATE TIMELINE)!');
+  console.log('🎵  PARTY JUKEBOX STANDALONE (DUAL ENGINE & MULTI-ROOM)!');
   console.log('======================================================');
-  console.log(`📡 Local Network URL: ${localUrl}`);
-  console.log(`💻 Host URL:          http://localhost:${PORT}`);
+  console.log(`📡 Local Network / Hotspot: ${localUrl}`);
+  console.log(`💻 Host URL:                http://localhost:${PORT}`);
+  if (dynamicPublicUrl) {
+    console.log(`🌐 Public Tunnel URL:      ${dynamicPublicUrl}`);
+  }
   console.log('======================================================');
   console.log('📲 SCAN WITH PHONE TO OPEN:');
-  qrcode.generate(localUrl, { small: true });
+  qrcode.generate(dynamicPublicUrl || localUrl, { small: true });
   console.log('======================================================\n');
 });

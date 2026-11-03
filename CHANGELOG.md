@@ -7,7 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.4.1] - 2026-11-03
+## [2.6.0] - 2026-11-03
+
+### Added
+- **Decentralized Multi-Room Host Architecture:**
+  - Each party host runs their own private room on their local machine/hotspot without needing centralized server coordination or sharing queues with other hosts.
+  - Automatically adapts between Local Wi-Fi / Hotspot tethering (`http://192.168.x.x:3000`) and dynamic public internet.
+- **Direct Song Transfer to YouTube Music:**
+  - When the Host has YouTube Music running on their PC/Mac, song requests submitted by party guests from their mobile phones are automatically transferred directly into the Host's YouTube Music playback queue (`/api/v1/queue`).
+  - Seamlessly mirrors what the Host plays inside YouTube Music with exact live metadata, album art, and duration.
+- **Embedded Web Engine Fallback:**
+  - If YouTube Music Desktop is not running (e.g. host on a smartphone or tablet), Party Jukebox operates completely standalone using its built-in official YouTube Web Player engine (`YT.Player`).
+- **On-Demand Public Quick Tunnel (`*.trycloudflare.com`):**
+  - Host can toggle a free, zero-config, secure Cloudflare Quick Tunnel right from the web UI with a single tap (`Buka Link Publik`).
+  - QR Code and share link dynamically update so guests on cellular 4G/5G data can join without being on the same Wi-Fi.
+- **Direct YouTube Music Catalog Search:**
+  - Ingestion and catalog search now query YouTube Music directly via Innertube `WEB_REMIX` context, returning rich results in milliseconds.
+
+---
+
+## [2.5.1] - 2026-11-03
+
+### Fixed
+- **Precision Karaoke Lyrics Synchronization:** Advanced cleaner for Chinese/Japanese brackets (`《...》`, `【...】`), OST/MV metadata stripping, LRC `[offset:X]` parsing, ±4s duration verification in database lookups, and tightened 0.4s drift tolerance with 150ms vocal lead.
+- **History Re-Queue Mismatch (1-Song Shift Bug):** Eliminated the 1-song shift bug where completed songs were recorded with the subsequent song's title/thumbnail; re-queueing from *Lagu yang Sudah Diputar* now always adds the exact matching track.
+
+---
+
+## [2.5.0] - 2026-11-03
+
+### Added
+- **Frozen Bottom Now Playing Player Bar:** Docked persistent player bar fixed at the bottom with synced progress, rotating vinyl disc, play/pause, skip, karaoke trigger, volume slider, and 10% snap button.
+- **Universal Track Ingestion:** Fixed song addition errors caused by false-positive rate-limit checks (429/403) and special character titles; added encoded payload decoder for instant queuing of any song.
+- **Decoupled Personal Domain:** Decoupled `dj.wsnsam.my.id` to be strictly personal for Sam; party URLs & QR codes now automatically adapt to each host's network/domain.
 
 ### Added
 - **Auto-Update Version Watchdog with Floating Countdown Banner:**
