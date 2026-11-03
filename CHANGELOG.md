@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.2] - 2026-11-03
+
+### Added
+- **Strict YouTube & YouTube Music Track Validation Pipeline:**
+  - Prevents non-music, private, deleted, or unplayable YouTube videos from ever entering the queue or hanging playback.
+  - Pre-validation checks YouTube oEmbed and `music.youtube.com` catalog availability before communicating with the desktop app.
+  - Post-queue verification confirms that YouTube Music Desktop actually accepted and placed the video in its electron player queue.
+  - Rejection with custom dialog: users entering invalid or unavailable videos receive an instant glassmorphic alert (`customAlert`) explaining why the track cannot be played.
+- **Hang & Stalled Playback Auto-Recovery Watchdog:**
+  - Detects if YouTube Music player gets stuck/hung on the previous song after playback duration has elapsed.
+  - Automatically triggers `POST /api/v1/next` when playback fails to advance for >4s, ensuring uninterrupted party music flow.
+
+---
+
 ## [2.3.1] - 2026-11-03
 
 ### Added

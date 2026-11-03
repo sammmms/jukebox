@@ -393,6 +393,34 @@ function getCalculatedElapsed() {
   return Math.floor(Math.min(total, max));
 }
 
+// Hang / Stalled Playback Auto-Recovery Watchdog
+let hangDetectionCount = 0;
+let lastHangSkipTime = 0;
+
+function checkPlaybackHang(freshSong) {
+  if (!freshSong || !freshSong.videoId || userExplicitlyPaused) {
+    hangDetectionCount = 0;
+    return;
+  }
+
+  const now = Date.now();
+  const duration = freshSong.songDuration || playbackTracker.songDuration || 0;
+  const elapsed = getCalculatedElapsed();
+
+  // If a song has finished (elapsed >= duration + 2s), but player hasn't progressed to next song
+  if (duration > 0 && elapsed >= duration + 2 && !playbackTracker.isPaused) {
+    hangDetectionCount++;
+    if (hangDetectionCount >= 2 && now - lastHangSkipTime > 6000) {
+      lastHangSkipTime = now;
+      hangDetectionCount = 0;
+      console.warn(`⚡ Watchdog: Lagu "${freshSong.title}" selesai (${elapsed}s/${duration}s) tapi tidak berganti otomatis. Memicu next...`);
+      fetch(`${YTM_API}/api/v1/next`, { method: 'POST' }).catch(() => {});
+    }
+  } else {
+    hangDetectionCount = 0;
+  }
+}
+
 // Real-time Song Cache
 let liveSong = {
   title: 'No song playing',
@@ -414,6 +442,67 @@ function extractVideoId(input) {
   if (match) return match[1];
   if (/^[a-zA-Z0-9_-]{11}$/.test(input)) return input;
   return null;
+}
+
+// Validates track validity & availability on YouTube Music
+async function validateYouTubeMusicTrack(videoId) {
+  if (!videoId || typeof videoId !== 'string' || !/^[a-zA-Z0-9_-]{11}$/.test(videoId.trim())) {
+    return {
+      valid: false,
+      error: 'Format Video ID YouTube tidak valid (harus 11 karakter).'
+    };
+  }
+
+  const cleanId = videoId.trim();
+
+  // 1. YouTube oEmbed check: confirms the video exists and is public on YouTube
+  let oembedData = null;
+  try {
+    const oembedRes = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${cleanId}&format=json`, {
+      signal: AbortSignal.timeout(3500)
+    });
+    if (!oembedRes.ok) {
+      return {
+        valid: false,
+        error: 'Lagu/video tidak ditemukan di YouTube, telah dihapus, atau disetel privat.'
+      };
+    }
+    oembedData = await oembedRes.json();
+  } catch (err) {
+    console.warn(`[ValidateTrack] oEmbed check warning for ${cleanId}:`, err.message);
+  }
+
+  // 2. YouTube Music Catalog check: confirms the video is accessible in YouTube Music
+  try {
+    const ytmRes = await fetch(`https://music.youtube.com/watch?v=${cleanId}`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9'
+      },
+      signal: AbortSignal.timeout(3500)
+    });
+
+    const html = await ytmRes.text();
+    const hasOgTitle = html.includes('property="og:title"');
+    const isGenericYTM = html.includes('<title>YouTube Music</title>') && !hasOgTitle;
+    const isDeprecatedNotice = html.includes('Browser Anda sudah tidak digunakan lagi') && !hasOgTitle;
+
+    if (isGenericYTM || isDeprecatedNotice || !hasOgTitle) {
+      return {
+        valid: false,
+        error: 'Video ini tidak tersedia di katalog YouTube Music (tidak dapat diputar di aplikasi musik).'
+      };
+    }
+  } catch (err) {
+    console.warn(`[ValidateTrack] YTM catalog check warning for ${cleanId}:`, err.message);
+  }
+
+  return {
+    valid: true,
+    title: oembedData?.title || 'Unknown Title',
+    artist: oembedData?.author_name || 'YouTube',
+    thumbnail: oembedData?.thumbnail_url || `https://i.ytimg.com/vi/${cleanId}/hqdefault.jpg`
+  };
 }
 
 // Fetch currently playing song from YouTube Music Desktop
@@ -824,16 +913,27 @@ app.post('/api/search', async (req, res) => {
   res.json({ results });
 });
 
-// 3. Add to Queue
+// 3. Add to Queue (with strict validation & verification against invalid songs)
 app.post('/api/queue', async (req, res) => {
   const { input, user, title, artist, thumbnail } = req.body;
   const videoId = extractVideoId(input);
 
   if (!videoId) {
-    return res.status(400).json({ error: 'Invalid YouTube link or song ID' });
+    return res.status(400).json({ error: 'Format link atau ID YouTube tidak valid.' });
   }
 
+  // 1. Strict Validation: verify existence & catalog availability on YouTube Music
+  const validation = await validateYouTubeMusicTrack(videoId);
+  if (!validation.valid) {
+    return res.status(422).json({ error: validation.error });
+  }
+
+  const songTitle = title || validation.title || 'Song';
+  const songArtist = artist || validation.artist || '';
+  const songThumb = thumbnail || validation.thumbnail || '';
+
   try {
+    // 2. Queue into YouTube Music Desktop Companion
     const queueRes = await fetch(`${YTM_API}/api/v1/queue`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -844,16 +944,27 @@ app.post('/api/queue', async (req, res) => {
     });
 
     if (!queueRes.ok && queueRes.status !== 204) {
-      return res.status(500).json({ error: 'Failed to queue song on desktop app' });
+      return res.status(503).json({ error: 'Gagal menghubungi YouTube Music Desktop. Pastikan aplikasi aktif.' });
     }
 
-    const songTitle = title || 'Song';
+    // 3. Verification: ensure YouTube Music actually enqueued the track and didn't silently reject it
+    await new Promise(r => setTimeout(r, 450));
+    const { queue: currentQueue } = await getQueueData();
+    const isEnqueued = Array.isArray(currentQueue) && currentQueue.some(item => item.videoId === videoId);
+
+    if (!isEnqueued) {
+      return res.status(422).json({
+        error: 'YouTube Music Desktop menolak lagu ini (tidak dapat dimasukkan ke antrean pemutaran).'
+      });
+    }
+
+    // 4. Save to social tracking only upon verified enqueue!
     socialQueue.set(videoId, {
       user: user || 'Anonymous',
       addedAt: Date.now(),
       title: songTitle,
-      artist: artist || '',
-      thumbnail: thumbnail || ''
+      artist: songArtist,
+      thumbnail: songThumb
     });
     persistSocialQueue();
 
@@ -863,11 +974,12 @@ app.post('/api/queue', async (req, res) => {
     res.json({
       success: true,
       videoId,
+      title: songTitle,
       user: user || 'Anonymous'
     });
   } catch (err) {
     console.error('Queue error:', err);
-    res.status(500).json({ error: 'Failed to connect to YouTube Music Desktop' });
+    res.status(500).json({ error: 'Gagal terhubung ke YouTube Music Desktop' });
   }
 });
 
@@ -1076,6 +1188,7 @@ async function syncAndBroadcast() {
   if (fresh) {
     liveSong = fresh;
     updatePlaybackTracker(fresh);
+    checkPlaybackHang(fresh);
   }
   broadcastUpdate();
 }
