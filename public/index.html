@@ -399,13 +399,19 @@
               <span id="vol-icon" class="text-sm">🔊</span>
             </button>
             
-            <div class="flex-1 flex items-center gap-2.5">
+            <div class="flex-1 flex items-center gap-2">
               <input type="range" id="volume-slider" min="0" max="100" value="70"
                      oninput="handleVolumeInput(this.value)"
                      class="w-full h-2 bg-slate-200 dark:bg-gray-800 rounded-full appearance-none cursor-pointer accent-pink-500">
               <span id="volume-label" class="px-2 py-0.5 rounded-md text-[11px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-pink-600 dark:text-pink-400 w-11 text-center shrink-0 border border-slate-200/60 dark:border-gray-700/60">
                 70%
               </span>
+              <!-- Snap 10% Toggle Button -->
+              <button id="vol-snap-btn" onclick="toggleVolumeSnap()" title="Snap volume per 10% (0%, 10%, 20%...)"
+                      class="px-2 py-0.5 rounded-md text-[10px] font-bold border transition-all cursor-pointer shrink-0 flex items-center gap-1 active:scale-95 bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 border-slate-200/60 dark:border-gray-700/60">
+                <span>🧲</span>
+                <span id="vol-snap-text">10%</span>
+              </button>
             </div>
 
             <!-- Quick Volume Presets (Desktop) -->
@@ -1925,9 +1931,48 @@
       }
     }
 
+    // Volume Snapping to 10% (0%, 10%, 20%, ... 100%)
+    let isVolumeSnapEnabled = localStorage.getItem('jukebox_vol_snap') === 'true';
+
+    function initVolumeSnapUI() {
+      const slider = document.getElementById('volume-slider');
+      const btn = document.getElementById('vol-snap-btn');
+      if (slider) {
+        slider.step = isVolumeSnapEnabled ? '10' : '1';
+      }
+      if (btn) {
+        if (isVolumeSnapEnabled) {
+          btn.className = 'px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/40 shadow-xs cursor-pointer shrink-0 flex items-center gap-1 active:scale-95 transition-all';
+        } else {
+          btn.className = 'px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 border border-slate-200/60 dark:border-gray-700/60 hover:text-slate-900 dark:hover:text-white cursor-pointer shrink-0 flex items-center gap-1 active:scale-95 transition-all';
+        }
+      }
+    }
+
+    function toggleVolumeSnap() {
+      isVolumeSnapEnabled = !isVolumeSnapEnabled;
+      localStorage.setItem('jukebox_vol_snap', isVolumeSnapEnabled ? 'true' : 'false');
+      initVolumeSnapUI();
+
+      const slider = document.getElementById('volume-slider');
+      if (isVolumeSnapEnabled && slider) {
+        const snapped = Math.round(Number(slider.value) / 10) * 10;
+        slider.value = snapped;
+        handleVolumeInput(snapped);
+        showToast('🧲 Snap Volume 10% Aktif');
+      } else {
+        showToast('🎚️ Volume Halus (1%) Aktif');
+      }
+    }
+
     function handleVolumeInput(val) {
-      const num = Number(val);
-      document.getElementById('volume-slider').value = num;
+      let num = Number(val);
+      if (isVolumeSnapEnabled) {
+        num = Math.round(num / 10) * 10;
+      }
+      num = Math.max(0, Math.min(100, num));
+      const slider = document.getElementById('volume-slider');
+      if (slider) slider.value = num;
       updateVolumeUI(num);
       clearTimeout(volumeDebounceTimeout);
       volumeDebounceTimeout = setTimeout(async () => {
@@ -2860,6 +2905,7 @@
     initTheme();
     initView();
     renderGuestBadge();
+    initVolumeSnapUI();
 
     // First time entry check (no cached DJ name)
     if (!currentUser) {

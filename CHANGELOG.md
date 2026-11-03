@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.4.0] - 2026-11-03
+
+### Added
+- **Toggleable 10% Volume Snapping (`[🧲 10%]`):**
+  - Added dedicated toggle button next to the volume slider allowing users to toggle between 10% step increments (`0%, 10%, 20%... 100%`) and granular 1% volume adjustment.
+  - Automatically calculates closest 10% threshold upon activation.
+  - Persists preference locally (`localStorage.jukebox_vol_snap`).
+  - Active state visual feedback with neon pink accent highlight and informative toast notifications.
+
+---
+
 ## [2.3.2] - 2026-11-03
 
 ### Added
