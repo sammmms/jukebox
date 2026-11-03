@@ -198,32 +198,70 @@ function setSystemVolume(vol) {
   });
 }
 
-function cleanSongTitle(title) {
+function cleanSongTitle(title, artist = '') {
   if (!title) return '';
-  return title
-    .replace(/\(official\s*(video|audio|music\s*video|lyric\s*video)?\)/gi, '')
-    .replace(/\[official\s*(video|audio|music\s*video|lyric\s*video)?\]/gi, '')
-    .replace(/\((feat|ft)\.?\s+[^)]+\)/gi, '')
-    .replace(/\[(feat|ft)\.?\s+[^\]]+\]/gi, '')
-    .replace(/\b(feat|ft)\.?\s+.+$/gi, '')
+  let clean = title;
+  // Remove Chinese/Japanese brackets content if it's metadata like 【Official MV】 or 【片尾曲】
+  clean = clean.replace(/【(?:Official|MV|Music Video|官方|HD|4K|完整版|高畫質|片尾曲|主題曲|原聲帶|翻唱|Cover)[^】]*】/gi, '');
+  // Extract title inside 《...》 if present, e.g. Eric周興哲《怎麼了 What's Wrong》
+  const guillemetMatch = clean.match(/《([^》]+)》/);
+  if (guillemetMatch) {
+    clean = guillemetMatch[1];
+  } else {
+    const bracketMatch = clean.match(/【([^】]+)】/);
+    if (bracketMatch) clean = bracketMatch[1];
+  }
+  // Strip common video noise & tags
+  clean = clean
+    .replace(/\b(?:official\s*(?:video|audio|music\s*video|lyric\s*video|mv)?|music\s*video|lyric\s*video|mv|hd|4k)\b/gi, '')
+    .replace(/\((?:official\s*(?:video|audio|music\s*video|lyric\s*video)?|mv|hd|4k|lyrics?)\)/gi, '')
+    .replace(/\[(?:official\s*(?:video|audio|music\s*video|lyric\s*video)?|mv|hd|4k|lyrics?)\]/gi, '')
+    .replace(/\((?:feat|ft)\.?\s+[^)]+\)/gi, '')
+    .replace(/\[(?:feat|ft)\.?\s+[^\]]+\]/gi, '')
+    .replace(/\b(?:feat|ft)\.?\s+.+$/gi, '')
+    .replace(/[-–—]\s*(?:華劇|電視劇|電影|片尾曲|主題曲|插曲|OST).+$/gi, '')
     .replace(/\|.+$/g, '')
+    .replace(/\(\s*\)/g, '')
+    .replace(/\[\s*\]/g, '')
     .replace(/\s+/g, ' ')
     .trim();
+
+  // If title has "Artist - Song", strip artist prefix if redundant
+  if (clean.includes(' - ')) {
+    const parts = clean.split(' - ');
+    if (parts.length === 2) {
+      if (artist && parts[0].toLowerCase().includes(artist.toLowerCase().trim())) {
+        clean = parts[1].trim();
+      } else if (parts[1].length > 0 && parts[0].length > 0) {
+        clean = parts[1].trim();
+      }
+    }
+  }
+
+  return clean || title.trim();
 }
 
 function parseLrc(lrcString) {
   if (!lrcString) return [];
+  let offsetMs = 0;
+  const offsetMatch = lrcString.match(/\[offset:\s*([+-]?\d+)\]/i);
+  if (offsetMatch) {
+    offsetMs = parseInt(offsetMatch[1], 10) || 0;
+  }
+  const offsetSec = offsetMs / 1000;
+
   const lines = lrcString.split('\n');
   const result = [];
-  const timeRegex = /\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/;
+  const timeRegex = /\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\](.*)/;
 
   for (const line of lines) {
     const match = line.match(timeRegex);
     if (match) {
       const min = parseInt(match[1], 10);
       const sec = parseInt(match[2], 10);
-      const ms = parseInt(match[3].padEnd(3, '0').slice(0, 3), 10);
-      const time = min * 60 + sec + ms / 1000;
+      const msStr = (match[3] || '0').padEnd(3, '0').slice(0, 3);
+      const ms = parseInt(msStr, 10);
+      const time = Math.max(0, min * 60 + sec + ms / 1000 + offsetSec);
       const text = match[4].trim();
       if (text) {
         result.push({ time, text });
@@ -234,7 +272,7 @@ function parseLrc(lrcString) {
 }
 
 async function fetchLyrics(title, artist, duration) {
-  const cleanTitle = cleanSongTitle(title);
+  const cleanTitle = cleanSongTitle(title, artist);
   const cleanArtist = (artist || '').replace(/\s*•.*$/, '').trim();
   const cacheKey = `${cleanTitle.toLowerCase()}---${cleanArtist.toLowerCase()}`;
 
@@ -242,28 +280,72 @@ async function fetchLyrics(title, artist, duration) {
     return lyricsCache.get(cacheKey);
   }
 
-  try {
-    const params = new URLSearchParams({
-      track_name: cleanTitle,
-      artist_name: cleanArtist
-    });
-    if (duration && duration > 0) {
-      params.append('duration', Math.round(duration));
-    }
+  const userAgent = 'PartyJukebox/2.5.1 (https://github.com/sammmms/jukebox)';
 
-    let res = await fetch(`https://lrclib.net/api/get?${params.toString()}`);
+  async function tryGet(tName, aName, dur) {
+    try {
+      const p = new URLSearchParams({ track_name: tName });
+      if (aName) p.append('artist_name', aName);
+      if (dur && dur > 0) p.append('duration', Math.round(dur));
+      const res = await fetch(`https://lrclib.net/api/get?${p.toString()}`, {
+        headers: { 'User-Agent': userAgent },
+        signal: AbortSignal.timeout(3000)
+      });
+      if (res.ok) {
+        const d = await res.json();
+        if (d && (d.syncedLyrics || d.plainLyrics)) return d;
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  try {
     let data = null;
 
-    if (res.ok) {
-      data = await res.json();
-    } else {
-      const searchRes = await fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(cleanTitle + ' ' + cleanArtist)}`);
-      if (searchRes.ok) {
-        const list = await searchRes.json();
-        if (Array.isArray(list) && list.length > 0) {
-          data = list[0];
-        }
+    // 1. Exact clean title and artist lookup with duration
+    data = await tryGet(cleanTitle, cleanArtist, duration);
+
+    // 2. If not found, try without duration restriction (often ±2s variance in database)
+    if (!data && duration && duration > 0) {
+      data = await tryGet(cleanTitle, cleanArtist, 0);
+    }
+
+    // 3. If title has sub-components (e.g. Chinese & English: "怎么了 What's Wrong"), try individual segments
+    if (!data && (cleanTitle.includes(' ') || cleanTitle.includes('-') || cleanTitle.includes('/'))) {
+      const segments = cleanTitle.split(/[\s\-\/]+/).filter(p => p.length >= 2);
+      for (const seg of segments) {
+        data = await tryGet(seg, cleanArtist, duration) || await tryGet(seg, cleanArtist, 0);
+        if (data) break;
       }
+    }
+
+    // 4. Fallback search with strict match verification (never pick random different track)
+    if (!data) {
+      try {
+        const searchRes = await fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(cleanTitle + ' ' + cleanArtist)}`, {
+          headers: { 'User-Agent': userAgent },
+          signal: AbortSignal.timeout(3500)
+        });
+        if (searchRes.ok) {
+          const list = await searchRes.json();
+          if (Array.isArray(list) && list.length > 0) {
+            // Find item with exact duration match (±4s) OR title overlap
+            let best = null;
+            if (duration && duration > 0) {
+              best = list.find(item => item.syncedLyrics && Math.abs(item.duration - duration) <= 4)
+                  || list.find(item => Math.abs(item.duration - duration) <= 4);
+            }
+            if (!best) {
+              best = list.find(item => {
+                const itemT = (item.trackName || '').toLowerCase();
+                const targetT = cleanTitle.toLowerCase();
+                return item.syncedLyrics && (itemT.includes(targetT) || targetT.includes(itemT));
+              });
+            }
+            if (best) data = best;
+          }
+        }
+      } catch (e) {}
     }
 
     if (!data || (!data.plainLyrics && !data.syncedLyrics)) {
@@ -286,7 +368,7 @@ async function fetchLyrics(title, artist, duration) {
     lyricsCache.set(cacheKey, result);
     return result;
   } catch (err) {
-    console.error('Lyrics error:', err);
+    console.error('Lyrics error:', err.message);
     return { hasLyrics: false, error: 'Gagal mengambil lirik' };
   }
 }
@@ -319,6 +401,9 @@ const playbackTracker = {
   lastUpdated: Date.now()
 };
 
+// Tracks the exact metadata of the currently playing song to avoid 1-song shift mismatch in playedHistory
+let previousSongRecord = null;
+
 function updatePlaybackTracker(freshSong) {
   if (!freshSong || !freshSong.videoId) return;
 
@@ -328,15 +413,21 @@ function updatePlaybackTracker(freshSong) {
 
   // 1. New song detected!
   if (freshSong.videoId !== playbackTracker.videoId) {
-    if (playbackTracker.videoId && liveSong.title && liveSong.title !== 'No song playing') {
-      addPlayedHistory({
-        videoId: playbackTracker.videoId,
-        title: liveSong.title,
-        artist: liveSong.artist,
-        thumbnail: liveSong.imageSrc,
-        addedBy: liveSong.addedBy
-      });
+    // Record the song that just ended with its EXACT original metadata!
+    if (previousSongRecord && previousSongRecord.videoId && previousSongRecord.title && previousSongRecord.title !== 'No song playing') {
+      addPlayedHistory(previousSongRecord);
     }
+
+    // Now update previousSongRecord to represent this fresh song
+    previousSongRecord = {
+      videoId: freshSong.videoId,
+      title: freshSong.title,
+      artist: freshSong.artist || '',
+      thumbnail: freshSong.imageSrc || freshSong.thumbnail || '',
+      addedBy: freshSong.addedBy || 'Autoplay / Host',
+      playedAt: now
+    };
+
     playbackTracker.videoId = freshSong.videoId;
     playbackTracker.elapsed = (typeof freshSong.elapsedSeconds === 'number' && freshSong.elapsedSeconds > 0)
       ? freshSong.elapsedSeconds
@@ -802,7 +893,7 @@ async function searchYouTubeMusic(query) {
   }
 }
 
-const APP_VERSION = '2.5.0';
+const APP_VERSION = '2.5.1';
 
 // --- API ROUTES ---
 

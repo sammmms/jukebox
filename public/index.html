@@ -765,7 +765,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.5.0</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.5.1</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -776,10 +776,22 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.5.0 -->
+        <!-- v2.5.1 -->
         <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-800 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.5.0 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.5.1 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">🎙️ Precise Karaoke Lyrics Synchronization:</strong> Advanced YouTube MV/OST cleaner, LRC <code>[offset:X]</code> support, multi-segment fallbacks, ±4s duration verification in database lookups, and tightened 0.4s drift tolerance with 150ms vocal lead.</li>
+            <li><strong class="text-slate-800 dark:text-white">🔄 Fixed History Re-Queue Mismatch:</strong> Eliminated the 1-song shift bug where completed songs were recorded with the subsequent song's title/thumbnail; re-queueing from <em>Lagu yang Sudah Diputar</em> now always adds the exact matching track.</li>
+          </ul>
+        </div>
+
+        <!-- v2.5.0 -->
+        <div class="p-3 rounded-xl bg-slate-50/60 dark:bg-gray-900/40 border border-slate-200/60 dark:border-gray-800/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-200 dark:bg-gray-800 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-700">v2.5.0</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -1133,7 +1145,7 @@
     <div class="text-left text-xs min-w-0 flex-1">
       <div class="flex items-center gap-1.5 flex-wrap">
         <span class="font-black text-white">Versi Baru Tersedia!</span>
-        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.5.0</span>
+        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.5.1</span>
       </div>
       <p class="text-[11px] text-pink-100 opacity-90 mt-0.5">Memuat pembaruan otomatis dalam <span id="update-countdown" class="font-extrabold underline">3</span>s...</p>
     </div>
@@ -1155,7 +1167,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.5.0';
+    const CLIENT_VERSION = '2.5.1';
     let isUpdateTriggered = false;
 
     function triggerVersionUpdateBanner(newVersion) {
@@ -1944,7 +1956,7 @@
             lastTickTimestamp = Date.now();
           } else if (typeof song.currentElapsed === 'number') {
             const drift = Math.abs(song.currentElapsed - currentElapsed);
-            if (drift > 1.5) {
+            if (drift > 0.4) {
               currentElapsed = song.currentElapsed;
               lastTickTimestamp = Date.now();
             }
@@ -2845,8 +2857,8 @@
               <span class="text-[10px] text-slate-400 dark:text-gray-500">• ${timeAgo(item.playedAt)}</span>
             </div>
           </div>
-          <button onclick='queueTrack(${JSON.stringify({ videoId: item.videoId, title: item.title, artist: item.artist, thumbnail: item.thumbnail }).replace(/'/g, "&#39;")})'
-                  class="px-2.5 py-1.5 rounded-lg bg-slate-200/80 dark:bg-gray-800/80 hover:bg-pink-500/20 text-slate-700 dark:text-gray-300 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-300 dark:border-gray-700/60 text-[11px] font-bold active:scale-95 transition-all flex items-center gap-1 shrink-0">
+          <button onclick="queueTrackEncoded('${encodeURIComponent(JSON.stringify({ videoId: item.videoId, title: item.title, artist: item.artist, thumbnail: item.thumbnail }))}')"
+                  class="px-2.5 py-1.5 rounded-lg bg-slate-200/80 dark:bg-gray-800/80 hover:bg-pink-500/20 text-slate-700 dark:text-gray-300 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-300 dark:border-gray-700/60 text-[11px] font-bold active:scale-95 transition-all flex items-center gap-1 shrink-0 cursor-pointer">
             <span>+ Putar Lagi</span>
           </button>
         </div>
@@ -2981,8 +2993,9 @@
     function updateLyricsHighlight() {
       if (!currentLyrics || !currentLyrics.lines || currentLyrics.lines.length === 0) return;
       let activeIdx = -1;
+      const effectiveTime = currentElapsed + 0.15; // 150ms natural singing anticipation lead
       for (let i = 0; i < currentLyrics.lines.length; i++) {
-        if (currentElapsed >= currentLyrics.lines[i].time) {
+        if (effectiveTime >= currentLyrics.lines[i].time) {
           activeIdx = i;
         } else {
           break;
