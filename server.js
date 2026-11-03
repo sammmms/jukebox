@@ -20,27 +20,154 @@ const socialQueue = new Map();
 const upvotes = new Map();
 // Activity Feed / History Log: Array of { id, user, action, details, timestamp }
 const activityLogs = [];
+// Previously Played Songs History
+const playedHistory = [];
+// In-memory lyrics cache
+const lyricsCache = new Map();
 
 let currentVolume = 70;
 let isMuted = false;
 
-// Mac OS System Volume Control (Guarantees real speaker volume changes!)
+function addPlayedHistory(track) {
+  if (!track || !track.title || track.title === 'No song playing') return;
+  // If the latest item in history is the same track, avoid duplicate
+  if (playedHistory.length > 0 && (playedHistory[0].videoId === track.videoId || playedHistory[0].title === track.title)) {
+    return;
+  }
+  playedHistory.unshift({
+    id: Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+    videoId: track.videoId || '',
+    title: track.title,
+    artist: track.artist || '',
+    thumbnail: track.thumbnail || track.imageSrc || '',
+    addedBy: track.addedBy || 'Autoplay / Sam',
+    playedAt: Date.now()
+  });
+  if (playedHistory.length > 60) playedHistory.pop();
+}
+
+// Cross-Platform System Volume Control (Mac OS, Windows, Linux)
 function getSystemVolume() {
   return new Promise((resolve) => {
-    exec('osascript -e "output volume of (get volume settings)"', (err, stdout) => {
-      if (err) return resolve(currentVolume);
-      const v = parseInt(stdout.trim(), 10);
-      resolve(isNaN(v) ? currentVolume : v);
-    });
+    if (process.platform === 'darwin') {
+      exec('osascript -e "output volume of (get volume settings)"', (err, stdout) => {
+        if (err) return resolve(currentVolume);
+        const v = parseInt(stdout.trim(), 10);
+        resolve(isNaN(v) ? currentVolume : v);
+      });
+    } else {
+      resolve(currentVolume);
+    }
   });
 }
 
 function setSystemVolume(vol) {
   return new Promise((resolve) => {
-    exec(`osascript -e "set volume output volume ${vol}"`, (err) => {
-      resolve(!err);
-    });
+    if (process.platform === 'darwin') {
+      exec(`osascript -e "set volume output volume ${vol}"`, (err) => {
+        resolve(!err);
+      });
+    } else if (process.platform === 'linux') {
+      exec(`amixer -D pulse sset Master ${vol}% 2>/dev/null || pactl set-sink-volume @DEFAULT_SINK@ ${vol}% 2>/dev/null`, () => {
+        resolve(true);
+      });
+    } else {
+      resolve(true);
+    }
   });
+}
+
+function cleanSongTitle(title) {
+  if (!title) return '';
+  return title
+    .replace(/\(official\s*(video|audio|music\s*video|lyric\s*video)?\)/gi, '')
+    .replace(/\[official\s*(video|audio|music\s*video|lyric\s*video)?\]/gi, '')
+    .replace(/\((feat|ft)\.?\s+[^)]+\)/gi, '')
+    .replace(/\[(feat|ft)\.?\s+[^\]]+\]/gi, '')
+    .replace(/\b(feat|ft)\.?\s+.+$/gi, '')
+    .replace(/\|.+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function parseLrc(lrcString) {
+  if (!lrcString) return [];
+  const lines = lrcString.split('\n');
+  const result = [];
+  const timeRegex = /\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/;
+
+  for (const line of lines) {
+    const match = line.match(timeRegex);
+    if (match) {
+      const min = parseInt(match[1], 10);
+      const sec = parseInt(match[2], 10);
+      const ms = parseInt(match[3].padEnd(3, '0').slice(0, 3), 10);
+      const time = min * 60 + sec + ms / 1000;
+      const text = match[4].trim();
+      if (text) {
+        result.push({ time, text });
+      }
+    }
+  }
+  return result.sort((a, b) => a.time - b.time);
+}
+
+async function fetchLyrics(title, artist, duration) {
+  const cleanTitle = cleanSongTitle(title);
+  const cleanArtist = (artist || '').replace(/\s*•.*$/, '').trim();
+  const cacheKey = `${cleanTitle.toLowerCase()}---${cleanArtist.toLowerCase()}`;
+
+  if (lyricsCache.has(cacheKey)) {
+    return lyricsCache.get(cacheKey);
+  }
+
+  try {
+    const params = new URLSearchParams({
+      track_name: cleanTitle,
+      artist_name: cleanArtist
+    });
+    if (duration && duration > 0) {
+      params.append('duration', Math.round(duration));
+    }
+
+    let res = await fetch(`https://lrclib.net/api/get?${params.toString()}`);
+    let data = null;
+
+    if (res.ok) {
+      data = await res.json();
+    } else {
+      const searchRes = await fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(cleanTitle + ' ' + cleanArtist)}`);
+      if (searchRes.ok) {
+        const list = await searchRes.json();
+        if (Array.isArray(list) && list.length > 0) {
+          data = list[0];
+        }
+      }
+    }
+
+    if (!data || (!data.plainLyrics && !data.syncedLyrics)) {
+      const emptyResult = { hasLyrics: false, error: 'Lirik belum tersedia untuk lagu ini.' };
+      lyricsCache.set(cacheKey, emptyResult);
+      return emptyResult;
+    }
+
+    const isSynced = Boolean(data.syncedLyrics);
+    const parsedLines = isSynced ? parseLrc(data.syncedLyrics) : [];
+    const result = {
+      hasLyrics: true,
+      isSynced,
+      trackName: data.trackName || cleanTitle,
+      artistName: data.artistName || cleanArtist,
+      plain: data.plainLyrics || (isSynced ? parsedLines.map(l => l.text).join('\n') : ''),
+      lines: parsedLines
+    };
+
+    lyricsCache.set(cacheKey, result);
+    return result;
+  } catch (err) {
+    console.error('Lyrics error:', err);
+    return { hasLyrics: false, error: 'Gagal mengambil lirik' };
+  }
 }
 
 function addActivity(user, action, details) {
@@ -77,6 +204,15 @@ function updatePlaybackTracker(freshSong) {
 
   // 1. New song detected!
   if (freshSong.videoId !== playbackTracker.videoId) {
+    if (playbackTracker.videoId && liveSong.title && liveSong.title !== 'No song playing') {
+      addPlayedHistory({
+        videoId: playbackTracker.videoId,
+        title: liveSong.title,
+        artist: liveSong.artist,
+        thumbnail: liveSong.imageSrc,
+        addedBy: liveSong.addedBy
+      });
+    }
     playbackTracker.videoId = freshSong.videoId;
     playbackTracker.elapsed = (typeof freshSong.elapsedSeconds === 'number' && freshSong.elapsedSeconds > 0)
       ? freshSong.elapsedSeconds
@@ -288,6 +424,27 @@ async function getQueueData() {
       }
     }
 
+    // Seed previously played songs from queue history if not yet recorded
+    if (selectedIndex > 0) {
+      for (let i = selectedIndex - 1; i >= 0; i--) {
+        const past = queue[i];
+        if (past && past.title) {
+          const already = playedHistory.some(p => (past.videoId && p.videoId === past.videoId) || p.title === past.title);
+          if (!already) {
+            playedHistory.push({
+              id: 'past-' + past.rawIndex + '-' + (past.videoId || Math.random().toString(36).slice(2, 6)),
+              videoId: past.videoId || '',
+              title: past.title,
+              artist: past.artist || '',
+              thumbnail: past.thumbnail || '',
+              addedBy: past.addedBy || 'Autoplay / Sam',
+              playedAt: Date.now() - (selectedIndex - i) * 180000
+            });
+          }
+        }
+      }
+    }
+
     return { queue, selectedIndex };
   } catch (err) {
     return { queue: [], selectedIndex: -1 };
@@ -429,7 +586,8 @@ app.get('/api/status', async (req, res) => {
     queue,
     selectedIndex,
     volume: { state: currentVolume, isMuted },
-    activity: activityLogs.slice(0, 30)
+    activity: activityLogs.slice(0, 30),
+    history: playedHistory.slice(0, 30)
   });
 });
 
@@ -652,7 +810,26 @@ app.post('/api/control/volume', async (req, res) => {
   res.json({ success: true, volume: vol });
 });
 
-// 8. Server-Sent Events (Live real-time updates for all phones)
+// 8. Lyrics Endpoint (LRCLib API with real-time sync LRC parser)
+app.get('/api/lyrics', async (req, res) => {
+  const title = req.query.title || liveSong.title;
+  const artist = req.query.artist || liveSong.artist;
+  const duration = Number(req.query.duration) || liveSong.songDuration;
+
+  if (!title || title === 'No song playing') {
+    return res.json({ hasLyrics: false, error: 'Tidak ada lagu yang sedang diputar' });
+  }
+
+  const lyrics = await fetchLyrics(title, artist, duration);
+  res.json(lyrics);
+});
+
+// 9. Played History Endpoint
+app.get('/api/history', (req, res) => {
+  res.json({ history: playedHistory });
+});
+
+// 10. Server-Sent Events (Live real-time updates for all phones)
 const clients = new Set();
 
 app.get('/api/events', (req, res) => {
@@ -689,7 +866,8 @@ async function broadcastUpdate() {
     queue,
     selectedIndex,
     volume: { state: currentVolume, isMuted },
-    activity: activityLogs.slice(0, 30)
+    activity: activityLogs.slice(0, 30),
+    history: playedHistory.slice(0, 30)
   })}\n\n`;
 
   for (const client of clients) {
