@@ -1,10 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Party Jukebox</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#fdf2f8',
+              100: '#fce7f3',
+              500: '#ec4899',
+              600: '#db2777',
+              700: '#be185d',
+            }
+          }
+        }
+      }
+    }
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,17 +45,33 @@
     .paused {
       animation-play-state: paused;
     }
-    /* Custom scrollbar */
+
+    /* Scrollbars */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
     }
-    ::-webkit-scrollbar-track {
+    html.dark ::-webkit-scrollbar-track {
       background: #0f1117;
     }
-    ::-webkit-scrollbar-thumb {
+    html.dark ::-webkit-scrollbar-thumb {
       background: #2a2e3f;
       border-radius: 999px;
+    }
+    html:not(.dark) ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    html:not(.dark) ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 999px;
+    }
+
+    /* Sliders */
+    html.dark input[type=range]::-webkit-slider-runnable-track {
+      background: #272a38;
+    }
+    html:not(.dark) input[type=range]::-webkit-slider-runnable-track {
+      background: #e2e8f0;
     }
     input[type=range]::-webkit-slider-thumb {
       -webkit-appearance: none;
@@ -46,355 +83,575 @@
       box-shadow: 0 0 8px rgba(236, 72, 153, 0.6);
       margin-top: -4px;
     }
-    input[type=range]::-webkit-slider-runnable-track {
-      width: 100%;
-      height: 6px;
-      cursor: pointer;
-      background: #272a38;
-      border-radius: 999px;
-    }
-    /* Dragging classes */
+
+    /* Dragging styles */
     .sortable-ghost {
-      opacity: 0.3;
+      opacity: 0.35;
       border-color: #ec4899 !important;
-      background: rgba(236, 72, 153, 0.1) !important;
+      background: rgba(236, 72, 153, 0.12) !important;
     }
     .sortable-chosen {
       cursor: grabbing;
     }
+
+    /* ============================================================
+       VIEW MODES ENGINE (Auto Responsive / Force Mobile / Force Desktop)
+       ============================================================ */
+
+    /* 1. AUTO RESPONSIVE MODE */
+    .view-auto #app-wrapper {
+      max-width: 36rem; /* max-w-xl */
+      margin-left: auto;
+      margin-right: auto;
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+    .view-auto .app-grid {
+      display: block;
+    }
+    .view-auto .desktop-only {
+      display: none !important;
+    }
+    .view-auto .mobile-only {
+      display: block;
+    }
+    @media (min-width: 1024px) {
+      .view-auto #app-wrapper {
+        max-width: 80rem; /* max-w-7xl */
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+      }
+      .view-auto .app-grid {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 1.5rem;
+        align-items: start;
+      }
+      .view-auto .col-left {
+        grid-column: span 5 / span 5;
+      }
+      .view-auto .col-right {
+        grid-column: span 7 / span 7;
+      }
+      .view-auto .desktop-only {
+        display: block !important;
+      }
+      .view-auto .mobile-only {
+        display: none !important;
+      }
+    }
+
+    /* 2. FORCE MOBILE MODE (Simulates phone even on large desktop screens) */
+    .view-mobile #app-wrapper {
+      max-width: 36rem !important; /* max-w-xl */
+      margin-left: auto !important;
+      margin-right: auto !important;
+      padding-left: 1rem !important;
+      padding-right: 1rem !important;
+    }
+    .view-mobile .app-grid {
+      display: block !important;
+    }
+    .view-mobile .col-left, .view-mobile .col-right {
+      display: block !important;
+      width: 100% !important;
+    }
+    .view-mobile .desktop-only {
+      display: none !important;
+    }
+    .view-mobile .mobile-only {
+      display: block !important;
+    }
+
+    /* 3. FORCE DESKTOP MODE (Forces 2-column wide dashboard) */
+    .view-desktop #app-wrapper {
+      max-width: 80rem !important; /* max-w-7xl */
+      margin-left: auto !important;
+      margin-right: auto !important;
+      padding-left: 1.5rem !important;
+      padding-right: 1.5rem !important;
+    }
+    .view-desktop .app-grid {
+      display: grid !important;
+      grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+      gap: 1.5rem !important;
+      align-items: start !important;
+    }
+    .view-desktop .col-left {
+      grid-column: span 5 / span 5 !important;
+    }
+    .view-desktop .col-right {
+      grid-column: span 7 / span 7 !important;
+    }
+    .view-desktop .desktop-only {
+      display: block !important;
+    }
+    .view-desktop .mobile-only {
+      display: none !important;
+    }
   </style>
 </head>
-<body class="bg-[#0a0c10] text-gray-100 min-h-screen pb-24 selection:bg-pink-500 selection:text-white">
+<body class="bg-slate-50 dark:bg-[#0a0c10] text-slate-800 dark:text-gray-100 min-h-screen pb-24 selection:bg-pink-500 selection:text-white transition-colors duration-200 view-auto">
 
-  <!-- Top Navigation & Profile Bar -->
-  <header class="sticky top-0 z-30 bg-[#0e1118]/85 backdrop-blur-md border-b border-gray-800/60 px-4 py-3">
-    <div class="max-w-xl mx-auto flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-pink-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-pink-500/20 text-white font-extrabold text-sm">
-          ♫
-        </div>
-        <div>
-          <h1 class="text-base font-bold tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">Party Jukebox</h1>
-          <div class="flex items-center gap-1.5">
-            <span id="connection-dot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span id="connection-text" class="text-[11px] text-gray-400 font-medium">Connected to Mac</span>
+  <!-- Top Navigation & Controls Bar -->
+  <header class="sticky top-0 z-30 bg-white/85 dark:bg-[#0e1118]/85 backdrop-blur-md border-b border-slate-200/80 dark:border-gray-800/60 px-4 py-2.5 transition-colors duration-200">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-2.5">
+      
+      <!-- Left: Logo & Mac Connection Status -->
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-pink-500 to-indigo-600 flex items-center justify-center shadow-md shadow-pink-500/25 text-white font-extrabold text-sm">
+            ♫
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-base font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 dark:from-white dark:via-gray-200 dark:to-gray-400 bg-clip-text text-transparent">
+                Party Jukebox
+              </h1>
+              <span id="current-view-badge" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
+                Auto
+              </span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span id="connection-dot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span id="connection-text" class="text-[11px] text-slate-500 dark:text-gray-400 font-medium">Connected to Mac</span>
+            </div>
           </div>
         </div>
+
+        <!-- Mobile-Only Quick Refresh -->
+        <button onclick="fetchStatus()" class="md:hidden p-2 rounded-xl bg-slate-100 dark:bg-gray-800/80 hover:bg-slate-200 dark:hover:bg-gray-800 text-slate-600 dark:text-gray-300 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+        </button>
       </div>
 
-      <!-- Quick Refresh Button -->
-      <button onclick="fetchStatus()" class="p-2 rounded-xl bg-gray-800/60 hover:bg-gray-800 text-gray-300 transition-colors">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-        </svg>
-      </button>
+      <!-- Right Controls: View Switcher + System Theme Switcher + Refresh -->
+      <div class="flex items-center justify-between md:justify-end gap-2 text-xs">
+        
+        <!-- VIEW SWITCHER (Auto / Mobile / Desktop) -->
+        <div class="flex items-center gap-1 bg-slate-100 dark:bg-gray-900/90 p-1 rounded-xl border border-slate-200/90 dark:border-gray-800 font-semibold shadow-xs">
+          <button onclick="setView('auto')" id="view-btn-auto" title="Auto Responsive (Mobile on phone, Desktop on PC)"
+                  class="view-pill px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 text-[11px] font-bold bg-white dark:bg-gray-800 text-pink-600 dark:text-pink-400 shadow-xs">
+            <span>⚡</span>
+            <span class="inline">Auto</span>
+          </button>
+          <button onclick="setView('mobile')" id="view-btn-mobile" title="Mobile View (Compact single column)"
+                  class="view-pill px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 text-[11px] text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white">
+            <span>📱</span>
+            <span class="inline">Mobile</span>
+          </button>
+          <button onclick="setView('desktop')" id="view-btn-desktop" title="Desktop Widescreen View (2-Column Dashboard)"
+                  class="view-pill px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 text-[11px] text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white">
+            <span>💻</span>
+            <span class="inline">Desktop</span>
+          </button>
+        </div>
+
+        <!-- THEME SWITCHER (System Theme Matching / Light / Dark) -->
+        <div class="flex items-center gap-1 bg-slate-100 dark:bg-gray-900/90 p-1 rounded-xl border border-slate-200/90 dark:border-gray-800 font-semibold shadow-xs">
+          <button onclick="setTheme('system')" id="theme-btn-system" title="Match System Theme (macOS / iOS / Android)"
+                  class="theme-pill px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 text-[11px] font-bold bg-white dark:bg-gray-800 text-pink-600 dark:text-pink-400 shadow-xs">
+            <span>🌓</span>
+            <span class="hidden sm:inline">System</span>
+          </button>
+          <button onclick="setTheme('light')" id="theme-btn-light" title="Light Mode"
+                  class="theme-pill px-2 py-1 rounded-lg transition-all flex items-center gap-1 text-[11px] text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white">
+            <span>☀️</span>
+            <span class="hidden sm:inline">Light</span>
+          </button>
+          <button onclick="setTheme('dark')" id="theme-btn-dark" title="Dark Mode"
+                  class="theme-pill px-2 py-1 rounded-lg transition-all flex items-center gap-1 text-[11px] text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white">
+            <span>🌙</span>
+            <span class="hidden sm:inline">Dark</span>
+          </button>
+        </div>
+
+        <!-- Desktop Refresh Button -->
+        <button onclick="fetchStatus()" title="Refresh Status" class="hidden md:flex p-2 rounded-xl bg-slate-100 dark:bg-gray-800/80 hover:bg-slate-200 dark:hover:bg-gray-800 text-slate-600 dark:text-gray-300 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+        </button>
+
+      </div>
     </div>
 
-    <!-- User Selector Pills -->
-    <div class="max-w-xl mx-auto mt-3">
-      <div class="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1.5">You are DJing as:</div>
-      <div class="grid grid-cols-4 gap-1.5" id="user-pills">
-        <button onclick="selectUser('Leo')" data-user="Leo" class="user-pill flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold border transition-all duration-200 border-gray-800 bg-gray-900/60 text-gray-400 hover:border-blue-500/50">
-          <span class="w-2 h-2 rounded-full bg-blue-500"></span> Leo
-        </button>
-        <button onclick="selectUser('Andrew')" data-user="Andrew" class="user-pill flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold border transition-all duration-200 border-gray-800 bg-gray-900/60 text-gray-400 hover:border-emerald-500/50">
-          <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Andrew
-        </button>
-        <button onclick="selectUser('Cia')" data-user="Cia" class="user-pill flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold border transition-all duration-200 border-gray-800 bg-gray-900/60 text-gray-400 hover:border-pink-500/50">
-          <span class="w-2 h-2 rounded-full bg-pink-500"></span> Cia
-        </button>
-        <button onclick="selectUser('Sam')" data-user="Sam" class="user-pill flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold border transition-all duration-200 border-gray-800 bg-gray-900/60 text-gray-400 hover:border-amber-500/50">
-          <span class="w-2 h-2 rounded-full bg-amber-500"></span> Sam
-        </button>
+    <!-- DJ Profile Selector Pills -->
+    <div class="max-w-7xl mx-auto mt-2.5 pt-2 border-t border-slate-200/60 dark:border-gray-800/60">
+      <div class="flex items-center justify-between gap-2">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400 shrink-0">You are DJing as:</div>
+        <div class="grid grid-cols-4 gap-1.5 flex-1 max-w-md ml-auto" id="user-pills">
+          <button onclick="selectUser('Leo')" data-user="Leo" class="user-pill flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold border transition-all duration-200 border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900/60 text-slate-600 dark:text-gray-400 hover:border-blue-500/50">
+            <span class="w-2 h-2 rounded-full bg-blue-500"></span> Leo
+          </button>
+          <button onclick="selectUser('Andrew')" data-user="Andrew" class="user-pill flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold border transition-all duration-200 border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900/60 text-slate-600 dark:text-gray-400 hover:border-emerald-500/50">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Andrew
+          </button>
+          <button onclick="selectUser('Cia')" data-user="Cia" class="user-pill flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold border transition-all duration-200 border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900/60 text-slate-600 dark:text-gray-400 hover:border-pink-500/50">
+            <span class="w-2 h-2 rounded-full bg-pink-500"></span> Cia
+          </button>
+          <button onclick="selectUser('Sam')" data-user="Sam" class="user-pill flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold border transition-all duration-200 border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900/60 text-slate-600 dark:text-gray-400 hover:border-amber-500/50">
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span> Sam
+          </button>
+        </div>
       </div>
     </div>
   </header>
 
-  <main class="max-w-xl mx-auto px-4 mt-4 space-y-5">
+  <!-- ============================================================
+       MAIN APP WRAPPER (Responsive Container)
+       ============================================================ -->
+  <main id="app-wrapper" class="mt-4 sm:mt-6 transition-all duration-300">
+    <div class="app-grid space-y-5 lg:space-y-0">
 
-    <!-- NOW PLAYING CARD -->
-    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-b from-[#181c28] to-[#121520] border border-gray-800/80 p-4 shadow-xl shadow-black/40">
-      <div class="flex items-center gap-4">
-        <!-- Vinyl Thumbnail -->
-        <div class="relative w-20 h-20 shrink-0">
-          <img id="now-thumbnail" src="https://via.placeholder.com/150" alt="Cover" class="w-full h-full object-cover rounded-xl shadow-md border border-gray-700/50">
-          <div id="vinyl-disc" class="absolute -right-2 top-0 w-20 h-20 rounded-full border-2 border-gray-900/80 bg-black/70 -z-10 vinyl-spin paused flex items-center justify-center">
-            <div class="w-6 h-6 rounded-full bg-pink-500/80 border border-white/20"></div>
+      <!-- ========================================================
+           COLUMN 1 (LEFT ON DESKTOP): NOW PLAYING + LIVE LYRICS + HOST INFO
+           ======================================================== -->
+      <div class="col-left space-y-5">
+
+        <!-- NOW PLAYING CARD -->
+        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-b from-white via-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-4 sm:p-5 shadow-lg shadow-slate-200/50 dark:shadow-xl dark:shadow-black/40 transition-colors duration-200">
+          <div class="flex items-center gap-4">
+            <!-- Vinyl Disc Thumbnail -->
+            <div class="relative w-20 h-20 sm:w-24 sm:h-24 shrink-0">
+              <img id="now-thumbnail" src="https://via.placeholder.com/150" alt="Cover"
+                   class="w-full h-full object-cover rounded-2xl shadow-md border border-slate-200 dark:border-gray-700/50 relative z-10">
+              <div id="vinyl-disc" class="absolute -right-2.5 top-0 w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-slate-800 dark:border-gray-900/80 bg-slate-900/90 dark:bg-black/80 z-0 vinyl-spin paused flex items-center justify-center shadow-md">
+                <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-pink-500/90 border border-white/20"></div>
+              </div>
+            </div>
+
+            <!-- Metadata -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">
+                  NOW PLAYING
+                </span>
+                <span id="now-added-by" class="text-[11px] text-slate-500 dark:text-gray-400 truncate font-medium"></span>
+              </div>
+              <h2 id="now-title" class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white truncate mt-1">No song playing</h2>
+              <p id="now-artist" class="text-xs sm:text-sm font-semibold text-slate-500 dark:text-gray-400 truncate">Connect YouTube Music</p>
+            </div>
+
+            <!-- Play/Pause & Skip Controls -->
+            <div class="flex items-center gap-2 shrink-0">
+              <button onclick="togglePlay()" class="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-slate-900 text-white dark:bg-white dark:text-black flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-transform">
+                <svg id="play-icon" class="w-5 h-5 translate-x-0.5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+                <svg id="pause-icon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                </svg>
+              </button>
+              <button onclick="skipNext()" title="Skip song" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-700 dark:text-gray-200 hover:text-slate-900 dark:hover:text-white flex items-center justify-center hover:bg-slate-200 dark:hover:bg-gray-700 active:scale-95 transition-all">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- READ-ONLY REAL-TIME TIMELINE -->
+          <div class="mt-4 pointer-events-none select-none">
+            <div class="w-full bg-slate-200 dark:bg-gray-800/80 rounded-full h-2 overflow-hidden relative">
+              <div id="progress-bar" class="bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+            <div class="flex justify-between text-[11px] text-slate-500 dark:text-gray-400 font-bold mt-1.5 px-0.5">
+              <span id="time-elapsed">0:00</span>
+              <span id="time-duration">0:00</span>
+            </div>
+          </div>
+
+          <!-- PHYSICAL SPEAKER VOLUME SLIDER -->
+          <div class="mt-3 pt-3 border-t border-slate-200/80 dark:border-gray-800/60 flex items-center gap-3">
+            <button onclick="toggleMuteQuick()" class="text-slate-500 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white transition-colors shrink-0">
+              <svg id="vol-icon" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+              </svg>
+            </button>
+            <div class="flex-1 flex items-center gap-2">
+              <input type="range" id="volume-slider" min="0" max="100" value="70" oninput="handleVolumeInput(this.value)"
+                     class="w-full accent-pink-500 cursor-pointer">
+              <span id="volume-label" class="text-[11px] font-extrabold text-slate-600 dark:text-gray-400 w-9 text-right shrink-0">70%</span>
+            </div>
+          </div>
+
+          <!-- MOBILE-ONLY LYRICS TRIGGER & PARTY MODE BADGE -->
+          <div class="mobile-only mt-3 pt-2.5 border-t border-slate-200/70 dark:border-gray-800/40 flex items-center justify-between">
+            <button onclick="openLyrics()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/30 text-pink-600 dark:text-pink-400 text-xs font-bold transition-all active:scale-95 shadow-xs">
+              <span>🎤</span>
+              <span>Lihat Lirik Real-Time</span>
+            </button>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-semibold">Party Mode Active</span>
+          </div>
+
+          <!-- UP NEXT PREVIEW BANNER -->
+          <div id="up-next-banner" class="mt-3 p-2.5 rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/30 border border-indigo-200 dark:border-indigo-800/50 flex items-center justify-between text-xs hidden">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 uppercase tracking-wider shrink-0 border border-indigo-300/40 dark:border-indigo-500/30">Up Next</span>
+              <span id="up-next-title" class="text-slate-800 dark:text-gray-200 font-bold truncate">Song Title</span>
+              <span id="up-next-badge" class="text-[10px] text-slate-500 dark:text-gray-400 shrink-0 font-medium"></span>
+            </div>
+            <button onclick="skipNext()" class="text-xs text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-bold flex items-center gap-1 shrink-0 ml-2 active:scale-95 transition-transform">
+              <span>Play Now ⏭️</span>
+            </button>
           </div>
         </div>
 
-        <!-- Meta -->
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2">
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-pink-500/20 text-pink-400 border border-pink-500/30">NOW PLAYING</span>
-            <span id="now-added-by" class="text-[11px] text-gray-400 truncate"></span>
+        <!-- DESKTOP-ONLY: EMBEDDED LIVE KARAOKE LYRICS PANEL -->
+        <div class="desktop-only rounded-2xl bg-gradient-to-b from-white to-slate-50/80 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-4 shadow-md dark:shadow-xl space-y-3 transition-colors duration-200">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-gray-800">
+            <div class="flex items-center gap-2">
+              <span class="text-base">🎤</span>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-pink-600 dark:text-pink-400" id="desktop-lyrics-badge">Karaoke Real-Time</h3>
+            </div>
+            <button onclick="openLyrics()" class="text-[11px] font-bold text-pink-600 dark:text-pink-400 hover:underline flex items-center gap-1">
+              <span>⛶ Fullscreen</span>
+            </button>
           </div>
-          <h2 id="now-title" class="text-base font-bold text-white truncate mt-1">No song playing</h2>
-          <p id="now-artist" class="text-xs font-medium text-gray-400 truncate">Connect YouTube Music</p>
+          <div id="desktop-lyrics-scroll" class="h-64 overflow-y-auto space-y-2.5 text-center pr-1 select-none py-2">
+            <div id="desktop-lyrics-spinner" class="py-12 text-center text-xs text-slate-400 dark:text-gray-500">
+              <span class="inline-block animate-spin mr-1.5">⏳</span> Mengambil lirik lagu...
+            </div>
+            <div id="desktop-lyrics-body" class="space-y-2"></div>
+          </div>
         </div>
 
-        <!-- Play/Pause & Skip Controls -->
-        <div class="flex items-center gap-2">
-          <button onclick="togglePlay()" class="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-transform">
-            <svg id="play-icon" class="w-5 h-5 translate-x-0.5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z"/>
-            </svg>
-            <svg id="pause-icon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-            </svg>
-          </button>
-          <button onclick="skipNext()" title="Skip song" class="w-9 h-9 rounded-full bg-gray-800 text-gray-200 hover:text-white flex items-center justify-center hover:bg-gray-700 active:scale-95 transition-all">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
-            </svg>
-          </button>
+        <!-- DESKTOP-ONLY: HOST & ROOM WI-FI QR CODE CARD -->
+        <div class="desktop-only rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-4 shadow-md dark:shadow-xl space-y-3 transition-colors duration-200">
+          <div class="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-gray-200">
+            <span>📱</span>
+            <span>Scan untuk Request Lagu dari Smartphone</span>
+          </div>
+          <div class="flex items-center gap-4 bg-slate-100/80 dark:bg-gray-900/60 p-3 rounded-xl border border-slate-200/80 dark:border-gray-800">
+            <img id="host-qr-img" src="" alt="Scan QR" class="w-20 h-20 rounded-lg bg-white p-1 border border-slate-200 shrink-0">
+            <div class="min-w-0 text-xs space-y-1">
+              <p class="font-bold text-slate-900 dark:text-white">Wi-Fi Party Jukebox</p>
+              <p class="text-[11px] text-slate-500 dark:text-gray-400">Buka kamera HP atau kunjungi:</p>
+              <p id="host-url-text" class="text-[11px] font-mono font-bold text-pink-600 dark:text-pink-400 truncate"></p>
+              <p class="text-[10px] text-slate-400 dark:text-gray-500">Semua tamu bisa request & vote secara real-time tanpa install app!</p>
+            </div>
+          </div>
         </div>
+
       </div>
 
-      <!-- READ-ONLY REAL-TIME TIMELINE -->
-      <div class="mt-4 pointer-events-none select-none">
-        <div class="w-full bg-gray-800/80 rounded-full h-2 overflow-hidden relative">
-          <div id="progress-bar" class="bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+      <!-- ========================================================
+           COLUMN 2 (RIGHT ON DESKTOP): SEARCH + QUEUE + ACTIVITY FEED
+           ======================================================== -->
+      <div class="col-right space-y-5">
+
+        <!-- SEARCH & PASTE SECTION -->
+        <div class="rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-4 shadow-md dark:shadow-xl transition-colors duration-200">
+          
+          <!-- Tabs: Search vs Paste -->
+          <div class="flex rounded-xl bg-slate-100 dark:bg-gray-900/80 p-1 border border-slate-200 dark:border-gray-800">
+            <button onclick="switchTab('search')" id="tab-search" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-white dark:bg-gray-800 text-slate-900 dark:text-white shadow-xs flex items-center justify-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+              Search YouTube Music
+            </button>
+            <button onclick="switchTab('paste')" id="tab-paste" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+              </svg>
+              Paste YouTube Link
+            </button>
+          </div>
+
+          <!-- TAB CONTENT: SEARCH -->
+          <div id="content-search" class="mt-3 space-y-3">
+            <!-- Search Input -->
+            <div class="relative">
+              <input type="text" id="search-input" placeholder="Search songs, artists (e.g. Bernadya, Coldplay, YOASOBI)..."
+                     class="w-full bg-slate-50 dark:bg-[#121520] border border-slate-200 dark:border-gray-800 rounded-xl px-4 py-2.5 pl-10 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition-all">
+              <svg class="w-4 h-4 text-slate-400 dark:text-gray-500 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+              <div id="search-spinner" class="hidden absolute right-3.5 top-3">
+                <div class="w-4 h-4 border-2 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            </div>
+
+            <!-- Filters: Country & Genre Selectors -->
+            <div class="grid grid-cols-2 gap-2">
+              <select id="filter-country" onchange="triggerSearchFilter()" class="bg-slate-50 dark:bg-[#121520] border border-slate-200 dark:border-gray-800 text-xs text-slate-700 dark:text-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:border-pink-500 cursor-pointer">
+                <option value="">🌍 Semua Negara (All)</option>
+                <option value="Indonesia">🇮🇩 Indonesia</option>
+                <option value="Western">🇺🇸 Barat / Global</option>
+                <option value="K-Pop Korea">🇰🇷 Korea (K-Pop)</option>
+                <option value="J-Pop Anime Jepang">🇯🇵 Jepang (Anime/J-Pop)</option>
+              </select>
+              <select id="filter-genre" onchange="triggerSearchFilter()" class="bg-slate-50 dark:bg-[#121520] border border-slate-200 dark:border-gray-800 text-xs text-slate-700 dark:text-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:border-pink-500 cursor-pointer">
+                <option value="">🎵 Semua Genre (All)</option>
+                <option value="Pop">Pop Hits</option>
+                <option value="Rock">Rock</option>
+                <option value="R&B Soul">R&B / Soul</option>
+                <option value="EDM Dance">EDM / Dance</option>
+                <option value="Acoustic Chill">Acoustic / Chill</option>
+                <option value="Anime OST">Anime / OST</option>
+              </select>
+            </div>
+
+            <!-- Quick Recommendations & Mood Chips -->
+            <div>
+              <div class="text-[11px] font-bold text-slate-500 dark:text-gray-400 mb-1.5 flex items-center justify-between">
+                <span>✨ Rekomendasi Kategori:</span>
+                <span class="text-[10px] text-slate-400 dark:text-gray-500">Tap untuk cari</span>
+              </div>
+              <div class="flex gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
+                <button onclick="applyQuickFilter('Top Indo Hits')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 hover:border-pink-500 text-slate-700 dark:text-gray-300 text-[11px] font-bold transition-all shadow-2xs">
+                  🇮🇩 Indo Hits
+                </button>
+                <button onclick="applyQuickFilter('Trending K-Pop')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 hover:border-pink-500 text-slate-700 dark:text-gray-300 text-[11px] font-bold transition-all shadow-2xs">
+                  🇰🇷 K-Pop
+                </button>
+                <button onclick="applyQuickFilter('Anime OST Hits')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 hover:border-pink-500 text-slate-700 dark:text-gray-300 text-[11px] font-bold transition-all shadow-2xs">
+                  🇯🇵 Anime Hits
+                </button>
+                <button onclick="applyQuickFilter('Top 50 Global Hits')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 hover:border-pink-500 text-slate-700 dark:text-gray-300 text-[11px] font-bold transition-all shadow-2xs">
+                  🔥 Top Global
+                </button>
+                <button onclick="applyQuickFilter('Best Party Dance EDM')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 hover:border-pink-500 text-slate-700 dark:text-gray-300 text-[11px] font-bold transition-all shadow-2xs">
+                  💃 Party EDM
+                </button>
+                <button onclick="applyQuickFilter('Acoustic Chill Pop')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 hover:border-pink-500 text-slate-700 dark:text-gray-300 text-[11px] font-bold transition-all shadow-2xs">
+                  ☕ Acoustic Chill
+                </button>
+                <button onclick="applyQuickFilter('Classic Rock Anthems')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 hover:border-pink-500 text-slate-700 dark:text-gray-300 text-[11px] font-bold transition-all shadow-2xs">
+                  🎸 Classic Rock
+                </button>
+              </div>
+            </div>
+
+            <!-- Search Results / Recommendations Container -->
+            <div id="search-results" class="space-y-2 max-h-72 overflow-y-auto pr-1"></div>
+          </div>
+
+          <!-- TAB CONTENT: PASTE -->
+          <div id="content-paste" class="mt-3 hidden space-y-3">
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-[#121520] border border-slate-200 dark:border-gray-800 space-y-3">
+              <p class="text-xs text-slate-600 dark:text-gray-400">Paste any video link from YouTube or YouTube Music:</p>
+              <input type="text" id="paste-input" placeholder="https://music.youtube.com/watch?v=... or https://youtu.be/..."
+                     class="w-full bg-white dark:bg-gray-900 border border-slate-300 dark:border-gray-700/80 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:border-pink-500">
+              <button onclick="submitPaste()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-indigo-600 text-white text-xs font-bold shadow-md hover:opacity-90 active:scale-[0.99] transition-all flex items-center justify-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Add to Queue
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="flex justify-between text-[11px] text-gray-400 font-semibold mt-1.5 px-0.5">
-          <span id="time-elapsed">0:00</span>
-          <span id="time-duration">0:00</span>
+
+        <!-- QUEUE & PLAYED HISTORY TABS CARD -->
+        <div class="rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-4 shadow-md dark:shadow-xl space-y-3 transition-colors duration-200">
+          <div class="flex items-center justify-between border-b border-slate-200 dark:border-gray-800 pb-2.5">
+            <div class="flex gap-2">
+              <button onclick="switchQueueTab('upcoming')" id="tab-btn-upcoming"
+                      class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-white dark:bg-gray-800 text-slate-900 dark:text-white flex items-center gap-1.5 border border-slate-300 dark:border-gray-700 shadow-xs">
+                <span>Antrean Mendatang</span>
+                <span id="queue-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-pink-500/20 text-pink-600 dark:text-pink-400 font-extrabold">0</span>
+              </button>
+              <button onclick="switchQueueTab('history')" id="tab-btn-history"
+                      class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 border border-transparent">
+                <span>Lagu yang Sudah Diputar</span>
+                <span id="history-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-400 font-bold">0</span>
+              </button>
+            </div>
+            <div id="queue-legend" class="text-[11px] text-slate-500 dark:text-gray-400 flex items-center gap-1.5 font-bold">
+              <span class="text-pink-500">⠿ Drag</span>
+              <span>•</span>
+              <span>🔥 Vote</span>
+            </div>
+          </div>
+
+          <!-- Upcoming Queue View -->
+          <div id="queue-view" class="space-y-2">
+            <div id="queue-list" class="space-y-2">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Previously Played Songs View -->
+          <div id="history-view" class="space-y-2 hidden">
+            <div id="history-list" class="space-y-2">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
         </div>
+
+        <!-- ROOM ACTIVITY FEED / HISTORY CARD -->
+        <div class="rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-4 shadow-md dark:shadow-xl space-y-3 transition-colors duration-200">
+          <div class="flex items-center justify-between pb-1">
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm font-bold text-slate-800 dark:text-gray-200 tracking-wide flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-pink-500"></span>
+                Room Activity Feed
+              </h3>
+              <span class="text-[11px] text-slate-400 dark:text-gray-500 font-medium">(Who did what)</span>
+            </div>
+          </div>
+
+          <div id="activity-list" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+
       </div>
 
-      <!-- SPEAKER VOLUME SLIDER -->
-      <div class="mt-3 pt-3 border-t border-gray-800/60 flex items-center gap-3">
-        <button onclick="toggleMuteQuick()" class="text-gray-400 hover:text-white transition-colors shrink-0">
-          <svg id="vol-icon" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-          </svg>
-        </button>
-        <div class="flex-1 flex items-center gap-2">
-          <input type="range" id="volume-slider" min="0" max="100" value="70" oninput="handleVolumeInput(this.value)"
-                 class="w-full accent-pink-500 cursor-pointer">
-          <span id="volume-label" class="text-[11px] font-bold text-gray-400 w-9 text-right shrink-0">70%</span>
-        </div>
-      </div>
-
-      <!-- NOW PLAYING FOOTER: LYRICS BUTTON & UP NEXT PREVIEW -->
-      <div class="mt-3 pt-2.5 border-t border-gray-800/40 flex items-center justify-between">
-        <button onclick="openLyrics()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/30 text-pink-400 text-xs font-bold transition-all active:scale-95 shadow-sm">
-          <span>🎤</span>
-          <span>Lihat Lirik Real-Time</span>
-        </button>
-        <span class="text-[10px] text-gray-500 font-medium">Party Mode Active</span>
-      </div>
-
-      <!-- UP NEXT PREVIEW BANNER -->
-      <div id="up-next-banner" class="mt-3 p-2.5 rounded-xl bg-gradient-to-r from-indigo-950/40 to-purple-950/30 border border-indigo-800/50 flex items-center justify-between text-xs hidden">
-        <div class="flex items-center gap-2 min-w-0">
-          <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 uppercase tracking-wider shrink-0 border border-indigo-500/30">Up Next</span>
-          <span id="up-next-title" class="text-gray-200 font-semibold truncate">Song Title</span>
-          <span id="up-next-badge" class="text-[10px] text-gray-400 shrink-0"></span>
-        </div>
-        <button onclick="skipNext()" class="text-xs text-pink-400 hover:text-pink-300 font-bold flex items-center gap-1 shrink-0 ml-2 active:scale-95 transition-transform">
-          <span>Play Now ⏭️</span>
-        </button>
-      </div>
     </div>
-
-    <!-- TABS: SEARCH vs PASTE -->
-    <div>
-      <div class="flex rounded-xl bg-gray-900/80 p-1 border border-gray-800">
-        <button onclick="switchTab('search')" id="tab-search" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-gray-800 text-white shadow-sm flex items-center justify-center gap-1.5">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-          </svg>
-          Search YouTube Music
-        </button>
-        <button onclick="switchTab('paste')" id="tab-paste" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white flex items-center justify-center gap-1.5">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
-          </svg>
-          Paste YouTube Link
-        </button>
-      </div>
-
-      <!-- TAB CONTENT: SEARCH -->
-      <div id="content-search" class="mt-3 space-y-3">
-        <!-- Search Input -->
-        <div class="relative">
-          <input type="text" id="search-input" placeholder="Search songs, artists (e.g. Bernadya, Coldplay)..."
-                 class="w-full bg-[#121520] border border-gray-800 rounded-xl px-4 py-3 pl-10 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-pink-500/80 focus:ring-1 focus:ring-pink-500/80 transition-all">
-          <svg class="w-4 h-4 text-gray-500 absolute left-3.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-          </svg>
-          <div id="search-spinner" class="hidden absolute right-3.5 top-3.5">
-            <div class="w-4 h-4 border-2 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        </div>
-
-        <!-- Filters: Country & Genre Selectors -->
-        <div class="grid grid-cols-2 gap-2">
-          <select id="filter-country" onchange="triggerSearchFilter()" class="bg-[#121520] border border-gray-800 text-xs text-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:border-pink-500 cursor-pointer">
-            <option value="">🌍 Semua Negara (All)</option>
-            <option value="Indonesia">🇮🇩 Indonesia</option>
-            <option value="Western">🇺🇸 Barat / Global</option>
-            <option value="K-Pop Korea">🇰🇷 Korea (K-Pop)</option>
-            <option value="J-Pop Anime Jepang">🇯🇵 Jepang (Anime/J-Pop)</option>
-          </select>
-          <select id="filter-genre" onchange="triggerSearchFilter()" class="bg-[#121520] border border-gray-800 text-xs text-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:border-pink-500 cursor-pointer">
-            <option value="">🎵 Semua Genre (All)</option>
-            <option value="Pop">Pop Hits</option>
-            <option value="Rock">Rock</option>
-            <option value="R&B Soul">R&B / Soul</option>
-            <option value="EDM Dance">EDM / Dance</option>
-            <option value="Acoustic Chill">Acoustic / Chill</option>
-            <option value="Anime OST">Anime / OST</option>
-          </select>
-        </div>
-
-        <!-- Quick Recommendations & Mood Chips -->
-        <div>
-          <div class="text-[11px] font-semibold text-gray-400 mb-1.5 flex items-center justify-between">
-            <span>✨ Rekomendasi Kategori:</span>
-            <span class="text-[10px] text-gray-500">Tap untuk cari</span>
-          </div>
-          <div class="flex gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
-            <button onclick="applyQuickFilter('Top Indo Hits')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-gray-900 border border-gray-800 hover:border-pink-500/60 text-gray-300 text-[11px] font-semibold transition-all">
-              🇮🇩 Indo Hits
-            </button>
-            <button onclick="applyQuickFilter('Trending K-Pop')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-gray-900 border border-gray-800 hover:border-pink-500/60 text-gray-300 text-[11px] font-semibold transition-all">
-              🇰🇷 K-Pop
-            </button>
-            <button onclick="applyQuickFilter('Anime OST Hits')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-gray-900 border border-gray-800 hover:border-pink-500/60 text-gray-300 text-[11px] font-semibold transition-all">
-              🇯🇵 Anime Hits
-            </button>
-            <button onclick="applyQuickFilter('Top 50 Global Hits')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-gray-900 border border-gray-800 hover:border-pink-500/60 text-gray-300 text-[11px] font-semibold transition-all">
-              🔥 Top Global
-            </button>
-            <button onclick="applyQuickFilter('Best Party Dance EDM')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-gray-900 border border-gray-800 hover:border-pink-500/60 text-gray-300 text-[11px] font-semibold transition-all">
-              💃 Party EDM
-            </button>
-            <button onclick="applyQuickFilter('Acoustic Chill Pop')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-gray-900 border border-gray-800 hover:border-pink-500/60 text-gray-300 text-[11px] font-semibold transition-all">
-              ☕ Acoustic Chill
-            </button>
-            <button onclick="applyQuickFilter('Classic Rock Anthems')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-gray-900 border border-gray-800 hover:border-pink-500/60 text-gray-300 text-[11px] font-semibold transition-all">
-              🎸 Classic Rock
-            </button>
-          </div>
-        </div>
-
-        <!-- Search Results / Recommendations Container -->
-        <div id="search-results" class="space-y-2 max-h-80 overflow-y-auto pr-1"></div>
-      </div>
-
-      <!-- TAB CONTENT: PASTE -->
-      <div id="content-paste" class="mt-3 hidden space-y-3">
-        <div class="p-4 rounded-xl bg-[#121520] border border-gray-800 space-y-3">
-          <p class="text-xs text-gray-400">Paste any video link from YouTube or YouTube Music:</p>
-          <input type="text" id="paste-input" placeholder="https://music.youtube.com/watch?v=... or https://youtu.be/..."
-                 class="w-full bg-gray-900 border border-gray-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-pink-500">
-          <button onclick="submitPaste()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-indigo-600 text-white text-xs font-bold shadow-md hover:opacity-90 active:scale-[0.99] transition-all flex items-center justify-center gap-1.5">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            Add to Queue
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- QUEUE & PLAYED HISTORY TABS -->
-    <div class="space-y-3">
-      <div class="flex items-center justify-between border-b border-gray-800 pb-2">
-        <div class="flex gap-2">
-          <button onclick="switchQueueTab('upcoming')" id="tab-btn-upcoming"
-                  class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-gray-800 text-white flex items-center gap-1.5 border border-gray-700 shadow-sm">
-            <span>Antrean Mendatang</span>
-            <span id="queue-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-pink-500/20 text-pink-400 font-bold">0</span>
-          </button>
-          <button onclick="switchQueueTab('history')" id="tab-btn-history"
-                  class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-gray-400 hover:text-white flex items-center gap-1.5 border border-transparent">
-            <span>Lagu yang Sudah Diputar</span>
-            <span id="history-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-gray-800 text-gray-400 font-bold">0</span>
-          </button>
-        </div>
-        <div id="queue-legend" class="text-[11px] text-gray-400 flex items-center gap-1.5 font-medium">
-          <span class="text-pink-400">⠿ Drag</span>
-          <span>•</span>
-          <span>🔥 Vote</span>
-        </div>
-      </div>
-
-      <!-- Upcoming Queue View -->
-      <div id="queue-view" class="space-y-2">
-        <div id="queue-list" class="space-y-2">
-          <!-- Rendered via JS -->
-        </div>
-      </div>
-
-      <!-- Previously Played Songs View -->
-      <div id="history-view" class="space-y-2 hidden">
-        <div id="history-list" class="space-y-2">
-          <!-- Rendered via JS -->
-        </div>
-      </div>
-    </div>
-
-    <!-- ROOM ACTIVITY FEED / HISTORY -->
-    <div class="pt-4 border-t border-gray-800/80 space-y-3">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <h3 class="text-sm font-bold text-gray-200 tracking-wide flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-pink-500"></span>
-            Room Activity Feed
-          </h3>
-          <span class="text-[11px] text-gray-500 font-medium">(Who did what)</span>
-        </div>
-      </div>
-
-      <div id="activity-list" class="space-y-2 max-h-56 overflow-y-auto pr-1">
-        <!-- Rendered via JS -->
-      </div>
-    </div>
-
   </main>
 
-  <!-- LYRICS MODAL / KARAOKE SHEET -->
-  <div id="lyrics-modal" class="fixed inset-0 z-50 bg-[#090b10]/95 backdrop-blur-xl flex flex-col p-4 sm:p-6 transition-all duration-300 opacity-0 pointer-events-none">
+  <!-- ============================================================
+       MODAL: FULLSCREEN REAL-TIME KARAOKE LYRICS
+       ============================================================ -->
+  <div id="lyrics-modal" class="fixed inset-0 z-50 bg-white/95 dark:bg-[#090b10]/95 backdrop-blur-xl flex flex-col p-4 sm:p-6 transition-all duration-300 opacity-0 pointer-events-none">
     <!-- Header -->
-    <div class="flex items-center justify-between pb-3 border-b border-gray-800/80 max-w-xl mx-auto w-full shrink-0">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-gray-800/80 max-w-2xl mx-auto w-full shrink-0">
       <div class="min-w-0 pr-3">
         <div class="flex items-center gap-1.5">
           <span class="text-xs">🎤</span>
-          <span class="text-[10px] font-bold uppercase tracking-wider text-pink-400" id="lyrics-mode-badge">Real-Time Lyrics</span>
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-pink-600 dark:text-pink-400" id="lyrics-mode-badge">Real-Time Lyrics</span>
         </div>
-        <h3 id="lyrics-title" class="text-sm font-bold text-white truncate">Song Title</h3>
-        <p id="lyrics-artist" class="text-xs text-gray-400 truncate">Artist</p>
+        <h3 id="lyrics-title" class="text-sm sm:text-base font-bold text-slate-900 dark:text-white truncate">Song Title</h3>
+        <p id="lyrics-artist" class="text-xs text-slate-500 dark:text-gray-400 truncate">Artist</p>
       </div>
-      <button onclick="closeLyrics()" class="w-8 h-8 rounded-full bg-gray-800 text-gray-300 hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all">
+      <button onclick="closeLyrics()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-700 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all">
         ✕
       </button>
     </div>
 
     <!-- Lyrics Content (Karaoke Synced or Plain) -->
-    <div id="lyrics-content-scroll" class="flex-1 overflow-y-auto max-w-xl mx-auto w-full py-8 space-y-5 text-center select-none">
-      <div id="lyrics-spinner" class="py-16 text-center text-sm text-gray-400">
+    <div id="lyrics-content-scroll" class="flex-1 overflow-y-auto max-w-2xl mx-auto w-full py-8 space-y-5 text-center select-none">
+      <div id="lyrics-spinner" class="py-16 text-center text-sm text-slate-500 dark:text-gray-400">
         <span class="inline-block animate-spin mr-2">⏳</span> Mengambil lirik lagu...
       </div>
       <div id="lyrics-body" class="space-y-4"></div>
     </div>
 
     <!-- Bottom Footer in modal -->
-    <div class="max-w-xl mx-auto w-full pt-3 border-t border-gray-800/80 text-center shrink-0">
-      <span class="text-[11px] text-gray-500">Lyrics synced via LRCLib & YouTube Music</span>
+    <div class="max-w-2xl mx-auto w-full pt-3 border-t border-slate-200 dark:border-gray-800/80 text-center shrink-0">
+      <span class="text-[11px] text-slate-400 dark:text-gray-500">Lyrics synced via LRCLib & YouTube Music</span>
     </div>
   </div>
 
   <!-- Notification Toast -->
-  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-gray-900/95 border border-gray-700 text-white text-xs font-semibold shadow-2xl transition-all duration-300 opacity-0 pointer-events-none translate-y-4 flex items-center gap-2">
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-slate-900/95 dark:bg-gray-900/95 border border-slate-700 dark:border-gray-700 text-white text-xs font-semibold shadow-2xl transition-all duration-300 opacity-0 pointer-events-none translate-y-4 flex items-center gap-2">
     <span>Notification</span>
   </div>
 
+  <!-- ============================================================
+       APPLICATION SCRIPT
+       ============================================================ -->
   <script>
     // State
     let currentUser = localStorage.getItem('jukebox_user') || 'Sam';
+    let currentTheme = localStorage.getItem('jukebox_theme') || 'system';
+    let currentView = localStorage.getItem('jukebox_view') || 'auto';
     let currentSongData = null;
     let searchDebounceTimeout = null;
     let volumeDebounceTimeout = null;
@@ -408,14 +665,122 @@
     let isPlaying = false;
     let lastTickTimestamp = Date.now();
 
+    // Lyrics State
+    let isLyricsOpen = false;
+    let currentLyrics = null;
+    let currentActiveLyricIndex = -1;
+    let fetchedLyricsForVideoId = '';
+
     const userColors = {
-      'Leo': { bg: 'bg-blue-500/20', text: 'text-blue-400', border: 'border-blue-500/40', pill: 'border-blue-500 bg-blue-500/10 text-white' },
-      'Andrew': { bg: 'bg-emerald-500/20', text: 'text-emerald-400', border: 'border-emerald-500/40', pill: 'border-emerald-500 bg-emerald-500/10 text-white' },
-      'Cia': { bg: 'bg-pink-500/20', text: 'text-pink-400', border: 'border-pink-500/40', pill: 'border-pink-500 bg-pink-500/10 text-white' },
-      'Sam': { bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500/40', pill: 'border-amber-500 bg-amber-500/10 text-white' },
-      'System': { bg: 'bg-gray-800', text: 'text-gray-400', border: 'border-gray-700', pill: '' }
+      'Leo': { bg: 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/40', pill: 'border-blue-500 bg-blue-500/15 text-blue-700 dark:text-white' },
+      'Andrew': { bg: 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/40', pill: 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-white' },
+      'Cia': { bg: 'bg-pink-500/20 text-pink-600 dark:text-pink-400 border-pink-500/40', pill: 'border-pink-500 bg-pink-500/15 text-pink-700 dark:text-white' },
+      'Sam': { bg: 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/40', pill: 'border-amber-500 bg-amber-500/15 text-amber-700 dark:text-white' },
+      'System': { bg: 'bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-400 border-slate-300 dark:border-gray-700', pill: '' }
     };
 
+    // ============================================================
+    // THEME MANAGEMENT (System Matching + Light + Dark)
+    // ============================================================
+    function initTheme() {
+      applyTheme(currentTheme);
+      // Listen for system changes when in system mode
+      if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+          if (currentTheme === 'system') {
+            applyTheme('system');
+          }
+        });
+      }
+    }
+
+    function setTheme(theme) {
+      currentTheme = theme;
+      localStorage.setItem('jukebox_theme', theme);
+      applyTheme(theme);
+      showToast(`Theme: ${theme.toUpperCase()}`);
+    }
+
+    function applyTheme(theme) {
+      const htmlEl = document.documentElement;
+      let isDark = false;
+      if (theme === 'system') {
+        isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      } else if (theme === 'dark') {
+        isDark = true;
+      } else {
+        isDark = false;
+      }
+
+      if (isDark) {
+        htmlEl.classList.add('dark');
+      } else {
+        htmlEl.classList.remove('dark');
+      }
+
+      // Update theme pill buttons
+      ['system', 'light', 'dark'].forEach(t => {
+        const btn = document.getElementById(`theme-btn-${t}`);
+        if (!btn) return;
+        if (t === theme) {
+          btn.className = 'theme-pill px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 text-[11px] font-bold bg-white dark:bg-gray-800 text-pink-600 dark:text-pink-400 shadow-xs';
+        } else {
+          btn.className = 'theme-pill px-2 py-1 rounded-lg transition-all flex items-center gap-1 text-[11px] text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white';
+        }
+      });
+    }
+
+    // ============================================================
+    // VIEW MANAGEMENT (Auto / Mobile / Desktop)
+    // ============================================================
+    function initView() {
+      setView(currentView, false);
+      // Setup Host QR image & text
+      const hostUrl = window.location.origin;
+      const hostTextEl = document.getElementById('host-url-text');
+      const hostQrEl = document.getElementById('host-qr-img');
+      if (hostTextEl) hostTextEl.textContent = hostUrl;
+      if (hostQrEl) {
+        hostQrEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(hostUrl)}`;
+      }
+    }
+
+    function setView(view, notify = true) {
+      currentView = view;
+      localStorage.setItem('jukebox_view', view);
+      
+      const body = document.body;
+      body.classList.remove('view-auto', 'view-mobile', 'view-desktop');
+      body.classList.add(`view-${view}`);
+
+      const badge = document.getElementById('current-view-badge');
+      if (badge) {
+        badge.textContent = view.charAt(0).toUpperCase() + view.slice(1);
+      }
+
+      ['auto', 'mobile', 'desktop'].forEach(v => {
+        const btn = document.getElementById(`view-btn-${v}`);
+        if (!btn) return;
+        if (v === view) {
+          btn.className = 'view-pill px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 text-[11px] font-bold bg-white dark:bg-gray-800 text-pink-600 dark:text-pink-400 shadow-xs';
+        } else {
+          btn.className = 'view-pill px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 text-[11px] text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white';
+        }
+      });
+
+      if (notify) {
+        const labels = {
+          'auto': '⚡ Auto Responsive View',
+          'mobile': '📱 Switched to Mobile View',
+          'desktop': '💻 Switched to Desktop Widescreen View'
+        };
+        showToast(labels[view] || view);
+      }
+    }
+
+    // ============================================================
+    // USER SELECTION
+    // ============================================================
     function selectUser(user) {
       currentUser = user;
       localStorage.setItem('jukebox_user', user);
@@ -424,7 +789,7 @@
         if (u === currentUser) {
           pill.className = `user-pill flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-bold border transition-all duration-200 ${userColors[u].pill}`;
         } else {
-          pill.className = 'user-pill flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold border transition-all duration-200 border-gray-800 bg-gray-900/60 text-gray-400 hover:border-gray-700';
+          pill.className = 'user-pill flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold border transition-all duration-200 border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900/60 text-slate-600 dark:text-gray-400 hover:border-slate-300 dark:hover:border-gray-700';
         }
       });
       showToast(`DJ set to: ${user}`);
@@ -436,13 +801,13 @@
       if (tab === 'search') {
         document.getElementById('content-search').classList.remove('hidden');
         document.getElementById('content-paste').classList.add('hidden');
-        document.getElementById('tab-search').className = 'flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-gray-800 text-white shadow-sm flex items-center justify-center gap-1.5';
-        document.getElementById('tab-paste').className = 'flex-1 py-2 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white flex items-center justify-center gap-1.5';
+        document.getElementById('tab-search').className = 'flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-white dark:bg-gray-800 text-slate-900 dark:text-white shadow-xs flex items-center justify-center gap-1.5';
+        document.getElementById('tab-paste').className = 'flex-1 py-2 rounded-lg text-xs font-bold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center gap-1.5';
       } else {
         document.getElementById('content-search').classList.add('hidden');
         document.getElementById('content-paste').classList.remove('hidden');
-        document.getElementById('tab-paste').className = 'flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-gray-800 text-white shadow-sm flex items-center justify-center gap-1.5';
-        document.getElementById('tab-search').className = 'flex-1 py-2 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white flex items-center justify-center gap-1.5';
+        document.getElementById('tab-paste').className = 'flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-white dark:bg-gray-800 text-slate-900 dark:text-white shadow-xs flex items-center justify-center gap-1.5';
+        document.getElementById('tab-search').className = 'flex-1 py-2 rounded-lg text-xs font-bold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center gap-1.5';
       }
     }
 
@@ -507,13 +872,15 @@
           currentVideoId = song.videoId;
           currentElapsed = song.currentElapsed || 0;
           lastTickTimestamp = Date.now();
+          // Auto-fetch lyrics for desktop panel & modal
+          loadLyricsForSong(song);
         } else {
           // If paused, sync strictly
           if (song.isPaused) {
             currentElapsed = song.currentElapsed || 0;
             lastTickTimestamp = Date.now();
           } else if (typeof song.currentElapsed === 'number') {
-            // If playing, check drift. Only calibrate if drift > 1.5s (smooth ticker handles the rest)
+            // Drift calibration
             const drift = Math.abs(song.currentElapsed - currentElapsed);
             if (drift > 1.5) {
               currentElapsed = song.currentElapsed;
@@ -554,7 +921,7 @@
         }
       }
 
-      // Queue List (FILTER ONLY UPCOMING SONGS!)
+      // Queue List (Upcoming only)
       renderQueue(status.queue || [], status.selectedIndex ?? -1);
 
       // Previously Played Songs History
@@ -581,7 +948,7 @@
         renderTimeline(currentElapsed);
 
         // Real-Time Karaoke Lyrics Highlight Sync
-        if (isLyricsOpen && currentLyrics && currentLyrics.isSynced && currentLyrics.lines && currentLyrics.lines.length > 0) {
+        if (currentLyrics && currentLyrics.isSynced && currentLyrics.lines && currentLyrics.lines.length > 0) {
           updateLyricsHighlight();
         }
       } else {
@@ -618,7 +985,6 @@
       const queueList = document.getElementById('queue-list');
       const countEl = document.getElementById('queue-count');
 
-      // Filter: Songs already played OR currently playing are completely excluded!
       const activeVideoId = currentSongData?.videoId || '';
       let upcoming = [];
       if (selectedIndex >= 0) {
@@ -645,26 +1011,26 @@
 
       if (upcoming.length === 0) {
         queueList.innerHTML = `
-          <div class="p-6 rounded-xl bg-gray-900/40 border border-gray-800/60 text-center">
-            <p class="text-xs text-gray-500">Antrean kosong. Jadilah yang pertama request lagu!</p>
+          <div class="p-6 rounded-xl bg-slate-100/60 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-800/60 text-center">
+            <p class="text-xs text-slate-500 dark:text-gray-400">Antrean kosong. Jadilah yang pertama request lagu!</p>
           </div>
         `;
         return;
       }
 
       queueList.innerHTML = upcoming.map((item, idx) => {
-        const userStyle = userColors[item.addedBy] || { bg: 'bg-gray-800', text: 'text-gray-400', border: 'border-gray-700' };
+        const userStyle = userColors[item.addedBy] || { bg: 'bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-400 border-slate-300 dark:border-gray-700' };
         const hasVoted = item.votedUsers && item.votedUsers.includes(currentUser);
         const voteBtnClass = hasVoted
-          ? 'bg-gradient-to-r from-pink-500 to-indigo-600 text-white shadow-md shadow-pink-500/20'
-          : 'bg-gray-800/80 hover:bg-gray-800 text-gray-300 border border-gray-700/60';
+          ? 'bg-gradient-to-r from-pink-500 to-indigo-600 text-white shadow-xs'
+          : 'bg-slate-100 dark:bg-gray-800/80 hover:bg-slate-200 dark:hover:bg-gray-800 text-slate-700 dark:text-gray-300 border border-slate-200 dark:border-gray-700/60';
 
         return `
           <div data-raw-index="${item.rawIndex}" data-idx="${idx}"
-               class="queue-item flex items-center gap-2.5 p-2.5 rounded-xl bg-[#121520] border border-gray-800/80 hover:border-gray-700 transition-all select-none">
+               class="queue-item flex items-center gap-2.5 p-2.5 rounded-xl bg-white dark:bg-[#121520] border border-slate-200/90 dark:border-gray-800/80 hover:border-slate-300 dark:hover:border-gray-700 shadow-2xs transition-all select-none">
             
             <!-- Drag Handle -->
-            <div class="drag-handle py-2 px-1 text-gray-500 hover:text-pink-400 cursor-grab active:cursor-grabbing shrink-0 flex items-center">
+            <div class="drag-handle py-2 px-1 text-slate-400 dark:text-gray-500 hover:text-pink-500 cursor-grab active:cursor-grabbing shrink-0 flex items-center">
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <circle cx="9" cy="5" r="1.5"/>
                 <circle cx="15" cy="5" r="1.5"/>
@@ -675,28 +1041,28 @@
               </svg>
             </div>
 
-            <span class="text-xs font-bold text-gray-500 w-3 text-center shrink-0">${idx + 1}</span>
-            <img src="${item.thumbnail || 'https://via.placeholder.com/60'}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-gray-800 pointer-events-none">
+            <span class="text-xs font-bold text-slate-400 dark:text-gray-500 w-3 text-center shrink-0">${idx + 1}</span>
+            <img src="${item.thumbnail || 'https://via.placeholder.com/60'}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-slate-200 dark:border-gray-800 pointer-events-none">
             
             <div class="flex-1 min-w-0">
-              <h4 class="text-xs font-bold text-white truncate">${item.title}</h4>
-              <p class="text-[11px] text-gray-400 truncate">${item.artist}</p>
+              <h4 class="text-xs font-bold text-slate-900 dark:text-white truncate">${item.title}</h4>
+              <p class="text-[11px] font-medium text-slate-500 dark:text-gray-400 truncate">${item.artist}</p>
               ${item.addedBy ? `
-                <span class="inline-block mt-0.5 px-1.5 py-0.2 rounded-md text-[9px] font-bold ${userStyle.bg} ${userStyle.text} border ${userStyle.border}">
+                <span class="inline-block mt-0.5 px-1.5 py-0.2 rounded-md text-[9px] font-bold border ${userStyle.bg}">
                   by ${item.addedBy}
                 </span>
               ` : `
-                <span class="inline-block mt-0.5 px-1.5 py-0.2 rounded-md text-[9px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                <span class="inline-block mt-0.5 px-1.5 py-0.2 rounded-md text-[9px] font-bold bg-indigo-50 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30">
                   ✨ Autoplay YouTube
                 </span>
               `}
             </div>
 
-            <!-- Upvote Button (Raises queue priority) -->
+            <!-- Upvote Button -->
             <button onclick="upvoteSong('${item.videoId}', '${item.title.replace(/'/g, "\\'")}')"
-                    title="${hasVoted ? 'Cancel vote' : 'Upvote to play next!'}"
+                    title="${hasVoted ? 'Batalkan vote' : 'Upvote untuk naikin antrean!'}"
                     class="px-2 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 active:scale-95 transition-all ${voteBtnClass}">
-              <svg class="w-3.5 h-3.5 ${hasVoted ? 'text-white' : 'text-pink-400'}" fill="currentColor" viewBox="0 0 24 24">
+              <svg class="w-3.5 h-3.5 ${hasVoted ? 'text-white' : 'text-pink-500'}" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 4l-8 8h5v8h6v-8h5z"/>
               </svg>
               <span>${item.upvotes || 0}</span>
@@ -705,7 +1071,7 @@
             <!-- Remove Button -->
             <button onclick="removeSong(${item.rawIndex}, '${item.title.replace(/'/g, "\\'")}')"
                     title="Remove from queue"
-                    class="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 active:scale-90 transition-all">
+                    class="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:text-gray-500 dark:hover:text-red-400 dark:hover:bg-red-500/10 active:scale-90 transition-all">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
               </svg>
@@ -714,7 +1080,7 @@
         `;
       }).join('');
 
-      // Initialize SortableJS for Drag-and-Drop Reordering
+      // Initialize SortableJS
       if (sortableInstance) {
         sortableInstance.destroy();
       }
@@ -760,7 +1126,7 @@
     function renderActivity(logs) {
       const container = document.getElementById('activity-list');
       if (!logs || logs.length === 0) {
-        container.innerHTML = `<div class="p-3 text-center text-xs text-gray-500">Belum ada aktivitas di ruangan ini.</div>`;
+        container.innerHTML = `<div class="p-3 text-center text-xs text-slate-400 dark:text-gray-500">Belum ada aktivitas di ruangan ini.</div>`;
         return;
       }
 
@@ -778,27 +1144,27 @@
       };
 
       container.innerHTML = logs.map(item => {
-        const userStyle = userColors[item.user] || { bg: 'bg-gray-800', text: 'text-gray-300', border: 'border-gray-700' };
+        const userStyle = userColors[item.user] || { bg: 'bg-slate-200 dark:bg-gray-800 text-slate-700 dark:text-gray-300' };
         const meta = actionIcons[item.action] || { icon: '•', label: item.action };
 
         return `
-          <div class="flex items-center justify-between text-xs py-1.5 px-3 rounded-xl bg-gray-900/60 border border-gray-800/80">
+          <div class="flex items-center justify-between text-xs py-1.5 px-3 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-800/80 shadow-2xs">
             <div class="flex items-center gap-2 min-w-0">
               <span class="text-sm shrink-0">${meta.icon}</span>
-              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${userStyle.bg} ${userStyle.text}">
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${userStyle.bg}">
                 ${item.user}
               </span>
-              <span class="text-gray-300 truncate">
-                ${meta.label} <span class="font-semibold text-white">${item.details}</span>
+              <span class="text-slate-600 dark:text-gray-300 truncate">
+                ${meta.label} <span class="font-bold text-slate-900 dark:text-white">${item.details}</span>
               </span>
             </div>
-            <span class="text-[10px] text-gray-500 shrink-0 ml-2">${timeAgo(item.timestamp)}</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 shrink-0 ml-2">${timeAgo(item.timestamp)}</span>
           </div>
         `;
       }).join('');
     }
 
-    // Curated Party Recommendations (Quick Picks)
+    // Curated Party Recommendations
     const partyRecommendations = [
       { videoId: 'dvgZkm1xWPE', title: 'Viva La Vida', artist: 'Coldplay', thumbnail: 'https://i.ytimg.com/vi/dvgZkm1xWPE/hq720.jpg' },
       { videoId: '34Na4j8AVgA', title: 'Starboy', artist: 'The Weeknd ft. Daft Punk', thumbnail: 'https://i.ytimg.com/vi/34Na4j8AVgA/hq720.jpg' },
@@ -814,20 +1180,20 @@
       const container = document.getElementById('search-results');
       container.innerHTML = `
         <div class="pt-1 pb-2">
-          <div class="flex items-center justify-between text-xs font-bold text-gray-300 mb-2 px-1">
-            <span class="flex items-center gap-1.5 text-pink-400">🔥 Rekomendasi Lagu Populer</span>
-            <span class="text-[10px] text-gray-500 font-normal">Tap + Queue untuk langsung putar</span>
+          <div class="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-gray-300 mb-2 px-1">
+            <span class="flex items-center gap-1.5 text-pink-600 dark:text-pink-400">🔥 Rekomendasi Lagu Populer</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-normal">Tap + Queue untuk langsung request</span>
           </div>
           <div class="space-y-1.5">
             ${partyRecommendations.map(item => `
-              <div class="flex items-center gap-3 p-2 rounded-xl bg-gray-900/60 border border-gray-800/80 hover:border-gray-700 transition-colors">
-                <img src="${item.thumbnail}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-gray-800">
+              <div class="flex items-center gap-3 p-2 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800/80 hover:border-pink-500/50 shadow-2xs transition-colors">
+                <img src="${item.thumbnail}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-slate-200 dark:border-gray-800">
                 <div class="flex-1 min-w-0">
-                  <h5 class="text-xs font-bold text-white truncate">${item.title}</h5>
-                  <p class="text-[11px] text-gray-400 truncate">${item.artist}</p>
+                  <h5 class="text-xs font-bold text-slate-900 dark:text-white truncate">${item.title}</h5>
+                  <p class="text-[11px] font-medium text-slate-500 dark:text-gray-400 truncate">${item.artist}</p>
                 </div>
                 <button onclick='queueTrack(${JSON.stringify(item).replace(/'/g, "&#39;")})'
-                        class="px-2.5 py-1.5 rounded-lg bg-pink-500/15 hover:bg-pink-500 text-pink-400 hover:text-white border border-pink-500/30 text-xs font-bold active:scale-95 transition-all flex items-center gap-1 shrink-0">
+                        class="px-2.5 py-1.5 rounded-lg bg-pink-500/15 hover:bg-pink-500 text-pink-600 dark:text-pink-400 hover:text-white border border-pink-500/30 text-xs font-bold active:scale-95 transition-all flex items-center gap-1 shrink-0">
                   + Queue
                 </button>
               </div>
@@ -837,7 +1203,7 @@
       `;
     }
 
-    // Quick Category / Genre Pill Click
+    // Quick Category Chip Click
     function applyQuickFilter(keyword) {
       document.getElementById('search-input').value = keyword;
       executeSearch(keyword);
@@ -905,19 +1271,19 @@
     function renderSearchResults(results) {
       const container = document.getElementById('search-results');
       if (results.length === 0) {
-        container.innerHTML = `<div class="p-4 text-center text-xs text-gray-500">Tidak ada lagu yang ditemukan. Coba kata kunci lain.</div>`;
+        container.innerHTML = `<div class="p-4 text-center text-xs text-slate-400 dark:text-gray-500">Tidak ada lagu yang ditemukan. Coba kata kunci lain.</div>`;
         return;
       }
 
       container.innerHTML = results.map(item => `
-        <div class="flex items-center gap-3 p-2 rounded-xl bg-gray-900/80 border border-gray-800 hover:border-gray-700 transition-colors">
-          <img src="${item.thumbnail || 'https://via.placeholder.com/60'}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-gray-800">
+        <div class="flex items-center gap-3 p-2 rounded-xl bg-slate-50 dark:bg-gray-900/80 border border-slate-200 dark:border-gray-800 hover:border-pink-500/50 shadow-2xs transition-colors">
+          <img src="${item.thumbnail || 'https://via.placeholder.com/60'}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-slate-200 dark:border-gray-800">
           <div class="flex-1 min-w-0">
-            <h5 class="text-xs font-bold text-white truncate">${item.title}</h5>
-            <p class="text-[11px] text-gray-400 truncate">${item.artist}</p>
+            <h5 class="text-xs font-bold text-slate-900 dark:text-white truncate">${item.title}</h5>
+            <p class="text-[11px] font-medium text-slate-500 dark:text-gray-400 truncate">${item.artist}</p>
           </div>
           <button onclick='queueTrack(${JSON.stringify(item).replace(/'/g, "&#39;")})'
-                  class="px-3 py-1.5 rounded-lg bg-pink-500/20 text-pink-400 hover:bg-pink-500 hover:text-white border border-pink-500/30 text-xs font-bold active:scale-95 transition-all flex items-center gap-1">
+                  class="px-3 py-1.5 rounded-lg bg-pink-500/20 text-pink-600 dark:text-pink-400 hover:bg-pink-500 hover:text-white border border-pink-500/30 text-xs font-bold active:scale-95 transition-all flex items-center gap-1">
             + Queue
           </button>
         </div>
@@ -1057,10 +1423,7 @@
     }
 
     // Queue Tab Switcher (Upcoming vs Previously Played)
-    let currentQueueTab = 'upcoming';
-
     function switchQueueTab(tab) {
-      currentQueueTab = tab;
       const btnUpcoming = document.getElementById('tab-btn-upcoming');
       const btnHistory = document.getElementById('tab-btn-history');
       const viewUpcoming = document.getElementById('queue-view');
@@ -1068,14 +1431,14 @@
       const legend = document.getElementById('queue-legend');
 
       if (tab === 'upcoming') {
-        btnUpcoming.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-gray-800 text-white flex items-center gap-1.5 border border-gray-700 shadow-sm';
-        btnHistory.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-gray-400 hover:text-white flex items-center gap-1.5 border border-transparent';
+        btnUpcoming.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-white dark:bg-gray-800 text-slate-900 dark:text-white flex items-center gap-1.5 border border-slate-300 dark:border-gray-700 shadow-xs';
+        btnHistory.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 border border-transparent';
         viewUpcoming.classList.remove('hidden');
         viewHistory.classList.add('hidden');
         legend.classList.remove('hidden');
       } else {
-        btnHistory.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-gray-800 text-white flex items-center gap-1.5 border border-gray-700 shadow-sm';
-        btnUpcoming.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-gray-400 hover:text-white flex items-center gap-1.5 border border-transparent';
+        btnHistory.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-white dark:bg-gray-800 text-slate-900 dark:text-white flex items-center gap-1.5 border border-slate-300 dark:border-gray-700 shadow-xs';
+        btnUpcoming.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 border border-transparent';
         viewHistory.classList.remove('hidden');
         viewUpcoming.classList.add('hidden');
         legend.classList.add('hidden');
@@ -1089,36 +1452,55 @@
 
       if (!history || history.length === 0) {
         container.innerHTML = `
-          <div class="p-6 rounded-xl bg-gray-900/40 border border-gray-800/60 text-center">
-            <p class="text-xs text-gray-500">Belum ada riwayat lagu yang selesai diputar.</p>
+          <div class="p-6 rounded-xl bg-slate-100/60 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-800/60 text-center">
+            <p class="text-xs text-slate-500 dark:text-gray-400">Belum ada riwayat lagu yang selesai diputar.</p>
           </div>
         `;
         return;
       }
 
       container.innerHTML = history.map(item => `
-        <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#121520]/80 border border-gray-800/60 hover:border-gray-700 transition-colors">
-          <img src="${item.thumbnail || 'https://via.placeholder.com/60'}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-gray-800 opacity-80 pointer-events-none">
+        <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-50/80 dark:bg-[#121520]/80 border border-slate-200 dark:border-gray-800/60 hover:border-slate-300 dark:hover:border-gray-700 shadow-2xs transition-colors">
+          <img src="${item.thumbnail || 'https://via.placeholder.com/60'}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-slate-200 dark:border-gray-800 opacity-80 pointer-events-none">
           <div class="flex-1 min-w-0">
-            <h4 class="text-xs font-bold text-gray-200 truncate">${item.title}</h4>
-            <p class="text-[11px] text-gray-400 truncate">${item.artist}</p>
+            <h4 class="text-xs font-bold text-slate-800 dark:text-gray-200 truncate">${item.title}</h4>
+            <p class="text-[11px] font-medium text-slate-500 dark:text-gray-400 truncate">${item.artist}</p>
             <div class="flex items-center gap-2 mt-0.5">
-              <span class="text-[10px] font-medium text-pink-400/80">by ${item.addedBy || 'Sam'}</span>
-              <span class="text-[10px] text-gray-500">• ${timeAgo(item.playedAt)}</span>
+              <span class="text-[10px] font-bold text-pink-600 dark:text-pink-400">by ${item.addedBy || 'Sam'}</span>
+              <span class="text-[10px] text-slate-400 dark:text-gray-500">• ${timeAgo(item.playedAt)}</span>
             </div>
           </div>
           <button onclick='queueTrack(${JSON.stringify({ videoId: item.videoId, title: item.title, artist: item.artist, thumbnail: item.thumbnail }).replace(/'/g, "&#39;")})'
-                  class="px-2.5 py-1.5 rounded-lg bg-gray-800/80 hover:bg-pink-500/20 text-gray-300 hover:text-pink-400 border border-gray-700/60 text-[11px] font-bold active:scale-95 transition-all flex items-center gap-1 shrink-0">
+                  class="px-2.5 py-1.5 rounded-lg bg-slate-200/80 dark:bg-gray-800/80 hover:bg-pink-500/20 text-slate-700 dark:text-gray-300 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-300 dark:border-gray-700/60 text-[11px] font-bold active:scale-95 transition-all flex items-center gap-1 shrink-0">
             <span>+ Putar Lagi</span>
           </button>
         </div>
       `).join('');
     }
 
-    // Real-Time Karaoke Lyrics Modal State & Functions
-    let isLyricsOpen = false;
-    let currentLyrics = null;
-    let currentActiveLyricIndex = -1;
+    // ============================================================
+    // REAL-TIME KARAOKE LYRICS SYNC (Dual Engine: Desktop Card + Modal)
+    // ============================================================
+    async function loadLyricsForSong(song) {
+      if (!song || !song.title || song.title === 'No song playing') return;
+      if (fetchedLyricsForVideoId === song.videoId) return;
+
+      fetchedLyricsForVideoId = song.videoId;
+      const desktopSpinner = document.getElementById('desktop-lyrics-spinner');
+      const desktopBody = document.getElementById('desktop-lyrics-body');
+      if (desktopSpinner) desktopSpinner.classList.remove('hidden');
+      if (desktopBody) desktopBody.innerHTML = '';
+
+      try {
+        const res = await fetch(`/api/lyrics?title=${encodeURIComponent(song.title)}&artist=${encodeURIComponent(song.artist || '')}&duration=${encodeURIComponent(song.songDuration || 0)}`);
+        const data = await res.json();
+        currentLyrics = data;
+        renderLyricsContent(data);
+      } catch (e) {
+        if (desktopSpinner) desktopSpinner.classList.add('hidden');
+        if (desktopBody) desktopBody.innerHTML = `<p class="text-xs text-slate-400 dark:text-gray-500 py-6">Lirik belum tersedia</p>`;
+      }
+    }
 
     async function openLyrics() {
       if (!currentSongData || !currentSongData.title || currentSongData.title === 'No song playing') {
@@ -1133,17 +1515,13 @@
 
       document.getElementById('lyrics-title').textContent = currentSongData.title;
       document.getElementById('lyrics-artist').textContent = currentSongData.artist || '';
-      document.getElementById('lyrics-spinner').classList.remove('hidden');
-      document.getElementById('lyrics-body').innerHTML = '';
 
-      try {
-        const res = await fetch(`/api/lyrics?title=${encodeURIComponent(currentSongData.title)}&artist=${encodeURIComponent(currentSongData.artist || '')}&duration=${encodeURIComponent(songDuration)}`);
-        const data = await res.json();
-        currentLyrics = data;
-        renderLyricsContent(data);
-      } catch (err) {
-        document.getElementById('lyrics-spinner').classList.add('hidden');
-        document.getElementById('lyrics-body').innerHTML = `<p class="text-sm text-gray-500 py-8">Gagal memuat lirik</p>`;
+      if (currentLyrics) {
+        renderLyricsContent(currentLyrics);
+      } else {
+        document.getElementById('lyrics-spinner').classList.remove('hidden');
+        document.getElementById('lyrics-body').innerHTML = '';
+        await loadLyricsForSong(currentSongData);
       }
     }
 
@@ -1155,32 +1533,58 @@
     }
 
     function renderLyricsContent(lyrics) {
-      document.getElementById('lyrics-spinner').classList.add('hidden');
-      const body = document.getElementById('lyrics-body');
-      const badge = document.getElementById('lyrics-mode-badge');
+      // 1. Update Mobile Modal
+      const modalSpinner = document.getElementById('lyrics-spinner');
+      const modalBody = document.getElementById('lyrics-body');
+      const modalBadge = document.getElementById('lyrics-mode-badge');
+      if (modalSpinner) modalSpinner.classList.add('hidden');
+
+      // 2. Update Desktop Card
+      const deskSpinner = document.getElementById('desktop-lyrics-spinner');
+      const deskBody = document.getElementById('desktop-lyrics-body');
+      const deskBadge = document.getElementById('desktop-lyrics-badge');
+      if (deskSpinner) deskSpinner.classList.add('hidden');
 
       if (!lyrics.hasLyrics) {
-        badge.textContent = 'Lirik';
-        body.innerHTML = `<p class="text-sm text-gray-400 py-10">${lyrics.error || 'Lirik belum tersedia untuk lagu ini.'}</p>`;
+        const msg = `<p class="text-xs sm:text-sm text-slate-500 dark:text-gray-400 py-8">${lyrics.error || 'Lirik belum tersedia untuk lagu ini.'}</p>`;
+        if (modalBody) modalBody.innerHTML = msg;
+        if (deskBody) deskBody.innerHTML = msg;
+        if (modalBadge) modalBadge.textContent = 'Lirik';
+        if (deskBadge) deskBadge.textContent = 'Lirik';
         return;
       }
 
       if (lyrics.isSynced && lyrics.lines && lyrics.lines.length > 0) {
-        badge.textContent = 'Karaoke Real-Time';
-        body.innerHTML = lyrics.lines.map((line, idx) => `
-          <div id="lyric-line-${idx}" class="lyric-line transition-all duration-300 py-1.5 px-3 rounded-xl text-gray-500 font-semibold text-sm">
+        if (modalBadge) modalBadge.textContent = 'Karaoke Real-Time';
+        if (deskBadge) deskBadge.textContent = 'Karaoke Real-Time';
+
+        const linesHtmlModal = lyrics.lines.map((line, idx) => `
+          <div id="lyric-line-${idx}" class="lyric-line transition-all duration-300 py-1.5 px-3 rounded-xl text-slate-400 dark:text-gray-500 font-semibold text-sm">
             ${line.text}
           </div>
         `).join('');
+
+        const linesHtmlDesk = lyrics.lines.map((line, idx) => `
+          <div id="desk-lyric-line-${idx}" class="desk-lyric-line transition-all duration-300 py-1 px-2.5 rounded-lg text-slate-400 dark:text-gray-500 font-semibold text-xs">
+            ${line.text}
+          </div>
+        `).join('');
+
+        if (modalBody) modalBody.innerHTML = linesHtmlModal;
+        if (deskBody) deskBody.innerHTML = linesHtmlDesk;
         currentActiveLyricIndex = -1;
         updateLyricsHighlight();
       } else {
-        badge.textContent = 'Teks Lirik';
-        body.innerHTML = `
-          <div class="whitespace-pre-line text-sm text-gray-300 leading-relaxed font-medium text-left px-4">
+        if (modalBadge) modalBadge.textContent = 'Teks Lirik';
+        if (deskBadge) deskBadge.textContent = 'Teks Lirik';
+
+        const plainHtml = `
+          <div class="whitespace-pre-line text-xs sm:text-sm text-slate-700 dark:text-gray-300 leading-relaxed font-medium text-left px-4">
             ${lyrics.plain}
           </div>
         `;
+        if (modalBody) modalBody.innerHTML = plainHtml;
+        if (deskBody) deskBody.innerHTML = plainHtml;
       }
     }
 
@@ -1198,24 +1602,42 @@
       if (activeIdx !== currentActiveLyricIndex) {
         // Demote previous
         if (currentActiveLyricIndex >= 0) {
-          const prevEl = document.getElementById(`lyric-line-${currentActiveLyricIndex}`);
-          if (prevEl) {
-            prevEl.className = 'lyric-line transition-all duration-300 py-1.5 px-3 rounded-xl text-gray-500 font-semibold text-sm opacity-50';
+          const prevModal = document.getElementById(`lyric-line-${currentActiveLyricIndex}`);
+          if (prevModal) {
+            prevModal.className = 'lyric-line transition-all duration-300 py-1.5 px-3 rounded-xl text-slate-400 dark:text-gray-500 font-semibold text-sm opacity-60';
+          }
+          const prevDesk = document.getElementById(`desk-lyric-line-${currentActiveLyricIndex}`);
+          if (prevDesk) {
+            prevDesk.className = 'desk-lyric-line transition-all duration-300 py-1 px-2.5 rounded-lg text-slate-400 dark:text-gray-500 font-semibold text-xs opacity-60';
           }
         }
+
         currentActiveLyricIndex = activeIdx;
-        // Promote new
+
+        // Promote new active lyric
         if (activeIdx >= 0) {
-          const currEl = document.getElementById(`lyric-line-${activeIdx}`);
-          if (currEl) {
-            currEl.className = 'lyric-line transition-all duration-300 py-2.5 px-4 rounded-xl text-white font-extrabold text-base sm:text-lg bg-pink-500/15 border border-pink-500/30 shadow-lg shadow-pink-500/20 scale-[1.02]';
-            currEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // In Modal
+          const currModal = document.getElementById(`lyric-line-${activeIdx}`);
+          if (currModal) {
+            currModal.className = 'lyric-line transition-all duration-300 py-2.5 px-4 rounded-xl text-pink-700 dark:text-white font-extrabold text-base sm:text-lg bg-pink-50 dark:bg-pink-500/15 border border-pink-200 dark:border-pink-500/30 shadow-md shadow-pink-500/15 scale-[1.02]';
+            currModal.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+
+          // In Desktop Panel
+          const currDesk = document.getElementById(`desk-lyric-line-${activeIdx}`);
+          if (currDesk) {
+            currDesk.className = 'desk-lyric-line transition-all duration-300 py-2 px-3 rounded-xl text-pink-700 dark:text-white font-extrabold text-sm bg-pink-50 dark:bg-pink-500/15 border border-pink-200 dark:border-pink-500/30 shadow-sm scale-[1.02]';
+            currDesk.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
         }
       }
     }
 
-    // Start
+    // ============================================================
+    // INITIALIZATION
+    // ============================================================
+    initTheme();
+    initView();
     selectUser(currentUser);
     fetchStatus();
     setupSSE();
