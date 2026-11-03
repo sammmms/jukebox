@@ -573,10 +573,22 @@ async function searchYouTubeMusic(query) {
   }
 }
 
+const APP_VERSION = '2.1.0';
+
 // --- API ROUTES ---
+
+// 0. Version Endpoint
+app.get('/api/version', (req, res) => {
+  res.json({ version: APP_VERSION, name: 'Party Jukebox' });
+});
 
 // 1. Status (Now Playing + Queue + Volume + Activity Feed)
 app.get('/api/status', async (req, res) => {
+  // Prevent all browser & intermediary proxy caching for real-time fidelity
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+
   const [freshSong, { queue, selectedIndex }, sysVol] = await Promise.all([
     fetchCurrentSongFromYTM(),
     getQueueData(),
@@ -591,6 +603,7 @@ app.get('/api/status', async (req, res) => {
 
   res.json({
     online: liveSong.videoId !== '',
+    version: APP_VERSION,
     current: {
       ...liveSong,
       currentElapsed: getCalculatedElapsed(),

@@ -220,6 +220,10 @@
               <span id="current-view-badge" class="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
                 Auto
               </span>
+              <button onclick="openChangelogModal()" title="View Version & Changelog (v2.1.0)"
+                      class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-colors cursor-pointer active:scale-95">
+                v2.1.0
+              </button>
             </div>
             <div class="flex items-center gap-1.5">
               <span id="connection-dot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -229,8 +233,8 @@
         </div>
 
         <!-- Mobile Quick Refresh -->
-        <button onclick="fetchStatus()" class="md:hidden p-2 rounded-xl bg-slate-100 dark:bg-gray-800/80 hover:bg-slate-200 dark:hover:bg-gray-800 text-slate-600 dark:text-gray-300 transition-colors">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button onclick="handleManualRefresh(this)" id="refresh-btn-mobile" title="Refresh Status" class="md:hidden p-2 rounded-xl bg-slate-100 dark:bg-gray-800/80 hover:bg-slate-200 dark:hover:bg-gray-800 text-slate-600 dark:text-gray-300 transition-colors active:scale-90">
+          <svg class="refresh-icon w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
           </svg>
         </button>
@@ -277,11 +281,13 @@
           </button>
         </div>
 
-        <!-- Desktop Refresh Button -->
-        <button onclick="fetchStatus()" title="Refresh Status" class="hidden md:flex p-2 rounded-xl bg-slate-100 dark:bg-gray-800/80 hover:bg-slate-200 dark:hover:bg-gray-800 text-slate-600 dark:text-gray-300 transition-colors">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <!-- Desktop Refresh Button (Enhanced with tactile spin & feedback) -->
+        <button onclick="handleManualRefresh(this)" id="refresh-btn-desktop" title="Refresh Status & Reconnect"
+                class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-800/80 hover:bg-slate-200 dark:hover:bg-gray-800 text-slate-700 dark:text-gray-200 transition-all font-semibold active:scale-95 shadow-2xs border border-slate-200 dark:border-gray-700/60 cursor-pointer">
+          <svg class="refresh-icon w-3.5 h-3.5 transition-transform duration-300 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
           </svg>
+          <span class="text-[11px] font-bold">Refresh</span>
         </button>
 
       </div>
@@ -788,6 +794,94 @@
     <!-- Bottom Footer in modal -->
     <div class="max-w-2xl mx-auto w-full pt-3 border-t border-slate-200 dark:border-gray-800/80 text-center shrink-0">
       <span class="text-[11px] text-slate-400 dark:text-gray-500">Lyrics synced via LRCLib & YouTube Music</span>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: CHANGELOG & VERSION HISTORY (v2.1.0)
+       ============================================================ -->
+  <div id="changelog-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all duration-300 opacity-0 pointer-events-none">
+    <div class="relative w-full max-w-lg rounded-2xl bg-white dark:bg-[#121520] border border-slate-200 dark:border-gray-800 shadow-2xl p-5 max-h-[85vh] flex flex-col transition-colors">
+      <!-- Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-gray-800 shrink-0">
+        <div class="flex items-center gap-2">
+          <span class="text-base">🚀</span>
+          <div>
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.1.0</span></p>
+          </div>
+        </div>
+        <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
+          ✕
+        </button>
+      </div>
+
+      <!-- Content (Scrollable list of releases) -->
+      <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
+        
+        <!-- v2.1.0 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.1.0 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">🇨🇳 Mandarin & C-Pop Ecosystem:</strong> Added dedicated China & Taiwan country filters, Mandopop / KTV chips, and curated recommendations (Jay Chou, JJ Lin, GEM, etc.).</li>
+            <li><strong class="text-slate-800 dark:text-white">🧩 Modern Custom Components:</strong> Glassmorphic custom select dropdowns, search input with clear button & <code>/</code> hotkey, glowing timeline playhead, and dynamic volume controls.</li>
+            <li><strong class="text-slate-800 dark:text-white">🎯 Isolated Lyrics Scroll:</strong> Auto-scroll only triggers when fullscreen lyrics modal is focused; outer page never jumps.</li>
+            <li><strong class="text-slate-800 dark:text-white">🔄 Reliable Refresh Engine:</strong> Tactile animated spinning refresh with cache-busting headers (<code>no-store</code>) and automatic SSE reconnection.</li>
+          </ul>
+        </div>
+
+        <!-- v2.0.0 -->
+        <div class="p-3 rounded-xl bg-slate-50/60 dark:bg-gray-900/40 border border-slate-200/60 dark:border-gray-800/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-200 dark:bg-gray-800 text-slate-700 dark:text-gray-300">v2.0.0</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">Widescreen Desktop Dashboard:</strong> 2-column layout with embedded lyrics and Host Wi-Fi QR Card.</li>
+            <li><strong class="text-slate-800 dark:text-white">View Modes Switcher:</strong> Instant switching between <code>⚡ Auto</code>, <code>📱 Mobile</code>, and <code>💻 Desktop</code>.</li>
+            <li><strong class="text-slate-800 dark:text-white">System Theme Matching:</strong> Automatic day/night sync with macOS/iOS (<code>🌓 System</code>, <code>☀️ Light</code>, <code>🌙 Dark</code>).</li>
+          </ul>
+        </div>
+
+        <!-- v1.2.0 -->
+        <div class="p-3 rounded-xl bg-slate-50/60 dark:bg-gray-900/40 border border-slate-200/60 dark:border-gray-800/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-200 dark:bg-gray-800 text-slate-700 dark:text-gray-300">v1.2.0</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">Real-Time Karaoke Lyrics:</strong> Synced LRC lyrics streamed from LRCLib API.</li>
+            <li><strong class="text-slate-800 dark:text-white">COPPA Watchdog:</strong> Auto-unpauses "Made for Kids" YouTube videos automatically.</li>
+            <li><strong class="text-slate-800 dark:text-white">Up Next Preview:</strong> Shows the next upcoming track with 1-tap play now.</li>
+          </ul>
+        </div>
+
+        <!-- v1.1.0 & v1.0.0 -->
+        <div class="p-3 rounded-xl bg-slate-50/60 dark:bg-gray-900/40 border border-slate-200/60 dark:border-gray-800/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-200 dark:bg-gray-800 text-slate-700 dark:text-gray-300">v1.1.0 & v1.0.0</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li>Drag-and-drop queue reordering (SortableJS), crowd upvoting (🔥), previously played history, physical master speaker volume control, and initial SSE engine.</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="pt-3 border-t border-slate-200 dark:border-gray-800 flex items-center justify-between shrink-0">
+        <a href="https://github.com/sammmms/jukebox/blob/master/CHANGELOG.md" target="_blank" class="text-[11px] text-pink-600 dark:text-pink-400 hover:underline flex items-center gap-1 font-semibold">
+          <span>Lihat full CHANGELOG.md</span>
+          <span>↗</span>
+        </a>
+        <button onclick="closeChangelogModal()" class="px-3.5 py-1.5 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-black font-bold text-xs active:scale-95 transition-all">
+          Tutup
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1694,10 +1788,54 @@
       }
     }
 
-    // Initial Fetch
+    let isRefreshing = false;
+    let sseSource = null;
+
+    // Manual Refresh with Visual Feedback, Tactile Spin, and Cache Busting
+    async function handleManualRefresh(btn) {
+      if (isRefreshing) return;
+      isRefreshing = true;
+
+      // Spin all refresh icons
+      const icons = document.querySelectorAll('.refresh-icon');
+      icons.forEach(ic => ic.classList.add('animate-spin'));
+
+      const startTime = Date.now();
+      try {
+        const res = await fetch(`/api/status?_t=${Date.now()}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
+          }
+        });
+        const data = await res.json();
+        updateUI(data);
+
+        // Reconnect SSE if dead
+        if (!sseSource || sseSource.readyState === EventSource.CLOSED) {
+          setupSSE();
+        }
+
+        showToast('✓ Status & antrean berhasil diperbarui!');
+      } catch (err) {
+        console.error('Manual refresh error:', err);
+        showToast('⚠️ Gagal terhubung ke host Mac');
+        updateUI({ online: false });
+      } finally {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, 450 - elapsed);
+        setTimeout(() => {
+          icons.forEach(ic => ic.classList.remove('animate-spin'));
+          isRefreshing = false;
+        }, remaining);
+      }
+    }
+
+    // Standard Initial Fetch
     async function fetchStatus() {
       try {
-        const res = await fetch('/api/status');
+        const res = await fetch(`/api/status?_t=${Date.now()}`, { cache: 'no-store' });
         const data = await res.json();
         updateUI(data);
       } catch (err) {
@@ -1707,16 +1845,36 @@
 
     // Real-Time Events (Server-Sent Events)
     function setupSSE() {
-      const evtSource = new EventSource('/api/events');
-      evtSource.onmessage = function(event) {
+      if (sseSource) {
+        try { sseSource.close(); } catch (e) {}
+      }
+      sseSource = new EventSource('/api/events');
+      sseSource.onmessage = function(event) {
         try {
           const data = JSON.parse(event.data);
           updateUI({ online: true, ...data });
         } catch (e) {}
       };
-      evtSource.onerror = function() {
+      sseSource.onerror = function() {
         updateUI({ online: false });
       };
+    }
+
+    // Changelog Modal Open/Close
+    function openChangelogModal() {
+      const modal = document.getElementById('changelog-modal');
+      if (modal) {
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        modal.classList.add('opacity-100');
+      }
+    }
+
+    function closeChangelogModal() {
+      const modal = document.getElementById('changelog-modal');
+      if (modal) {
+        modal.classList.remove('opacity-100');
+        modal.classList.add('opacity-0', 'pointer-events-none');
+      }
     }
 
     // Queue Tab Switcher (Upcoming vs Previously Played)
