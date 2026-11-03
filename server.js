@@ -230,6 +230,14 @@ async function checkYtmConnection() {
 setInterval(checkYtmConnection, 4000);
 checkYtmConnection();
 
+let preferredEngineMode = 'auto'; // 'auto' | 'ytm_desktop' | 'standalone'
+
+function isUsingYtmDesktop() {
+  if (preferredEngineMode === 'standalone') return false;
+  if (preferredEngineMode === 'ytm_desktop') return isYtmConnected;
+  return isYtmConnected;
+}
+
 // --- AUTO-VACANT PARTY HOST MANAGEMENT ---
 const HOST_VACANT_TIMEOUT_MS = 60 * 1000;
 let partyHost = {
@@ -727,7 +735,7 @@ async function searchYouTubeMusic(query) {
 
 // Unified Current Song Fetcher (Bridges with YouTube Music Desktop if active)
 async function getUnifiedCurrentSong() {
-  if (isYtmConnected) {
+  if (isUsingYtmDesktop()) {
     try {
       const res = await fetch(`${YTM_API}/api/v1/song`, { signal: AbortSignal.timeout(1500) });
       if (res.ok) {
@@ -762,7 +770,7 @@ async function getUnifiedCurrentSong() {
 
 // Unified Queue Fetcher (Reads YTM Desktop Queue if active, else internal partyQueue)
 async function getUnifiedQueue() {
-  if (isYtmConnected) {
+  if (isUsingYtmDesktop()) {
     try {
       const res = await fetch(`${YTM_API}/api/v1/queue`, { signal: AbortSignal.timeout(1500) });
       if (res.ok) {
@@ -835,7 +843,25 @@ app.get('/api/version', (req, res) => {
   res.json({
     version: APP_VERSION,
     name: 'Party Jukebox',
-    playbackEngine: isYtmConnected ? 'ytm_desktop' : 'standalone'
+    playbackEngine: isUsingYtmDesktop() ? 'ytm_desktop' : 'standalone',
+    preferredEngineMode,
+    ytmCompanionOnline: isYtmConnected
+  });
+});
+
+// 0.0 Engine Switch Endpoint (Host can toggle between Auto, YouTube Music App, and Standalone Web)
+app.post('/api/host/engine', (req, res) => {
+  const { mode } = req.body || {};
+  if (!['auto', 'ytm_desktop', 'standalone'].includes(mode)) {
+    return res.status(400).json({ error: 'Mode must be "auto", "ytm_desktop", or "standalone"' });
+  }
+  preferredEngineMode = mode;
+  broadcastUpdate();
+  res.json({
+    success: true,
+    preferredEngineMode,
+    activeEngine: isUsingYtmDesktop() ? 'ytm_desktop' : 'standalone',
+    ytmCompanionOnline: isYtmConnected
   });
 });
 
@@ -942,8 +968,10 @@ app.get('/api/status', async (req, res) => {
 
   res.json({
     online: true,
-    standalone: !isYtmConnected,
-    playbackEngine: isYtmConnected ? 'ytm_desktop' : 'standalone',
+    standalone: !isUsingYtmDesktop(),
+    playbackEngine: isUsingYtmDesktop() ? 'ytm_desktop' : 'standalone',
+    preferredEngineMode,
+    ytmCompanionOnline: isYtmConnected,
     version: APP_VERSION,
     host: {
       ip: currentIp,
@@ -995,8 +1023,8 @@ app.post('/api/queue', async (req, res) => {
   const songThumb = thumbnail || validation.thumbnail || '';
   const songUser = user || 'Anonymous';
 
-  // 1. If YouTube Music Desktop is connected: Transfer song directly into YouTube Music app!
-  if (isYtmConnected) {
+  // 1. If YouTube Music Desktop mode is active: Transfer song directly into YouTube Music app!
+  if (isUsingYtmDesktop()) {
     try {
       const qRes = await fetch(`${YTM_API}/api/v1/queue`, {
         method: 'POST',
@@ -1095,7 +1123,7 @@ app.delete('/api/queue/:index', async (req, res) => {
 
   if (isNaN(index)) return res.status(400).json({ error: 'Invalid queue index' });
 
-  if (isYtmConnected) {
+  if (isUsingYtmDesktop()) {
     try {
       await fetch(`${YTM_API}/api/v1/queue/${index}`, { method: 'DELETE' });
       addActivity(user, 'remove', title || 'a song');
@@ -1123,7 +1151,7 @@ app.patch('/api/queue/move', async (req, res) => {
     return res.status(400).json({ error: 'fromIndex and toIndex are required' });
   }
 
-  if (isYtmConnected) {
+  if (isUsingYtmDesktop()) {
     try {
       await fetch(`${YTM_API}/api/v1/queue/${fromIndex}`, {
         method: 'PATCH',
@@ -1153,7 +1181,7 @@ app.post('/api/upvote', async (req, res) => {
   const { videoId, user, title } = req.body;
   if (!videoId || !user) return res.status(400).json({ error: 'videoId and user are required' });
 
-  if (isYtmConnected) {
+  if (isUsingYtmDesktop()) {
     if (!upvotes.has(videoId)) upvotes.set(videoId, new Set());
     const votes = upvotes.get(videoId);
     let hasVoted = false;
@@ -1197,7 +1225,7 @@ app.post('/api/upvote', async (req, res) => {
 app.post('/api/control/toggle', async (req, res) => {
   const { user } = req.body;
 
-  if (isYtmConnected) {
+  if (isUsingYtmDesktop()) {
     try {
       await fetch(`${YTM_API}/api/v1/toggle-play`, { method: 'POST' });
       playbackTracker.isPaused = !playbackTracker.isPaused;
@@ -1221,7 +1249,7 @@ app.post('/api/control/toggle', async (req, res) => {
 app.post('/api/control/next', async (req, res) => {
   const { user } = req.body;
 
-  if (isYtmConnected) {
+  if (isUsingYtmDesktop()) {
     try {
       await fetch(`${YTM_API}/api/v1/next`, { method: 'POST' });
       addActivity(user, 'skip', currentSong.title || 'song');
@@ -1255,7 +1283,7 @@ app.post('/api/control/volume', async (req, res) => {
 
   await setSystemVolume(vol);
 
-  if (isYtmConnected) {
+  if (isUsingYtmDesktop()) {
     fetch(`${YTM_API}/api/v1/volume`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1338,8 +1366,10 @@ async function broadcastUpdate() {
     },
     queue,
     selectedIndex,
-    standalone: !isYtmConnected,
-    playbackEngine: isYtmConnected ? 'ytm_desktop' : 'standalone',
+    standalone: !isUsingYtmDesktop(),
+    playbackEngine: isUsingYtmDesktop() ? 'ytm_desktop' : 'standalone',
+    preferredEngineMode,
+    ytmCompanionOnline: isYtmConnected,
     host: {
       ip: localIp,
       url: `http://${localIp}:${PORT}`,

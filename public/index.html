@@ -261,10 +261,11 @@
                 v2.6.0
               </button>
             </div>
-            <div class="flex items-center gap-1.5">
+            <button onclick="selectPlaybackEngine()" id="connection-btn" title="Klik untuk mengganti engine pemutaran musik (Standalone Web vs YouTube Music Desktop)" class="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-gray-800/80 hover:bg-slate-200 dark:hover:bg-gray-700 border border-slate-200 dark:border-gray-700 cursor-pointer transition-all active:scale-95">
               <span id="connection-dot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span id="connection-text" class="text-[11px] text-slate-500 dark:text-gray-400 font-medium">Standalone Engine</span>
-            </div>
+              <span id="connection-text" class="text-[11px] text-slate-700 dark:text-gray-300 font-bold">Standalone Web</span>
+              <span class="text-[9px] text-slate-400">⚙️</span>
+            </button>
           </div>
         </div>
 
@@ -440,11 +441,16 @@
               </div>
               <p class="text-[11px] text-slate-500 dark:text-gray-400">Buka kamera HP atau kunjungi:</p>
               <p id="host-url-text" class="text-[11px] font-mono font-bold text-pink-600 dark:text-pink-400 truncate"></p>
-              <div class="pt-0.5 flex items-center gap-2">
+              <div class="pt-0.5 flex flex-wrap items-center gap-1.5">
                 <button onclick="toggleQuickTunnel()" id="tunnel-toggle-btn"
                         class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-pink-500/10 hover:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30 active:scale-95 transition-all flex items-center gap-1 cursor-pointer">
                   <span id="tunnel-toggle-icon">🌐</span>
                   <span id="tunnel-toggle-label">Buka Link Publik (Kuota HP)</span>
+                </button>
+                <button onclick="selectPlaybackEngine()" id="engine-toggle-btn"
+                        class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30 active:scale-95 transition-all flex items-center gap-1 cursor-pointer" title="Ganti mode pemutar musik">
+                  <span>🎛️</span>
+                  <span id="engine-badge-label">Engine: Web</span>
                 </button>
               </div>
             </div>
@@ -1622,6 +1628,48 @@
       }
     }
 
+    // Playback Engine Switcher (Host can toggle between Standalone Web Player & YouTube Music Desktop)
+    async function selectPlaybackEngine() {
+      const pref = currentStatusData?.preferredEngineMode || 'auto';
+      const active = currentStatusData?.playbackEngine || 'standalone';
+      const ytmOnline = Boolean(currentStatusData?.ytmCompanionOnline);
+
+      const msg = `Pilih Mode Pemutar Musik Party:\n\n` +
+        `• Ketik "1" untuk Standalone Web Player (Musik berputar langsung dari browser Host ini, cocok jika tidak buka YouTube Music Desktop)\n` +
+        `• Ketik "2" untuk YouTube Music Desktop App (${ytmOnline ? 'Aktif Terdeteksi' : 'Sedang Offline'} - Lagu ditransfer langsung ke aplikasi resmi YTM)\n` +
+        `• Ketik "3" untuk Otomatis (Gunakan YouTube Music Desktop jika ada, jika tidak otomatis Web Player)\n\n` +
+        `Mode saat ini: ${pref.toUpperCase()} (Aktif: ${active === 'ytm_desktop' ? 'YouTube Music App' : 'Standalone Web Player'})`;
+
+      const defVal = pref === 'standalone' ? '1' : (pref === 'ytm_desktop' ? '2' : '3');
+      const choice = await customPrompt(msg, defVal, 'Pilih Playback Engine', '🎛️', 'Simpan Mode', 'Batal');
+      if (!choice) return;
+
+      let mode = 'auto';
+      if (choice === '1' || choice.toLowerCase().includes('standalone') || choice.toLowerCase().includes('web')) {
+        mode = 'standalone';
+      } else if (choice === '2' || choice.toLowerCase().includes('ytm') || choice.toLowerCase().includes('desktop') || choice.toLowerCase().includes('app')) {
+        mode = 'ytm_desktop';
+      } else {
+        mode = 'auto';
+      }
+
+      try {
+        const res = await fetch('/api/host/engine', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode })
+        });
+        const data = await res.json();
+        if (data.success) {
+          const modeName = mode === 'standalone' ? 'Standalone Web Player' : (mode === 'ytm_desktop' ? 'YouTube Music App' : 'Otomatis');
+          customAlert(`Engine pemutar musik diubah ke: ${modeName}!`, 'Engine Diperbarui', '✅');
+          fetchStatus();
+        }
+      } catch (e) {
+        customAlert('Gagal mengganti engine playback', 'Error', '❌');
+      }
+    }
+
     // ============================================================
     // CUSTOM SELECT COMPONENT LOGIC (Country & Genre)
     // ============================================================
@@ -2179,12 +2227,17 @@
       // Connection & Playback Engine Status
       const connDot = document.getElementById('connection-dot');
       const connText = document.getElementById('connection-text');
+      const engineBadgeLabel = document.getElementById('engine-badge-label');
+      const pref = status.preferredEngineMode || 'auto';
+
       if (status.playbackEngine === 'ytm_desktop') {
         connDot.className = 'w-2 h-2 rounded-full bg-pink-500 animate-pulse';
-        connText.innerHTML = '<span class="text-pink-600 dark:text-pink-400 font-bold">YouTube Music Terhubung</span>';
+        connText.innerHTML = '<span class="text-pink-600 dark:text-pink-400 font-bold">YouTube Music App</span>';
+        if (engineBadgeLabel) engineBadgeLabel.textContent = `Engine: YTM App (${pref})`;
       } else {
         connDot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
-        connText.textContent = 'Server Standalone Aktif';
+        connText.innerHTML = '<span class="text-emerald-600 dark:text-emerald-400 font-bold">Standalone Web</span>';
+        if (engineBadgeLabel) engineBadgeLabel.textContent = `Engine: Standalone (${pref})`;
       }
 
       currentStatusData = status;
