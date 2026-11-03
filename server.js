@@ -8,7 +8,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.6.0';
+const APP_VERSION = '2.7.0';
 
 const YTM_API = 'http://localhost:26538';
 let isYtmConnected = false;
@@ -212,34 +212,17 @@ function persistPlayedHistory() {
   } catch (e) {}
 }
 
-// Check YouTube Music Desktop connection (Transfer engine)
-async function checkYtmConnection() {
-  try {
-    const res = await fetch(`${YTM_API}/api/v1/song`, { signal: AbortSignal.timeout(1200) });
-    const prev = isYtmConnected;
-    isYtmConnected = res.ok;
-    if (!prev && isYtmConnected) {
-      console.log('⚡ YouTube Music Desktop terhubung! Lagu tamu akan ditransfer langsung ke YouTube Music.');
-      broadcastUpdate();
-    }
-  } catch (e) {
-    isYtmConnected = false;
-  }
-  return isYtmConnected;
-}
-setInterval(checkYtmConnection, 4000);
-checkYtmConnection();
-
-let preferredEngineMode = 'auto'; // 'auto' | 'ytm_desktop' | 'standalone'
+// Standalone Web Player Mode (Pure Web - No desktop companion needed)
+isYtmConnected = false;
+let preferredEngineMode = 'standalone';
 
 function isUsingYtmDesktop() {
-  if (preferredEngineMode === 'standalone') return false;
-  if (preferredEngineMode === 'ytm_desktop') return isYtmConnected;
-  return isYtmConnected;
+  return false;
 }
 
 // --- AUTO-VACANT PARTY HOST MANAGEMENT ---
-const HOST_VACANT_TIMEOUT_MS = 60 * 1000;
+// Set to 3 minutes (180s) to prevent background browser tab throttling from disconnecting the speaker host
+const HOST_VACANT_TIMEOUT_MS = 180 * 1000;
 let partyHost = {
   name: null,
   token: null,
@@ -455,7 +438,7 @@ async function fetchLyrics(title, artist, duration) {
 
   if (lyricsCache.has(cacheKey)) return lyricsCache.get(cacheKey);
 
-  const userAgent = 'PartyJukebox/2.6.0 (https://github.com/sammmms/jukebox)';
+  const userAgent = 'PartyJukebox/2.7.0 (https://github.com/sammmms/jukebox)';
 
   async function tryGet(tName, aName, dur) {
     try {
@@ -1392,13 +1375,10 @@ async function broadcastUpdate() {
   }
 }
 
-// Background sync loop
-setInterval(async () => {
-  if (isYtmConnected) {
-    await checkYtmConnection();
-    broadcastUpdate();
-  }
-}, 2500);
+// Background periodic cleanup / sync
+setInterval(() => {
+  checkHostVacant();
+}, 5000);
 
 function getLocalIp() {
   const interfaces = os.networkInterfaces();

@@ -256,16 +256,15 @@
               <span id="current-view-badge" class="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
                 Auto
               </span>
-              <button onclick="openChangelogModal()" title="View Version & Changelog (v2.6.0)"
+              <button onclick="openChangelogModal()" title="View Version & Changelog (v2.7.0)"
                       class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-colors cursor-pointer active:scale-95">
-                v2.6.0
+                v2.7.0
               </button>
             </div>
-            <button onclick="selectPlaybackEngine()" id="connection-btn" title="Klik untuk mengganti engine pemutaran musik (Standalone Web vs YouTube Music Desktop)" class="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-gray-800/80 hover:bg-slate-200 dark:hover:bg-gray-700 border border-slate-200 dark:border-gray-700 cursor-pointer transition-all active:scale-95">
+            <div id="connection-btn" class="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
               <span id="connection-dot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span id="connection-text" class="text-[11px] text-slate-700 dark:text-gray-300 font-bold">Standalone Web</span>
-              <span class="text-[9px] text-slate-400">⚙️</span>
-            </button>
+              <span id="connection-text" class="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">Server Web Terhubung</span>
+            </div>
           </div>
         </div>
 
@@ -441,16 +440,11 @@
               </div>
               <p class="text-[11px] text-slate-500 dark:text-gray-400">Buka kamera HP atau kunjungi:</p>
               <p id="host-url-text" class="text-[11px] font-mono font-bold text-pink-600 dark:text-pink-400 truncate"></p>
-              <div class="pt-0.5 flex flex-wrap items-center gap-1.5">
+              <div class="pt-0.5 flex items-center gap-2">
                 <button onclick="toggleQuickTunnel()" id="tunnel-toggle-btn"
                         class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-pink-500/10 hover:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30 active:scale-95 transition-all flex items-center gap-1 cursor-pointer">
                   <span id="tunnel-toggle-icon">🌐</span>
                   <span id="tunnel-toggle-label">Buka Link Publik (Kuota HP)</span>
-                </button>
-                <button onclick="selectPlaybackEngine()" id="engine-toggle-btn"
-                        class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30 active:scale-95 transition-all flex items-center gap-1 cursor-pointer" title="Ganti mode pemutar musik">
-                  <span>🎛️</span>
-                  <span id="engine-badge-label">Engine: Web</span>
                 </button>
               </div>
             </div>
@@ -805,7 +799,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.6.0</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.7.0</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -816,17 +810,30 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.6.0 -->
+        <!-- v2.7.0 -->
         <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-800 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.6.0 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.7.0 (Latest)</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
-            <li><strong class="text-slate-800 dark:text-white">🚀 True Standalone One-App Base:</strong> Dihapusnya total ketergantungan pada aplikasi desktop eksternal YouTube Music. Sekarang pesta musik berjalan 100% mandiri dalam satu aplikasi utuh.</li>
-            <li><strong class="text-slate-800 dark:text-white">🔊 Embedded Host Audio Engine:</strong> Audio player resmi tertanam langsung di web/mobile client perangkat Host. Colokkan HP atau laptop ke speaker pesta, musik langsung berdentum dengan presisi timeline 0ms lag!</li>
-            <li><strong class="text-slate-800 dark:text-white">📱 Host Portabel & Transfer Sekali Sentuh:</strong> Host tidak lagi terikat pada PC/Mac; siapa pun tamu yang membawa HP dapat mengklik <em>Ambil Alih Host</em> untuk langsung mengalirkan lagu ke speaker Bluetooth mereka.</li>
-            <li><strong class="text-slate-800 dark:text-white">🔍 Direct YouTube Music Innertube Search:</strong> Pencarian katalog lagu dilakukan langsung ke YouTube Music via cloud backend tanpa perantara companion port.</li>
+            <li><strong class="text-slate-800 dark:text-white">🔇 Multi-Tab Audio Lock (Anti-Suara Double):</strong> Koordinator <code>BroadcastChannel</code> memastikan bila ada beberapa tab terbuka bersamaan, hanya tab aktif yang memutar audio, mencegah suara gema/double 100%.</li>
+            <li><strong class="text-slate-800 dark:text-white">🛡️ Resilient Speaker Connection:</strong> Menghilangkan disconnect speaker saat tab di-minimize atau ganti layar lewat perpanjangan toleransi heartbeat (180s) dan sync instan via event <code>visibilitychange</code>.</li>
+            <li><strong class="text-slate-800 dark:text-white">🛑 Murni Standalone Web:</strong> Menghentikan pencarian YouTube Music Desktop dan menghilangkan status "Connecting to Mac...". Sekarang beroperasi murni sebagai Web Player mandiri.</li>
+            <li><strong class="text-slate-800 dark:text-white">🎯 Intelligent Audio Activator:</strong> Banner <em>Mulai Suara</em> otomatis tersembunyi saat lagu terdeteksi sudah berbunyi tanpa meminta konfirmasi berulang.</li>
+          </ul>
+        </div>
+
+        <!-- v2.6.0 -->
+        <div class="p-3 rounded-xl bg-slate-50/60 dark:bg-gray-900/40 border border-slate-200/60 dark:border-gray-800/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-200 dark:bg-gray-800 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-700">v2.6.0</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">🚀 True Standalone One-App Base:</strong> Dihapusnya ketergantungan pada aplikasi desktop eksternal YouTube Music.</li>
+            <li><strong class="text-slate-800 dark:text-white">🔊 Embedded Host Audio Engine:</strong> Audio player resmi tertanam langsung di web/mobile client perangkat Host.</li>
+            <li><strong class="text-slate-800 dark:text-white">🔍 Direct YouTube Music Innertube Search:</strong> Pencarian katalog lagu resmi via cloud backend Innertube API.</li>
           </ul>
         </div>
 
@@ -1221,10 +1228,47 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.6.0';
+    const CLIENT_VERSION = '2.7.0';
     let isUpdateTriggered = false;
 
-    // Embedded YouTube Host Audio Player Engine
+    // Embedded YouTube Host Audio Player Engine (Pure Standalone Web)
+    const myTabId = 'tab_' + Math.random().toString(36).slice(2, 9);
+    let isCurrentAudioMaster = false;
+    let audioCoordinator = null;
+
+    try {
+      if (typeof window.BroadcastChannel === 'function') {
+        audioCoordinator = new BroadcastChannel('jukebox_audio_coordinator');
+        audioCoordinator.onmessage = function(ev) {
+          if (!ev || !ev.data) return;
+          if (ev.data.type === 'CLAIM_AUDIO_MASTER') {
+            if (ev.data.tabId !== myTabId) {
+              // Another tab took audio master! Yield immediately so sound is NEVER double
+              if (isCurrentAudioMaster) {
+                console.log('🔇 Suara dialihkan ke tab aktif lain:', ev.data.tabId);
+                isCurrentAudioMaster = false;
+                if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
+                  ytPlayer.pauseVideo();
+                }
+              }
+            }
+          }
+        };
+      }
+    } catch (e) {
+      console.warn('BroadcastChannel not supported');
+    }
+
+    function claimAudioMaster() {
+      isCurrentAudioMaster = true;
+      try {
+        localStorage.setItem('jukebox_active_audio_tab', myTabId);
+        if (audioCoordinator) {
+          audioCoordinator.postMessage({ type: 'CLAIM_AUDIO_MASTER', tabId: myTabId });
+        }
+      } catch (e) {}
+    }
+
     let ytPlayer = null;
     let isYTReady = false;
     let isHostSpeakerActive = false;
@@ -1264,7 +1308,7 @@
     }
 
     function onYTPlayerReady(event) {
-      console.log('⚡ Host Audio Engine: YouTube Player Ready!');
+      console.log('⚡ Host Audio Engine: YouTube Web Player Ready!');
       const slider = document.getElementById('volume-slider');
       const vol = slider ? Number(slider.value) : 70;
       try { event.target.setVolume(vol); } catch (e) {}
@@ -1273,9 +1317,14 @@
 
     function onYTPlayerStateChange(event) {
       if (!window.YT) return;
-      if (event.data === YT.PlayerState.ENDED) {
-        if (isMeHost()) {
-          console.log('🎵 Track finished on Host Player! Advancing to next track...');
+      // If audio starts playing, speaker is active! Hide activation banner immediately
+      if (event.data === YT.PlayerState.PLAYING) {
+        isHostSpeakerActive = true;
+        const banner = document.getElementById('host-speaker-activation-banner');
+        if (banner) banner.classList.add('hidden');
+      } else if (event.data === YT.PlayerState.ENDED) {
+        if (isMeHost() && isCurrentAudioMaster) {
+          console.log('🎵 Track selesai di Web Player! Mengalihkan ke lagu berikutnya...');
           fetch('/api/control/ended', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1289,7 +1338,7 @@
       console.warn('⚠️ YouTube Player Error Code:', event.data);
       if (event.data === 101 || event.data === 150) {
         showToast('⚠️ Lagu ini dibatasi izin embed. Memutar lagu berikutnya...');
-        if (isMeHost()) {
+        if (isMeHost() && isCurrentAudioMaster) {
           setTimeout(() => {
             fetch('/api/control/next', {
               method: 'POST',
@@ -1303,6 +1352,7 @@
 
     function activateHostSpeaker() {
       isHostSpeakerActive = true;
+      claimAudioMaster();
       const banner = document.getElementById('host-speaker-activation-banner');
       if (banner) banner.classList.add('hidden');
 
@@ -1331,15 +1381,6 @@
         return;
       }
 
-      // If Host has YouTube Music Desktop connected, audio streams through YouTube Music!
-      if (currentStatusData && currentStatusData.playbackEngine === 'ytm_desktop') {
-        if (banner) banner.classList.add('hidden');
-        if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
-          ytPlayer.pauseVideo();
-        }
-        return;
-      }
-
       if (!currentSongData || !currentSongData.videoId || currentSongData.title === 'No song playing') {
         if (banner) banner.classList.add('hidden');
         if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
@@ -1348,11 +1389,26 @@
         return;
       }
 
-      if (!isHostSpeakerActive) {
+      // Check current YT player state
+      const state = (ytPlayer && typeof ytPlayer.getPlayerState === 'function') ? ytPlayer.getPlayerState() : -1;
+      
+      // If it's already playing, speaker is active! Hide the banner!
+      if (state === 1) { // 1 = PLAYING
+        isHostSpeakerActive = true;
+        if (banner) banner.classList.add('hidden');
+      } else if (!isHostSpeakerActive && !currentSongData.isPaused) {
+        // Only show banner if audio is supposed to play but hasn't started yet
         if (banner) banner.classList.remove('hidden');
       } else {
         if (banner) banner.classList.add('hidden');
       }
+
+      // Check if another tab holds the audio master lock while this tab is hidden
+      const activeTab = localStorage.getItem('jukebox_active_audio_tab');
+      if (activeTab && activeTab !== myTabId && document.visibilityState === 'hidden') {
+        return; // Yield audio to the active tab
+      }
+      claimAudioMaster();
 
       if (!ytPlayer || typeof ytPlayer.loadVideoById !== 'function') return;
 
@@ -1369,7 +1425,6 @@
           ytPlayer.playVideo();
         }
       } else {
-        const state = typeof ytPlayer.getPlayerState === 'function' ? ytPlayer.getPlayerState() : -1;
         if (currentSongData.isPaused && state === 1) { // 1 = PLAYING
           ytPlayer.pauseVideo();
         } else if (!currentSongData.isPaused && (state === 2 || state === -1 || state === 5)) { // 2 = PAUSED
@@ -2138,31 +2193,50 @@
       }
     }
 
-    function startHostHeartbeat() {
-      if (hostHeartbeatTimer) clearInterval(hostHeartbeatTimer);
-      hostHeartbeatTimer = setInterval(async () => {
-        const token = localStorage.getItem('jukebox_host_token');
-        if (!token) {
-          clearInterval(hostHeartbeatTimer);
-          hostHeartbeatTimer = null;
-          return;
-        }
-        try {
-          const res = await fetch('/api/host/heartbeat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token })
-          });
-          const data = await res.json();
-          if (!data.success) {
+    async function sendHostHeartbeatImmediate() {
+      const token = localStorage.getItem('jukebox_host_token');
+      if (!token) return;
+      try {
+        const res = await fetch('/api/host/heartbeat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        });
+        const data = await res.json();
+        if (!data.success) {
+          if (hostHeartbeatTimer) {
             clearInterval(hostHeartbeatTimer);
             hostHeartbeatTimer = null;
-            localStorage.removeItem('jukebox_host_token');
-            if (data.partyHost) updateHostUI(data.partyHost);
           }
-        } catch (e) {}
-      }, 15000);
+          localStorage.removeItem('jukebox_host_token');
+          if (data.partyHost) updateHostUI(data.partyHost);
+        } else if (data.partyHost) {
+          currentPartyHost = data.partyHost;
+        }
+      } catch (e) {}
     }
+
+    function startHostHeartbeat() {
+      if (hostHeartbeatTimer) clearInterval(hostHeartbeatTimer);
+      sendHostHeartbeatImmediate();
+      hostHeartbeatTimer = setInterval(sendHostHeartbeatImmediate, 10000);
+    }
+
+    window.addEventListener('focus', () => {
+      if (isMeHost()) {
+        claimAudioMaster();
+        sendHostHeartbeatImmediate();
+        syncHostAudioEngine();
+      }
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && isMeHost()) {
+        claimAudioMaster();
+        sendHostHeartbeatImmediate();
+        syncHostAudioEngine();
+      }
+    });
 
     // Tab Switching (Search vs Paste)
     function switchTab(tab) {
@@ -2220,25 +2294,15 @@
 
       if (!status.online) {
         document.getElementById('connection-dot').className = 'w-2 h-2 rounded-full bg-red-500';
-        document.getElementById('connection-text').textContent = 'Connecting to Mac...';
+        document.getElementById('connection-text').textContent = 'Menghubungkan ke Server...';
         return;
       }
 
-      // Connection & Playback Engine Status
+      // Connection Status (Pure Standalone Web Engine)
       const connDot = document.getElementById('connection-dot');
       const connText = document.getElementById('connection-text');
-      const engineBadgeLabel = document.getElementById('engine-badge-label');
-      const pref = status.preferredEngineMode || 'auto';
-
-      if (status.playbackEngine === 'ytm_desktop') {
-        connDot.className = 'w-2 h-2 rounded-full bg-pink-500 animate-pulse';
-        connText.innerHTML = '<span class="text-pink-600 dark:text-pink-400 font-bold">YouTube Music App</span>';
-        if (engineBadgeLabel) engineBadgeLabel.textContent = `Engine: YTM App (${pref})`;
-      } else {
-        connDot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
-        connText.innerHTML = '<span class="text-emerald-600 dark:text-emerald-400 font-bold">Standalone Web</span>';
-        if (engineBadgeLabel) engineBadgeLabel.textContent = `Engine: Standalone (${pref})`;
-      }
+      if (connDot) connDot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+      if (connText) connText.innerHTML = '<span class="text-emerald-600 dark:text-emerald-400 font-bold">Server Web Terhubung</span>';
 
       currentStatusData = status;
 
