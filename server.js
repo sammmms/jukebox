@@ -622,9 +622,15 @@ app.get('/api/status', async (req, res) => {
   }
   currentVolume = sysVol;
 
+  const currentIp = getLocalIp();
+
   res.json({
     online: liveSong.videoId !== '',
     version: APP_VERSION,
+    host: {
+      ip: currentIp,
+      url: `http://${currentIp}:${PORT}`
+    },
     current: {
       ...liveSong,
       currentElapsed: getCalculatedElapsed(),
@@ -915,6 +921,7 @@ async function broadcastUpdate() {
     },
     queue,
     selectedIndex,
+    djs: Array.from(knownDJs),
     volume: { state: currentVolume, isMuted },
     activity: activityLogs.slice(0, 30),
     history: playedHistory.slice(0, 30)
@@ -932,9 +939,18 @@ async function broadcastUpdate() {
 // Background sync loop: check HTTP every 2s
 setInterval(syncAndBroadcast, 2000);
 
-// Helper to get local IP
+// Helper to get local IP (Prioritizes Wi-Fi en0/wlan0 over VPN/tun)
 function getLocalIp() {
   const interfaces = os.networkInterfaces();
+  for (const name of ['en0', 'en1', 'wlan0', 'eth0']) {
+    if (interfaces[name]) {
+      for (const iface of interfaces[name]) {
+        if (iface.family === 'IPv4' && !iface.internal) {
+          return iface.address;
+        }
+      }
+    }
+  }
   for (const name of Object.keys(interfaces)) {
     for (const iface of interfaces[name]) {
       if (iface.family === 'IPv4' && !iface.internal) {

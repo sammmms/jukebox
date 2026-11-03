@@ -906,7 +906,7 @@
   <!-- ============================================================
        MODAL: MANDATORY FIRST-TIME DJ ONBOARDING & PROFILE SWITCHER (v2.2.0)
        ============================================================ -->
-  <div id="dj-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300 opacity-0 pointer-events-none">
+  <div id="dj-modal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300 opacity-0 pointer-events-none">
     <div class="relative w-full max-w-sm sm:max-w-md rounded-2xl bg-white dark:bg-[#121520] border border-slate-200 dark:border-gray-800 shadow-2xl p-6 transition-all duration-300 transform scale-95" id="dj-modal-card">
       
       <!-- Close Button (Only shown if a valid user is already selected) -->
@@ -925,13 +925,13 @@
       </div>
 
       <!-- Form to input name -->
-      <form onsubmit="handleDJFormSubmit(event)" class="space-y-4">
+      <form id="dj-form" onsubmit="event.preventDefault(); submitDJName();" class="space-y-4">
         <div>
           <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-gray-400 mb-1.5">Nama DJ / Panggilan</label>
           <div class="relative">
-            <input type="text" id="dj-name-input" maxlength="20" placeholder="Ketik nama kamu (misal: Alex, Michelle...)"
+            <input type="text" id="dj-name-input" maxlength="20" placeholder="Ketik nama kamu (misal: Sam, Alex, DJ Kevin...)"
                    class="w-full px-4 py-2.5 rounded-xl text-sm font-semibold bg-slate-50 dark:bg-gray-900/80 border border-slate-300 dark:border-gray-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
-                   autocomplete="off" required>
+                   autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault(); submitDJName();}">
             <span class="absolute right-3 top-2.5 text-base pointer-events-none">✨</span>
           </div>
         </div>
@@ -942,9 +942,15 @@
           <div id="known-djs-pills" class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto no-scrollbar"></div>
         </div>
 
-        <button type="submit" id="dj-submit-btn" class="w-full py-2.5 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white shadow-lg shadow-pink-500/25 active:scale-95 transition-all cursor-pointer">
+        <button type="button" id="dj-submit-btn" onclick="submitDJName()" class="w-full py-2.5 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white shadow-lg shadow-pink-500/25 active:scale-95 transition-all cursor-pointer">
           Mulai DJing 🎵
         </button>
+
+        <div class="text-center pt-1">
+          <button type="button" onclick="submitDJName('DJ Guest')" class="text-[11px] text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 transition-colors cursor-pointer active:scale-95">
+            Atau masuk cepat sebagai <span class="font-bold underline">DJ Guest</span> →
+          </button>
+        </div>
       </form>
 
     </div>
@@ -961,7 +967,13 @@
   <script>
     // State
     let currentUser = localStorage.getItem('jukebox_user') || '';
-    let knownDJs = JSON.parse(localStorage.getItem('jukebox_known_djs') || '[]');
+    let knownDJs = [];
+    try {
+      const parsed = JSON.parse(localStorage.getItem('jukebox_known_djs') || '[]');
+      knownDJs = Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      knownDJs = [];
+    }
     let isDJModalMandatory = false;
     let currentTheme = localStorage.getItem('jukebox_theme') || 'system';
     let currentView = localStorage.getItem('jukebox_view') || 'auto';
@@ -1074,14 +1086,23 @@
     // ============================================================
     // VIEW MANAGEMENT (Auto / Mobile / Desktop)
     // ============================================================
+    let currentHostShareUrl = window.location.origin;
+
     function initView() {
       setView(currentView, false);
-      const hostUrl = window.location.origin;
+      updateHostShareUrl();
+    }
+
+    function updateHostShareUrl(url = null) {
+      if (url) currentHostShareUrl = url;
       const hostTextEl = document.getElementById('host-url-text');
       const hostQrEl = document.getElementById('host-qr-img');
-      if (hostTextEl) hostTextEl.textContent = hostUrl;
+      if (hostTextEl && hostTextEl.textContent !== currentHostShareUrl) {
+        hostTextEl.textContent = currentHostShareUrl;
+      }
       if (hostQrEl) {
-        hostQrEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(hostUrl)}`;
+        const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(currentHostShareUrl)}`;
+        if (hostQrEl.src !== qrSrc) hostQrEl.src = qrSrc;
       }
     }
 
@@ -1120,7 +1141,7 @@
 
     // 1-Click Copy Host URL
     async function copyHostUrl() {
-      const url = window.location.origin;
+      const url = currentHostShareUrl || window.location.origin;
       try {
         await navigator.clipboard.writeText(url);
         const icon = document.getElementById('copy-host-icon');
@@ -1213,22 +1234,26 @@
       const knownContainer = document.getElementById('known-djs-container');
       const knownPills = document.getElementById('known-djs-pills');
 
+      if (!modal) return;
+
       if (mandatory) {
-        closeBtn.classList.add('hidden');
-        title.innerText = 'Siapa Nama DJ Kamu?';
-        subtitle.innerText = 'Masukkan nama kamu untuk mulai request lagu, upvote antrean, dan karaokean bareng di pesta!';
-        input.value = '';
+        if (closeBtn) closeBtn.classList.add('hidden');
+        if (title) title.innerText = 'Siapa Nama DJ Kamu?';
+        if (subtitle) subtitle.innerText = 'Masukkan nama kamu untuk mulai request lagu, upvote antrean, dan karaokean bareng di pesta!';
+        if (input) input.value = '';
       } else {
-        closeBtn.classList.remove('hidden');
-        title.innerText = 'Ganti Profil DJ';
-        subtitle.innerText = currentUser
-          ? `Saat ini kamu sedang DJing sebagai "${currentUser}". Kamu bisa mengganti nama atau memilih profil DJ lain.`
-          : 'Pilih nama atau buat profil DJ baru untuk pesta ini.';
-        input.value = currentUser || '';
+        if (closeBtn) closeBtn.classList.remove('hidden');
+        if (title) title.innerText = 'Ganti Profil DJ';
+        if (subtitle) {
+          subtitle.innerText = currentUser
+            ? `Saat ini kamu sedang DJing sebagai "${currentUser}". Kamu bisa mengganti nama atau memilih profil DJ lain.`
+            : 'Pilih nama atau buat profil DJ baru untuk pesta ini.';
+        }
+        if (input) input.value = currentUser || '';
       }
 
       // Render Known DJs in modal
-      if (knownDJs && knownDJs.length > 0) {
+      if (knownDJs && knownDJs.length > 0 && knownContainer && knownPills) {
         knownContainer.classList.remove('hidden');
         knownPills.innerHTML = knownDJs.map(dj => {
           const col = getUserColor(dj);
@@ -1242,38 +1267,47 @@
             </button>
           `;
         }).join('');
-      } else {
+      } else if (knownContainer) {
         knownContainer.classList.add('hidden');
       }
 
-      modal.classList.remove('opacity-0', 'pointer-events-none');
-      modal.classList.add('opacity-100');
-      card.classList.remove('scale-95');
-      card.classList.add('scale-100');
+      modal.classList.remove('hidden');
+      requestAnimationFrame(() => {
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        modal.classList.add('opacity-100');
+        if (card) {
+          card.classList.remove('scale-95');
+          card.classList.add('scale-100');
+        }
+      });
 
-      setTimeout(() => input.focus(), 120);
+      setTimeout(() => { if (input) input.focus(); }, 120);
     }
 
     function closeDJModal() {
-      if (isDJModalMandatory && !currentUser) {
-        showToast('⚠️ Silakan masukkan nama DJ terlebih dahulu');
-        return;
-      }
       const modal = document.getElementById('dj-modal');
       const card = document.getElementById('dj-modal-card');
-      modal.classList.remove('opacity-100');
-      modal.classList.add('opacity-0', 'pointer-events-none');
-      card.classList.remove('scale-100');
-      card.classList.add('scale-95');
+      if (modal) {
+        modal.classList.remove('opacity-100');
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        setTimeout(() => {
+          if (modal.classList.contains('opacity-0')) {
+            modal.classList.add('hidden');
+          }
+        }, 300);
+      }
+      if (card) {
+        card.classList.remove('scale-100');
+        card.classList.add('scale-95');
+      }
     }
 
-    async function handleDJFormSubmit(e) {
-      e.preventDefault();
+    function submitDJName(customName) {
       const input = document.getElementById('dj-name-input');
-      const val = input.value.trim();
+      let val = (customName && typeof customName === 'string') ? customName.trim() : (input ? input.value.trim() : '');
       if (!val) {
-        showToast('⚠️ Nama DJ tidak boleh kosong');
-        return;
+        // Fallback default DJ name so user is NEVER blocked
+        val = 'DJ ' + (['Guest', 'Friend', 'VIP', 'Party'][Math.floor(Math.random() * 4)]);
       }
       selectUser(val, true);
     }
@@ -1285,6 +1319,7 @@
       localStorage.setItem('jukebox_user', cleanUser);
 
       // Add to local known DJs
+      if (!Array.isArray(knownDJs)) knownDJs = [];
       if (!knownDJs.includes(cleanUser)) {
         knownDJs.unshift(cleanUser);
       }
@@ -1492,6 +1527,13 @@
           localStorage.setItem('jukebox_known_djs', JSON.stringify(knownDJs));
         }
         renderDJPills();
+      }
+
+      // Sync Host URL & QR Code with the true dynamic host LAN IP
+      if (status.host && status.host.url) {
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const targetShare = isLocalhost ? status.host.url : window.location.origin;
+        updateHostShareUrl(targetShare);
       }
 
       // Queue List (Upcoming only)
