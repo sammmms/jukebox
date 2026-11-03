@@ -1,4 +1,9 @@
+<div align="center">
+
+<img src="public/banner.jpg" alt="Party Jukebox Banner" width="100%" style="border-radius: 16px; margin-bottom: 16px;"/>
+
 # 🎵 Party Jukebox
+### Connect. Play. Sing Together.
 
 > **Collaborative, real-time social jukebox & karaoke hub for house parties, roadtrips, and hangouts.**  
 > Host your music on a laptop connected to speakers with YouTube Music Premium (lossless, ad-free), while friends control the queue, vote, read karaoke lyrics, and DJ from their phones—**no app installation and zero login required for guests!**
@@ -7,6 +12,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-green.svg)](https://nodejs.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v3.4-38bdf8.svg)](https://tailwindcss.com)
+
+</div>
 
 ---
 
