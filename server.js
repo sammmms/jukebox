@@ -776,7 +776,7 @@ async function searchYouTubeMusic(query) {
   }
 }
 
-const APP_VERSION = '2.3.0';
+const APP_VERSION = '2.3.2';
 
 // --- API ROUTES ---
 
