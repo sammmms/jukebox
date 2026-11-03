@@ -27,6 +27,8 @@ const lyricsCache = new Map();
 
 let currentVolume = 70;
 let isMuted = false;
+let userExplicitlyPaused = false;
+let lastAutoResumeTime = 0;
 
 function addPlayedHistory(track) {
   if (!track || !track.title || track.title === 'No song playing') return;
@@ -225,6 +227,17 @@ function updatePlaybackTracker(freshSong) {
 
   // 2. Play/Pause state changed
   if (typeof freshSong.isPaused === 'boolean' && freshSong.isPaused !== playbackTracker.isPaused) {
+    // Watchdog for Made for Kids / COPPA auto-pausing:
+    // If YouTube paused the song unexpectedly without any user clicking pause, auto-resume!
+    if (freshSong.isPaused && !userExplicitlyPaused && freshSong.videoId && now - lastAutoResumeTime > 2000) {
+      lastAutoResumeTime = now;
+      console.log('⚡ YouTube auto-paused (Made for Kids / Miniplayer restriction). Auto-resuming playback...');
+      setTimeout(() => {
+        fetch(`${YTM_API}/api/v1/play`, { method: 'POST' }).catch(() => {});
+      }, 350);
+      return;
+    }
+
     if (!playbackTracker.isPaused) {
       // Was playing, now pausing -> freeze elapsed at current calculated time
       const delta = (now - playbackTracker.lastUpdated) / 1000;
@@ -736,12 +749,13 @@ app.post('/api/control/toggle', async (req, res) => {
   try {
     await fetch(`${YTM_API}/api/v1/toggle-play`, { method: 'POST' });
     playbackTracker.isPaused = !playbackTracker.isPaused;
+    userExplicitlyPaused = playbackTracker.isPaused; // Set true if user paused, false if user resumed
     playbackTracker.lastUpdated = Date.now();
     liveSong.isPaused = playbackTracker.isPaused;
 
     addActivity(user, liveSong.isPaused ? 'pause' : 'play', liveSong.title);
     broadcastUpdate();
-    res.json({ success: true });
+    res.json({ success: true, isPaused: liveSong.isPaused });
   } catch (e) {
     res.status(500).json({ error: 'Control error' });
   }
@@ -749,6 +763,7 @@ app.post('/api/control/toggle', async (req, res) => {
 
 app.post('/api/control/next', async (req, res) => {
   const { user } = req.body;
+  userExplicitlyPaused = false; // Reset pause state when skipping to next track
   try {
     const skippedTitle = liveSong.title || 'Song';
     const { queue, selectedIndex } = await getQueueData();
