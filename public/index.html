@@ -217,6 +217,9 @@
 </head>
 <body class="bg-slate-50 dark:bg-[#0a0c10] text-slate-800 dark:text-gray-100 min-h-screen pb-24 selection:bg-pink-500 selection:text-white transition-colors duration-200 view-auto">
 
+  <!-- Hidden HTML5 Silent Audio Shield Anchor for iOS/Android Background Audio Keep-Alive -->
+  <audio id="silent-audio-anchor" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/w==" loop preload="auto" playsinline></audio>
+
   <!-- Embedded YouTube Audio Engine for Host Device -->
   <div id="host-audio-player-wrapper" class="fixed -bottom-96 -left-96 opacity-0 pointer-events-none w-1 h-1 overflow-hidden" aria-hidden="true">
     <div id="youtube-host-player"></div>
@@ -1508,7 +1511,12 @@
         try { localStorage.setItem('jukebox_speaker_unlocked', 'true'); } catch (e) {}
         const banner = document.getElementById('host-speaker-activation-banner');
         if (banner) banner.classList.add('hidden');
+        startSilentAudioAnchor();
+        requestScreenWakeLock();
+      } else if (event.data === YT.PlayerState.PAUSED) {
+        releaseScreenWakeLock();
       } else if (event.data === YT.PlayerState.ENDED) {
+        releaseScreenWakeLock();
         if (isMeHost() && isCurrentAudioMaster) {
           console.log('🎵 Track selesai di Web Player! Mengalihkan ke lagu berikutnya...');
           fetch('/api/control/ended', {
@@ -1536,6 +1544,126 @@
       }
     }
 
+    // ============================================================
+    // MOBILE BACKGROUND AUDIO & MEDIA SESSION ENGINE (iOS & Android)
+    // ============================================================
+    let wakeLockSentinel = null;
+
+    function enableAudioSessionPlayback() {
+      if ('audioSession' in navigator) {
+        try {
+          navigator.audioSession.type = 'playback';
+        } catch (e) {}
+      }
+    }
+
+    function startSilentAudioAnchor() {
+      enableAudioSessionPlayback();
+      const silentAnchor = document.getElementById('silent-audio-anchor');
+      if (silentAnchor) {
+        try {
+          silentAnchor.volume = 0.001;
+          const p = silentAnchor.play();
+          if (p && typeof p.catch === 'function') p.catch(() => {});
+        } catch (e) {}
+      }
+    }
+
+    function stopSilentAudioAnchor() {
+      const silentAnchor = document.getElementById('silent-audio-anchor');
+      if (silentAnchor) {
+        try { silentAnchor.pause(); } catch (e) {}
+      }
+    }
+
+    async function requestScreenWakeLock() {
+      if ('wakeLock' in navigator && isMeHost()) {
+        try {
+          if (!wakeLockSentinel) {
+            wakeLockSentinel = await navigator.wakeLock.request('screen');
+            console.log('💡 Screen Wake Lock aktif: Layar HP Host tidak akan mati saat memutar musik pesta.');
+            wakeLockSentinel.addEventListener('release', () => {
+              wakeLockSentinel = null;
+            });
+          }
+        } catch (e) {
+          console.warn('Wake Lock error:', e);
+        }
+      }
+    }
+
+    function releaseScreenWakeLock() {
+      if (wakeLockSentinel) {
+        try { wakeLockSentinel.release(); } catch (e) {}
+        wakeLockSentinel = null;
+      }
+    }
+
+    function updateMediaSession(song) {
+      if (!('mediaSession' in navigator) || !song) return;
+
+      try {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: song.title || 'Party Jukebox',
+          artist: song.artist || 'Karaoke & Jukebox',
+          album: 'Party Room',
+          artwork: [
+            { src: song.thumbnail || song.imageSrc || '/banner.jpg', sizes: '96x96', type: 'image/jpeg' },
+            { src: song.thumbnail || song.imageSrc || '/banner.jpg', sizes: '128x128', type: 'image/jpeg' },
+            { src: song.thumbnail || song.imageSrc || '/banner.jpg', sizes: '192x192', type: 'image/jpeg' },
+            { src: song.thumbnail || song.imageSrc || '/banner.jpg', sizes: '256x256', type: 'image/jpeg' },
+            { src: song.thumbnail || song.imageSrc || '/banner.jpg', sizes: '512x512', type: 'image/jpeg' }
+          ]
+        });
+
+        navigator.mediaSession.playbackState = song.isPaused ? 'paused' : 'playing';
+
+        navigator.mediaSession.setActionHandler('play', () => {
+          if (isMeHost()) {
+            if (ytPlayer && typeof ytPlayer.playVideo === 'function') ytPlayer.playVideo();
+            startSilentAudioAnchor();
+            requestScreenWakeLock();
+          }
+          togglePlay();
+        });
+
+        navigator.mediaSession.setActionHandler('pause', () => {
+          if (isMeHost()) {
+            if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') ytPlayer.pauseVideo();
+            stopSilentAudioAnchor();
+            releaseScreenWakeLock();
+          }
+          togglePlay();
+        });
+
+        navigator.mediaSession.setActionHandler('nexttrack', () => {
+          skipNext();
+        });
+
+        navigator.mediaSession.setActionHandler('previoustrack', () => {
+          if (isMeHost() && ytPlayer && typeof ytPlayer.seekTo === 'function') {
+            ytPlayer.seekTo(0, true);
+          }
+        });
+
+        navigator.mediaSession.setActionHandler('seekto', (details) => {
+          if (details.seekTime && isMeHost() && ytPlayer && typeof ytPlayer.seekTo === 'function') {
+            ytPlayer.seekTo(details.seekTime, true);
+          }
+        });
+
+        if ('setPositionState' in navigator.mediaSession && songDuration > 0) {
+          navigator.mediaSession.setPositionState({
+            duration: songDuration,
+            playbackRate: song.isPaused ? 0 : 1,
+            position: Math.min(Math.floor(currentElapsed || 0), songDuration)
+          });
+        }
+      } catch (e) {
+        console.warn('MediaSession error:', e);
+      }
+    }
+
     // Global touch/click interaction to unlock audio silently on mobile without needing the banner
     document.addEventListener('pointerdown', () => {
       if (!isHostSpeakerActive && isMeHost()) {
@@ -1543,6 +1671,8 @@
         try { localStorage.setItem('jukebox_speaker_unlocked', 'true'); } catch (e) {}
         const banner = document.getElementById('host-speaker-activation-banner');
         if (banner) banner.classList.add('hidden');
+        startSilentAudioAnchor();
+        requestScreenWakeLock();
         syncHostAudioEngine();
       }
     }, { passive: true });
@@ -1551,6 +1681,8 @@
       isHostSpeakerActive = true;
       try { localStorage.setItem('jukebox_speaker_unlocked', 'true'); } catch (e) {}
       claimAudioMaster();
+      startSilentAudioAnchor();
+      requestScreenWakeLock();
       const banner = document.getElementById('host-speaker-activation-banner');
       if (banner) banner.classList.add('hidden');
 
@@ -2651,6 +2783,10 @@
         claimAudioMaster();
         sendHostHeartbeatImmediate();
         syncHostAudioEngine();
+        requestScreenWakeLock();
+      } else if (document.visibilityState === 'hidden' && isMeHost()) {
+        // Maintain active OS audio session in background via silent shield anchor
+        startSilentAudioAnchor();
       }
     });
 
@@ -2726,6 +2862,7 @@
       const song = status.current;
       currentSongData = song;
       if (song && song.title) {
+        updateMediaSession(song);
         document.getElementById('now-title').textContent = song.title;
         document.getElementById('now-artist').textContent = song.artist || song.album || '';
         document.getElementById('now-thumbnail').src = song.imageSrc || 'https://via.placeholder.com/150';
