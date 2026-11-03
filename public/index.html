@@ -81,7 +81,7 @@
       background: #ffffff;
       cursor: pointer;
       box-shadow: 0 0 8px rgba(236, 72, 153, 0.6);
-      margin-top: -4px;
+      margin-top: -3px;
     }
 
     /* Dragging styles */
@@ -94,13 +94,17 @@
       cursor: grabbing;
     }
 
+    /* Apple Music / Spotify style fade mask for lyrics */
+    .lyrics-fade-mask {
+      mask-image: linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%);
+    }
+
     /* ============================================================
        VIEW MODES ENGINE (Auto Responsive / Force Mobile / Force Desktop)
        ============================================================ */
-
-    /* 1. AUTO RESPONSIVE MODE */
     .view-auto #app-wrapper {
-      max-width: 36rem; /* max-w-xl */
+      max-width: 36rem;
       margin-left: auto;
       margin-right: auto;
       padding-left: 1rem;
@@ -117,7 +121,7 @@
     }
     @media (min-width: 1024px) {
       .view-auto #app-wrapper {
-        max-width: 80rem; /* max-w-7xl */
+        max-width: 80rem;
         padding-left: 1.5rem;
         padding-right: 1.5rem;
       }
@@ -141,9 +145,9 @@
       }
     }
 
-    /* 2. FORCE MOBILE MODE (Simulates phone even on large desktop screens) */
+    /* Force Mobile Mode */
     .view-mobile #app-wrapper {
-      max-width: 36rem !important; /* max-w-xl */
+      max-width: 36rem !important;
       margin-left: auto !important;
       margin-right: auto !important;
       padding-left: 1rem !important;
@@ -163,9 +167,9 @@
       display: block !important;
     }
 
-    /* 3. FORCE DESKTOP MODE (Forces 2-column wide dashboard) */
+    /* Force Desktop Mode */
     .view-desktop #app-wrapper {
-      max-width: 80rem !important; /* max-w-7xl */
+      max-width: 80rem !important;
       margin-left: auto !important;
       margin-right: auto !important;
       padding-left: 1.5rem !important;
@@ -193,14 +197,16 @@
 </head>
 <body class="bg-slate-50 dark:bg-[#0a0c10] text-slate-800 dark:text-gray-100 min-h-screen pb-24 selection:bg-pink-500 selection:text-white transition-colors duration-200 view-auto">
 
-  <!-- Top Navigation & Controls Bar -->
+  <!-- ============================================================
+       TOP HEADER & CONTROLS BAR
+       ============================================================ -->
   <header class="sticky top-0 z-30 bg-white/85 dark:bg-[#0e1118]/85 backdrop-blur-md border-b border-slate-200/80 dark:border-gray-800/60 px-4 py-2.5 transition-colors duration-200">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-2.5">
       
-      <!-- Left: Logo & Mac Connection Status -->
+      <!-- Brand & Host Connection Status -->
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-pink-500 to-indigo-600 flex items-center justify-center shadow-md shadow-pink-500/25 text-white font-extrabold text-sm">
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-pink-500 via-rose-500 to-indigo-600 flex items-center justify-center shadow-md shadow-pink-500/25 text-white font-extrabold text-sm">
             ♫
           </div>
           <div>
@@ -208,7 +214,7 @@
               <h1 class="text-base font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 dark:from-white dark:via-gray-200 dark:to-gray-400 bg-clip-text text-transparent">
                 Party Jukebox
               </h1>
-              <span id="current-view-badge" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
+              <span id="current-view-badge" class="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
                 Auto
               </span>
             </div>
@@ -219,7 +225,7 @@
           </div>
         </div>
 
-        <!-- Mobile-Only Quick Refresh -->
+        <!-- Mobile Quick Refresh -->
         <button onclick="fetchStatus()" class="md:hidden p-2 rounded-xl bg-slate-100 dark:bg-gray-800/80 hover:bg-slate-200 dark:hover:bg-gray-800 text-slate-600 dark:text-gray-300 transition-colors">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
@@ -227,17 +233,17 @@
         </button>
       </div>
 
-      <!-- Right Controls: View Switcher + System Theme Switcher + Refresh -->
+      <!-- Segmented Controls: View Modes + System Theme + Refresh -->
       <div class="flex items-center justify-between md:justify-end gap-2 text-xs">
         
-        <!-- VIEW SWITCHER (Auto / Mobile / Desktop) -->
-        <div class="flex items-center gap-1 bg-slate-100 dark:bg-gray-900/90 p-1 rounded-xl border border-slate-200/90 dark:border-gray-800 font-semibold shadow-xs">
+        <!-- CUSTOM SEGMENTED CONTROL: VIEW SWITCHER -->
+        <div class="flex items-center gap-0.5 bg-slate-100 dark:bg-gray-900/90 p-1 rounded-xl border border-slate-200/90 dark:border-gray-800 font-semibold shadow-2xs">
           <button onclick="setView('auto')" id="view-btn-auto" title="Auto Responsive (Mobile on phone, Desktop on PC)"
                   class="view-pill px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 text-[11px] font-bold bg-white dark:bg-gray-800 text-pink-600 dark:text-pink-400 shadow-xs">
             <span>⚡</span>
             <span class="inline">Auto</span>
           </button>
-          <button onclick="setView('mobile')" id="view-btn-mobile" title="Mobile View (Compact single column)"
+          <button onclick="setView('mobile')" id="view-btn-mobile" title="Mobile View (Compact single column phone)"
                   class="view-pill px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 text-[11px] text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white">
             <span>📱</span>
             <span class="inline">Mobile</span>
@@ -249,8 +255,8 @@
           </button>
         </div>
 
-        <!-- THEME SWITCHER (System Theme Matching / Light / Dark) -->
-        <div class="flex items-center gap-1 bg-slate-100 dark:bg-gray-900/90 p-1 rounded-xl border border-slate-200/90 dark:border-gray-800 font-semibold shadow-xs">
+        <!-- CUSTOM SEGMENTED CONTROL: THEME SWITCHER -->
+        <div class="flex items-center gap-0.5 bg-slate-100 dark:bg-gray-900/90 p-1 rounded-xl border border-slate-200/90 dark:border-gray-800 font-semibold shadow-2xs">
           <button onclick="setTheme('system')" id="theme-btn-system" title="Match System Theme (macOS / iOS / Android)"
                   class="theme-pill px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 text-[11px] font-bold bg-white dark:bg-gray-800 text-pink-600 dark:text-pink-400 shadow-xs">
             <span>🌓</span>
@@ -301,7 +307,7 @@
   </header>
 
   <!-- ============================================================
-       MAIN APP WRAPPER (Responsive Container)
+       MAIN APP WRAPPER (Responsive Layout)
        ============================================================ -->
   <main id="app-wrapper" class="mt-4 sm:mt-6 transition-all duration-300">
     <div class="app-grid space-y-5 lg:space-y-0">
@@ -314,16 +320,17 @@
         <!-- NOW PLAYING CARD -->
         <div class="relative overflow-hidden rounded-2xl bg-gradient-to-b from-white via-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-4 sm:p-5 shadow-lg shadow-slate-200/50 dark:shadow-xl dark:shadow-black/40 transition-colors duration-200">
           <div class="flex items-center gap-4">
-            <!-- Vinyl Disc Thumbnail -->
+            
+            <!-- Vinyl Disc Cover Component -->
             <div class="relative w-20 h-20 sm:w-24 sm:h-24 shrink-0">
               <img id="now-thumbnail" src="https://via.placeholder.com/150" alt="Cover"
                    class="w-full h-full object-cover rounded-2xl shadow-md border border-slate-200 dark:border-gray-700/50 relative z-10">
               <div id="vinyl-disc" class="absolute -right-2.5 top-0 w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-slate-800 dark:border-gray-900/80 bg-slate-900/90 dark:bg-black/80 z-0 vinyl-spin paused flex items-center justify-center shadow-md">
-                <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-pink-500/90 border border-white/20"></div>
+                <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-tr from-pink-500 to-rose-500 border border-white/20"></div>
               </div>
             </div>
 
-            <!-- Metadata -->
+            <!-- Track Metadata -->
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-1.5 flex-wrap">
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">
@@ -353,32 +360,46 @@
             </div>
           </div>
 
-          <!-- READ-ONLY REAL-TIME TIMELINE -->
-          <div class="mt-4 pointer-events-none select-none">
-            <div class="w-full bg-slate-200 dark:bg-gray-800/80 rounded-full h-2 overflow-hidden relative">
-              <div id="progress-bar" class="bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+          <!-- CUSTOM TIMELINE COMPONENT (With glowing playhead indicator) -->
+          <div class="mt-4 select-none">
+            <div class="w-full bg-slate-200 dark:bg-gray-800/80 rounded-full h-2 relative overflow-visible">
+              <div id="progress-bar" class="bg-gradient-to-r from-pink-500 via-rose-500 to-indigo-500 h-2 rounded-full relative transition-all duration-300" style="width: 0%">
+                <!-- Glowing playhead dot -->
+                <div class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-3.5 h-3.5 rounded-full bg-white shadow-md shadow-pink-500/80 border-2 border-pink-500"></div>
+              </div>
             </div>
-            <div class="flex justify-between text-[11px] text-slate-500 dark:text-gray-400 font-bold mt-1.5 px-0.5">
-              <span id="time-elapsed">0:00</span>
-              <span id="time-duration">0:00</span>
+            <div class="flex justify-between text-[11px] text-slate-500 dark:text-gray-400 font-bold mt-2 px-0.5">
+              <span id="time-elapsed" class="font-mono">0:00</span>
+              <span class="text-[9px] text-slate-400 dark:text-gray-500 uppercase tracking-wider font-semibold">Synced Timeline</span>
+              <span id="time-duration" class="font-mono">0:00</span>
             </div>
           </div>
 
-          <!-- PHYSICAL SPEAKER VOLUME SLIDER -->
+          <!-- CUSTOM VOLUME CONTROL COMPONENT (With dynamic emoji speaker & presets) -->
           <div class="mt-3 pt-3 border-t border-slate-200/80 dark:border-gray-800/60 flex items-center gap-3">
-            <button onclick="toggleMuteQuick()" class="text-slate-500 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white transition-colors shrink-0">
-              <svg id="vol-icon" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-              </svg>
+            <button onclick="toggleMuteQuick()" id="vol-mute-btn" title="Toggle Mute"
+                    class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-gray-800/80 hover:bg-slate-200 dark:hover:bg-gray-800 text-slate-700 dark:text-gray-200 flex items-center justify-center shrink-0 transition-all active:scale-90">
+              <span id="vol-icon" class="text-sm">🔊</span>
             </button>
-            <div class="flex-1 flex items-center gap-2">
-              <input type="range" id="volume-slider" min="0" max="100" value="70" oninput="handleVolumeInput(this.value)"
-                     class="w-full accent-pink-500 cursor-pointer">
-              <span id="volume-label" class="text-[11px] font-extrabold text-slate-600 dark:text-gray-400 w-9 text-right shrink-0">70%</span>
+            
+            <div class="flex-1 flex items-center gap-2.5">
+              <input type="range" id="volume-slider" min="0" max="100" value="70"
+                     oninput="handleVolumeInput(this.value)"
+                     class="w-full h-2 bg-slate-200 dark:bg-gray-800 rounded-full appearance-none cursor-pointer accent-pink-500">
+              <span id="volume-label" class="px-2 py-0.5 rounded-md text-[11px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-pink-600 dark:text-pink-400 w-11 text-center shrink-0 border border-slate-200/60 dark:border-gray-700/60">
+                70%
+              </span>
+            </div>
+
+            <!-- Quick Volume Presets (Desktop) -->
+            <div class="hidden sm:flex items-center gap-1 shrink-0 text-[10px] font-bold">
+              <button onclick="handleVolumeInput(30)" class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-400 hover:text-pink-500 transition-colors">30%</button>
+              <button onclick="handleVolumeInput(70)" class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-400 hover:text-pink-500 transition-colors">70%</button>
+              <button onclick="handleVolumeInput(100)" class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-400 hover:text-pink-500 transition-colors">100%</button>
             </div>
           </div>
 
-          <!-- MOBILE-ONLY LYRICS TRIGGER & PARTY MODE BADGE -->
+          <!-- Mobile Lyrics Trigger -->
           <div class="mobile-only mt-3 pt-2.5 border-t border-slate-200/70 dark:border-gray-800/40 flex items-center justify-between">
             <button onclick="openLyrics()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/30 text-pink-600 dark:text-pink-400 text-xs font-bold transition-all active:scale-95 shadow-xs">
               <span>🎤</span>
@@ -400,7 +421,7 @@
           </div>
         </div>
 
-        <!-- DESKTOP-ONLY: EMBEDDED LIVE KARAOKE LYRICS PANEL -->
+        <!-- DESKTOP-ONLY: EMBEDDED LIVE KARAOKE LYRICS PANEL (With fade mask) -->
         <div class="desktop-only rounded-2xl bg-gradient-to-b from-white to-slate-50/80 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-4 shadow-md dark:shadow-xl space-y-3 transition-colors duration-200">
           <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-gray-800">
             <div class="flex items-center gap-2">
@@ -411,7 +432,7 @@
               <span>⛶ Fullscreen</span>
             </button>
           </div>
-          <div id="desktop-lyrics-scroll" class="h-64 overflow-y-auto space-y-2.5 text-center pr-1 select-none py-2">
+          <div id="desktop-lyrics-scroll" class="h-64 overflow-y-auto space-y-2.5 text-center pr-1 select-none py-2 lyrics-fade-mask">
             <div id="desktop-lyrics-spinner" class="py-12 text-center text-xs text-slate-400 dark:text-gray-500">
               <span class="inline-block animate-spin mr-1.5">⏳</span> Mengambil lirik lagu...
             </div>
@@ -419,11 +440,17 @@
           </div>
         </div>
 
-        <!-- DESKTOP-ONLY: HOST & ROOM WI-FI QR CODE CARD -->
+        <!-- DESKTOP-ONLY: HOST & ROOM WI-FI QR CODE CARD (With 1-click copy link) -->
         <div class="desktop-only rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-4 shadow-md dark:shadow-xl space-y-3 transition-colors duration-200">
-          <div class="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-gray-200">
-            <span>📱</span>
-            <span>Scan untuk Request Lagu dari Smartphone</span>
+          <div class="flex items-center justify-between text-xs font-bold text-slate-800 dark:text-gray-200">
+            <div class="flex items-center gap-1.5">
+              <span>📱</span>
+              <span>Scan untuk Request Lagu dari Smartphone</span>
+            </div>
+            <button onclick="copyHostUrl()" id="copy-host-btn" class="px-2 py-0.5 rounded-lg bg-pink-500/10 hover:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30 text-[10px] font-bold flex items-center gap-1 transition-all active:scale-95">
+              <span id="copy-host-icon">📋</span>
+              <span id="copy-host-text">Salin Link</span>
+            </button>
           </div>
           <div class="flex items-center gap-4 bg-slate-100/80 dark:bg-gray-900/60 p-3 rounded-xl border border-slate-200/80 dark:border-gray-800">
             <img id="host-qr-img" src="" alt="Scan QR" class="w-20 h-20 rounded-lg bg-white p-1 border border-slate-200 shrink-0">
@@ -464,45 +491,170 @@
 
           <!-- TAB CONTENT: SEARCH -->
           <div id="content-search" class="mt-3 space-y-3">
-            <!-- Search Input -->
+            
+            <!-- CUSTOM SEARCH INPUT COMPONENT (With Clear button & Keyboard hotkey) -->
             <div class="relative">
-              <input type="text" id="search-input" placeholder="Search songs, artists (e.g. Bernadya, Coldplay, YOASOBI)..."
-                     class="w-full bg-slate-50 dark:bg-[#121520] border border-slate-200 dark:border-gray-800 rounded-xl px-4 py-2.5 pl-10 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition-all">
+              <input type="text" id="search-input" placeholder="Cari lagu / penyanyi (e.g. 周杰伦, Bernadya, JJ Lin, Coldplay)..."
+                     class="w-full bg-slate-50 dark:bg-[#121520] border border-slate-200 dark:border-gray-800 rounded-xl px-4 py-2.5 pl-10 pr-20 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition-all">
               <svg class="w-4 h-4 text-slate-400 dark:text-gray-500 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
               </svg>
-              <div id="search-spinner" class="hidden absolute right-3.5 top-3">
-                <div class="w-4 h-4 border-2 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
+              
+              <div class="absolute right-3 top-2.5 flex items-center gap-1.5">
+                <!-- Clear Button -->
+                <button id="search-clear-btn" onclick="clearSearch()" title="Hapus pencarian" class="hidden p-0.5 rounded-full text-slate-400 hover:text-slate-600 dark:text-gray-500 dark:hover:text-gray-300">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+                <!-- Spinner -->
+                <div id="search-spinner" class="hidden">
+                  <div class="w-4 h-4 border-2 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+                <!-- Keyboard Shortcut hint -->
+                <kbd class="hidden md:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-bold text-slate-400 dark:text-gray-500 bg-slate-100 dark:bg-gray-800 border border-slate-200 dark:border-gray-700">
+                  /
+                </kbd>
               </div>
             </div>
 
-            <!-- Filters: Country & Genre Selectors -->
+            <!-- ========================================================
+                 CUSTOM COMPONENT: GLASSMORPHIC SELECTS (Country & Genre)
+                 ======================================================== -->
             <div class="grid grid-cols-2 gap-2">
-              <select id="filter-country" onchange="triggerSearchFilter()" class="bg-slate-50 dark:bg-[#121520] border border-slate-200 dark:border-gray-800 text-xs text-slate-700 dark:text-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:border-pink-500 cursor-pointer">
-                <option value="">🌍 Semua Negara (All)</option>
-                <option value="Indonesia">🇮🇩 Indonesia</option>
-                <option value="Western">🇺🇸 Barat / Global</option>
-                <option value="K-Pop Korea">🇰🇷 Korea (K-Pop)</option>
-                <option value="J-Pop Anime Jepang">🇯🇵 Jepang (Anime/J-Pop)</option>
-              </select>
-              <select id="filter-genre" onchange="triggerSearchFilter()" class="bg-slate-50 dark:bg-[#121520] border border-slate-200 dark:border-gray-800 text-xs text-slate-700 dark:text-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:border-pink-500 cursor-pointer">
-                <option value="">🎵 Semua Genre (All)</option>
-                <option value="Pop">Pop Hits</option>
-                <option value="Rock">Rock</option>
-                <option value="R&B Soul">R&B / Soul</option>
-                <option value="EDM Dance">EDM / Dance</option>
-                <option value="Acoustic Chill">Acoustic / Chill</option>
-                <option value="Anime OST">Anime / OST</option>
-              </select>
+              
+              <!-- 1. CUSTOM SELECT: COUNTRY -->
+              <div class="relative custom-select" id="custom-select-country">
+                <button type="button" onclick="toggleCustomSelect('country')" id="select-btn-country"
+                        class="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-[#121520] border border-slate-200 dark:border-gray-800 text-slate-800 dark:text-gray-200 hover:border-pink-500/60 transition-all shadow-2xs">
+                  <div class="flex items-center gap-1.5 truncate">
+                    <span id="select-icon-country">🌍</span>
+                    <span id="select-label-country" class="truncate font-bold">Semua Negara</span>
+                  </div>
+                  <svg id="select-arrow-country" class="w-3.5 h-3.5 text-slate-400 dark:text-gray-500 transition-transform duration-200 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                  </svg>
+                </button>
+                
+                <!-- Popover Menu -->
+                <div id="select-options-country"
+                     class="hidden absolute z-40 left-0 right-0 mt-1.5 p-1 rounded-xl bg-white/95 dark:bg-[#151926]/95 backdrop-blur-xl border border-slate-200 dark:border-gray-800 shadow-xl max-h-60 overflow-y-auto space-y-0.5 text-xs">
+                  <button type="button" onclick="selectCustomOption('country', '', '🌍', 'Semua Negara')"
+                          class="select-opt-country w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-pink-500/10 hover:text-pink-600 dark:hover:text-pink-400 font-semibold transition-colors">
+                    <span class="flex items-center gap-2"><span>🌍</span> Semua Negara (All)</span>
+                    <span class="check-mark font-bold text-pink-500">✓</span>
+                  </button>
+                  <button type="button" onclick="selectCustomOption('country', 'Mandarin Chinese 华语', '🇨🇳', 'Mandarin / C-Pop (华语)')"
+                          class="select-opt-country w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-pink-500/10 hover:text-pink-600 dark:hover:text-pink-400 font-semibold transition-colors">
+                    <span class="flex items-center gap-2"><span>🇨🇳</span> Mandarin / C-Pop (华语)</span>
+                    <span class="check-mark font-bold text-pink-500 hidden">✓</span>
+                  </button>
+                  <button type="button" onclick="selectCustomOption('country', 'Taiwan Hokkien', '🇹🇼', 'Taiwan / C-Pop (台湾)')"
+                          class="select-opt-country w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-pink-500/10 hover:text-pink-600 dark:hover:text-pink-400 font-semibold transition-colors">
+                    <span class="flex items-center gap-2"><span>🇹🇼</span> Taiwan / C-Pop (台湾)</span>
+                    <span class="check-mark font-bold text-pink-500 hidden">✓</span>
+                  </button>
+                  <button type="button" onclick="selectCustomOption('country', 'Indonesia', '🇮🇩', 'Indonesia')"
+                          class="select-opt-country w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-pink-500/10 hover:text-pink-600 dark:hover:text-pink-400 font-semibold transition-colors">
+                    <span class="flex items-center gap-2"><span>🇮🇩</span> Indonesia</span>
+                    <span class="check-mark font-bold text-pink-500 hidden">✓</span>
+                  </button>
+                  <button type="button" onclick="selectCustomOption('country', 'Western', '🇺🇸', 'Barat / Global')"
+                          class="select-opt-country w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-pink-500/10 hover:text-pink-600 dark:hover:text-pink-400 font-semibold transition-colors">
+                    <span class="flex items-center gap-2"><span>🇺🇸</span> Barat / Global</span>
+                    <span class="check-mark font-bold text-pink-500 hidden">✓</span>
+                  </button>
+                  <button type="button" onclick="selectCustomOption('country', 'K-Pop Korea', '🇰🇷', 'Korea (K-Pop)')"
+                          class="select-opt-country w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-pink-500/10 hover:text-pink-600 dark:hover:text-pink-400 font-semibold transition-colors">
+                    <span class="flex items-center gap-2"><span>🇰🇷</span> Korea (K-Pop)</span>
+                    <span class="check-mark font-bold text-pink-500 hidden">✓</span>
+                  </button>
+                  <button type="button" onclick="selectCustomOption('country', 'J-Pop Anime Jepang', '🇯🇵', 'Jepang (Anime/J-Pop)')"
+                          class="select-opt-country w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-pink-500/10 hover:text-pink-600 dark:hover:text-pink-400 font-semibold transition-colors">
+                    <span class="flex items-center gap-2"><span>🇯🇵</span> Jepang (Anime/J-Pop)</span>
+                    <span class="check-mark font-bold text-pink-500 hidden">✓</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- 2. CUSTOM SELECT: GENRE -->
+              <div class="relative custom-select" id="custom-select-genre">
+                <button type="button" onclick="toggleCustomSelect('genre')" id="select-btn-genre"
+                        class="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-50 dark:bg-[#121520] border border-slate-200 dark:border-gray-800 text-slate-800 dark:text-gray-200 hover:border-pink-500/60 transition-all shadow-2xs">
+                  <div class="flex items-center gap-1.5 truncate">
+                    <span id="select-icon-genre">🎵</span>
+                    <span id="select-label-genre" class="truncate font-bold">Semua Genre</span>
+                  </div>
+                  <svg id="select-arrow-genre" class="w-3.5 h-3.5 text-slate-400 dark:text-gray-500 transition-transform duration-200 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                  </svg>
+                </button>
+                
+                <!-- Popover Menu -->
+                <div id="select-options-genre"
+                     class="hidden absolute z-40 left-0 right-0 mt-1.5 p-1 rounded-xl bg-white/95 dark:bg-[#151926]/95 backdrop-blur-xl border border-slate-200 dark:border-gray-800 shadow-xl max-h-60 overflow-y-auto space-y-0.5 text-xs">
+                  <button type="button" onclick="selectCustomOption('genre', '', '🎵', 'Semua Genre')"
+                          class="select-opt-genre w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-pink-500/10 hover:text-pink-600 dark:hover:text-pink-400 font-semibold transition-colors">
+                    <span class="flex items-center gap-2"><span>🎵</span> Semua Genre (All)</span>
+                    <span class="check-mark font-bold text-pink-500">✓</span>
+                  </button>
+                  <button type="button" onclick="selectCustomOption('genre', 'Mandopop C-Pop 华语流行', '🏮', 'Mandopop / C-Pop (华语)')"
+                          class="select-opt-genre w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-pink-500/10 hover:text-pink-600 dark:hover:text-pink-400 font-semibold transition-colors">
+                    <span class="flex items-center gap-2"><span>🏮</span> Mandopop / C-Pop</span>
+                    <span class="check-mark font-bold text-pink-500 hidden">✓</span>
+                  </button>
+                  <button type="button" onclick="selectCustomOption('genre', 'Pop', '✨', 'Pop Hits')"
+                          class="select-opt-genre w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-pink-500/10 hover:text-pink-600 dark:hover:text-pink-400 font-semibold transition-colors">
+                    <span class="flex items-center gap-2"><span>✨</span> Pop Hits</span>
+                    <span class="check-mark font-bold text-pink-500 hidden">✓</span>
+                  </button>
+                  <button type="button" onclick="selectCustomOption('genre', 'Rock', '🎸', 'Rock')"
+                          class="select-opt-genre w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-pink-500/10 hover:text-pink-600 dark:hover:text-pink-400 font-semibold transition-colors">
+                    <span class="flex items-center gap-2"><span>🎸</span> Rock</span>
+                    <span class="check-mark font-bold text-pink-500 hidden">✓</span>
+                  </button>
+                  <button type="button" onclick="selectCustomOption('genre', 'R&B Soul', '🎷', 'R&B / Soul')"
+                          class="select-opt-genre w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-pink-500/10 hover:text-pink-600 dark:hover:text-pink-400 font-semibold transition-colors">
+                    <span class="flex items-center gap-2"><span>🎷</span> R&B / Soul</span>
+                    <span class="check-mark font-bold text-pink-500 hidden">✓</span>
+                  </button>
+                  <button type="button" onclick="selectCustomOption('genre', 'EDM Dance', '💃', 'EDM / Dance')"
+                          class="select-opt-genre w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-pink-500/10 hover:text-pink-600 dark:hover:text-pink-400 font-semibold transition-colors">
+                    <span class="flex items-center gap-2"><span>💃</span> EDM / Dance</span>
+                    <span class="check-mark font-bold text-pink-500 hidden">✓</span>
+                  </button>
+                  <button type="button" onclick="selectCustomOption('genre', 'Acoustic Chill', '☕', 'Acoustic / Chill')"
+                          class="select-opt-genre w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-pink-500/10 hover:text-pink-600 dark:hover:text-pink-400 font-semibold transition-colors">
+                    <span class="flex items-center gap-2"><span>☕</span> Acoustic / Chill</span>
+                    <span class="check-mark font-bold text-pink-500 hidden">✓</span>
+                  </button>
+                  <button type="button" onclick="selectCustomOption('genre', 'Anime OST', '🎌', 'Anime / OST')"
+                          class="select-opt-genre w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-pink-500/10 hover:text-pink-600 dark:hover:text-pink-400 font-semibold transition-colors">
+                    <span class="flex items-center gap-2"><span>🎌</span> Anime / OST</span>
+                    <span class="check-mark font-bold text-pink-500 hidden">✓</span>
+                  </button>
+                </div>
+              </div>
+
             </div>
 
-            <!-- Quick Recommendations & Mood Chips -->
+            <!-- CHINESE / MANDARIN + GLOBAL QUICK MOOD CHIPS -->
             <div>
               <div class="text-[11px] font-bold text-slate-500 dark:text-gray-400 mb-1.5 flex items-center justify-between">
                 <span>✨ Rekomendasi Kategori:</span>
                 <span class="text-[10px] text-slate-400 dark:text-gray-500">Tap untuk cari</span>
               </div>
               <div class="flex gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
+                <!-- FEATURED MANDARIN CHIPS -->
+                <button onclick="applyQuickFilter('Mandopop Hits 周杰伦 林俊杰')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-gradient-to-r from-rose-500/10 to-pink-500/10 dark:from-rose-500/20 dark:to-pink-500/20 border border-rose-300 dark:border-rose-500/40 text-rose-700 dark:text-rose-300 text-[11px] font-extrabold hover:border-pink-500 transition-all shadow-2xs flex items-center gap-1">
+                  <span>🇨🇳</span> Mandopop Hits
+                </button>
+                <button onclick="applyQuickFilter('Chinese Karaoke KTV 抖音热歌')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 hover:border-pink-500 text-slate-700 dark:text-gray-300 text-[11px] font-bold transition-all shadow-2xs flex items-center gap-1">
+                  <span>🎤</span> KTV Mandarin
+                </button>
+                <button onclick="applyQuickFilter('Classic Mandarin Songs 邓丽君 张学友')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 hover:border-pink-500 text-slate-700 dark:text-gray-300 text-[11px] font-bold transition-all shadow-2xs flex items-center gap-1">
+                  <span>🏮</span> Classic Mandarin
+                </button>
                 <button onclick="applyQuickFilter('Top Indo Hits')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 hover:border-pink-500 text-slate-700 dark:text-gray-300 text-[11px] font-bold transition-all shadow-2xs">
                   🇮🇩 Indo Hits
                 </button>
@@ -521,13 +673,10 @@
                 <button onclick="applyQuickFilter('Acoustic Chill Pop')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 hover:border-pink-500 text-slate-700 dark:text-gray-300 text-[11px] font-bold transition-all shadow-2xs">
                   ☕ Acoustic Chill
                 </button>
-                <button onclick="applyQuickFilter('Classic Rock Anthems')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 hover:border-pink-500 text-slate-700 dark:text-gray-300 text-[11px] font-bold transition-all shadow-2xs">
-                  🎸 Classic Rock
-                </button>
               </div>
             </div>
 
-            <!-- Search Results / Recommendations Container -->
+            <!-- Search Results / Curated Recommendations Container -->
             <div id="search-results" class="space-y-2 max-h-72 overflow-y-auto pr-1"></div>
           </div>
 
@@ -626,7 +775,7 @@
     </div>
 
     <!-- Lyrics Content (Karaoke Synced or Plain) -->
-    <div id="lyrics-content-scroll" class="flex-1 overflow-y-auto max-w-2xl mx-auto w-full py-8 space-y-5 text-center select-none">
+    <div id="lyrics-content-scroll" class="flex-1 overflow-y-auto max-w-2xl mx-auto w-full py-8 space-y-5 text-center select-none lyrics-fade-mask">
       <div id="lyrics-spinner" class="py-16 text-center text-sm text-slate-500 dark:text-gray-400">
         <span class="inline-block animate-spin mr-2">⏳</span> Mengambil lirik lagu...
       </div>
@@ -645,7 +794,7 @@
   </div>
 
   <!-- ============================================================
-       APPLICATION SCRIPT
+       APPLICATION LOGIC
        ============================================================ -->
   <script>
     // State
@@ -657,6 +806,10 @@
     let volumeDebounceTimeout = null;
     let sortableInstance = null;
     let currentUpcomingList = [];
+
+    // Custom Select State
+    let currentFilterCountry = '';
+    let currentFilterGenre = '';
 
     // Local Smooth Timeline State
     let currentVideoId = '';
@@ -684,7 +837,6 @@
     // ============================================================
     function initTheme() {
       applyTheme(currentTheme);
-      // Listen for system changes when in system mode
       if (window.matchMedia) {
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
           if (currentTheme === 'system') {
@@ -718,7 +870,6 @@
         htmlEl.classList.remove('dark');
       }
 
-      // Update theme pill buttons
       ['system', 'light', 'dark'].forEach(t => {
         const btn = document.getElementById(`theme-btn-${t}`);
         if (!btn) return;
@@ -735,7 +886,6 @@
     // ============================================================
     function initView() {
       setView(currentView, false);
-      // Setup Host QR image & text
       const hostUrl = window.location.origin;
       const hostTextEl = document.getElementById('host-url-text');
       const hostQrEl = document.getElementById('host-qr-img');
@@ -778,6 +928,87 @@
       }
     }
 
+    // 1-Click Copy Host URL
+    async function copyHostUrl() {
+      const url = window.location.origin;
+      try {
+        await navigator.clipboard.writeText(url);
+        const icon = document.getElementById('copy-host-icon');
+        const text = document.getElementById('copy-host-text');
+        icon.textContent = '✓';
+        text.textContent = 'Disalin!';
+        showToast('✓ Link Wi-Fi Jukebox disalin ke clipboard!');
+        setTimeout(() => {
+          icon.textContent = '📋';
+          text.textContent = 'Salin Link';
+        }, 2000);
+      } catch (e) {
+        showToast(`Buka: ${url}`);
+      }
+    }
+
+    // ============================================================
+    // CUSTOM SELECT COMPONENT LOGIC (Country & Genre)
+    // ============================================================
+    function toggleCustomSelect(type) {
+      const menu = document.getElementById(`select-options-${type}`);
+      const arrow = document.getElementById(`select-arrow-${type}`);
+      const isCurrentlyOpen = !menu.classList.contains('hidden');
+
+      // Close all selects first
+      closeAllCustomSelects();
+
+      if (!isCurrentlyOpen) {
+        menu.classList.remove('hidden');
+        if (arrow) arrow.classList.add('rotate-180');
+      }
+    }
+
+    function closeAllCustomSelects() {
+      ['country', 'genre'].forEach(t => {
+        const menu = document.getElementById(`select-options-${t}`);
+        const arrow = document.getElementById(`select-arrow-${t}`);
+        if (menu) menu.classList.add('hidden');
+        if (arrow) arrow.classList.remove('rotate-180');
+      });
+    }
+
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.custom-select')) {
+        closeAllCustomSelects();
+      }
+    });
+
+    function selectCustomOption(type, value, icon, label) {
+      if (type === 'country') {
+        currentFilterCountry = value;
+        document.getElementById('select-icon-country').textContent = icon;
+        document.getElementById('select-label-country').textContent = label;
+        
+        // Update checkmarks
+        document.querySelectorAll('.select-opt-country').forEach(btn => {
+          const check = btn.querySelector('.check-mark');
+          const isSelected = btn.getAttribute('onclick').includes(`'${value}'`);
+          if (check) check.classList.toggle('hidden', !isSelected);
+        });
+      } else if (type === 'genre') {
+        currentFilterGenre = value;
+        document.getElementById('select-icon-genre').textContent = icon;
+        document.getElementById('select-label-genre').textContent = label;
+        
+        // Update checkmarks
+        document.querySelectorAll('.select-opt-genre').forEach(btn => {
+          const check = btn.querySelector('.check-mark');
+          const isSelected = btn.getAttribute('onclick').includes(`'${value}'`);
+          if (check) check.classList.toggle('hidden', !isSelected);
+        });
+      }
+
+      closeAllCustomSelects();
+      triggerSearchFilter();
+    }
+
     // ============================================================
     // USER SELECTION
     // ============================================================
@@ -796,7 +1027,7 @@
       fetchStatus();
     }
 
-    // Tab Switching
+    // Tab Switching (Search vs Paste)
     function switchTab(tab) {
       if (tab === 'search') {
         document.getElementById('content-search').classList.remove('hidden');
@@ -872,15 +1103,12 @@
           currentVideoId = song.videoId;
           currentElapsed = song.currentElapsed || 0;
           lastTickTimestamp = Date.now();
-          // Auto-fetch lyrics for desktop panel & modal
           loadLyricsForSong(song);
         } else {
-          // If paused, sync strictly
           if (song.isPaused) {
             currentElapsed = song.currentElapsed || 0;
             lastTickTimestamp = Date.now();
           } else if (typeof song.currentElapsed === 'number') {
-            // Drift calibration
             const drift = Math.abs(song.currentElapsed - currentElapsed);
             if (drift > 1.5) {
               currentElapsed = song.currentElapsed;
@@ -914,10 +1142,9 @@
       // Real Speaker Volume
       if (status.volume && typeof status.volume.state === 'number') {
         const volSlider = document.getElementById('volume-slider');
-        const volLabel = document.getElementById('volume-label');
         if (!volSlider.matches(':active')) {
           volSlider.value = status.volume.state;
-          volLabel.textContent = `${status.volume.state}%`;
+          updateVolumeUI(status.volume.state);
         }
       }
 
@@ -938,7 +1165,7 @@
       document.getElementById('time-elapsed').textContent = formatTime(Math.floor(elapsedSec));
     }
 
-    // Client Ticker - Steady progression, no resets!
+    // Client Ticker
     setInterval(() => {
       if (isPlaying && songDuration > 0) {
         const now = Date.now();
@@ -956,16 +1183,32 @@
       }
     }, 200);
 
-    // Volume Slider Handler (Controls Real Mac Speaker Output!)
+    // Dynamic Volume UI & Handler
+    function updateVolumeUI(val) {
+      const num = Number(val);
+      const label = document.getElementById('volume-label');
+      const icon = document.getElementById('vol-icon');
+      if (label) label.textContent = `${num}%`;
+
+      if (icon) {
+        if (num === 0) icon.textContent = '🔇';
+        else if (num <= 35) icon.textContent = '🔈';
+        else if (num <= 75) icon.textContent = '🔉';
+        else icon.textContent = '🔊';
+      }
+    }
+
     function handleVolumeInput(val) {
-      document.getElementById('volume-label').textContent = `${val}%`;
+      const num = Number(val);
+      document.getElementById('volume-slider').value = num;
+      updateVolumeUI(num);
       clearTimeout(volumeDebounceTimeout);
       volumeDebounceTimeout = setTimeout(async () => {
         try {
           await fetch('/api/control/volume', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ volume: Number(val), user: currentUser })
+            body: JSON.stringify({ volume: num, user: currentUser })
           });
         } catch (e) {
           console.error(e);
@@ -980,7 +1223,7 @@
       handleVolumeInput(newVol);
     }
 
-    // Render Queue: ONLY SONGS AFTER SELECTED INDEX ARE UPCOMING!
+    // Render Queue
     function renderQueue(queue, selectedIndex) {
       const queueList = document.getElementById('queue-list');
       const countEl = document.getElementById('queue-count');
@@ -996,7 +1239,7 @@
       currentUpcomingList = upcoming;
       countEl.textContent = upcoming.length;
 
-      // Update UP NEXT preview banner on Now Playing card
+      // Up Next Preview Banner
       const upNextBanner = document.getElementById('up-next-banner');
       const upNextTitle = document.getElementById('up-next-title');
       const upNextBadge = document.getElementById('up-next-badge');
@@ -1041,7 +1284,7 @@
               </svg>
             </div>
 
-            <span class="text-xs font-bold text-slate-400 dark:text-gray-500 w-3 text-center shrink-0">${idx + 1}</span>
+            <span class="text-xs font-extrabold text-slate-400 dark:text-gray-500 w-4 text-center shrink-0">#${idx + 1}</span>
             <img src="${item.thumbnail || 'https://via.placeholder.com/60'}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-slate-200 dark:border-gray-800 pointer-events-none">
             
             <div class="flex-1 min-w-0">
@@ -1099,7 +1342,7 @@
           const targetItem = currentUpcomingList[newIndex];
           if (!movedItem || !targetItem) return;
 
-          showToast(`Moving "${movedItem.title}" to position #${newIndex + 1}...`);
+          showToast(`Moving "${movedItem.title}" to #${newIndex + 1}...`);
 
           try {
             await fetch('/api/queue/move', {
@@ -1164,16 +1407,24 @@
       }).join('');
     }
 
-    // Curated Party Recommendations
+    // ============================================================
+    // CURATED MANDARIN & GLOBAL RECOMMENDATIONS
+    // ============================================================
     const partyRecommendations = [
+      // Top Mandarin / C-Pop Hits
+      { videoId: 'bu7nU9Mhpyo', title: '告白气球 (Love Confession)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/bu7nU9Mhpyo/hq720.jpg' },
+      { videoId: '6ZXzn1jwtM4', title: '爱人错过 (Somewhere in time)', artist: '告五人 Accusefive', thumbnail: 'https://i.ytimg.com/vi/6ZXzn1jwtM4/hq720.jpg' },
+      { videoId: 'LWV-f6dMN3Q', title: '修炼爱情 (Practice Love)', artist: '林俊杰 JJ Lin', thumbnail: 'https://i.ytimg.com/vi/LWV-f6dMN3Q/hq720.jpg' },
+      { videoId: 'T4SimnaiktU', title: '光年之外 (Light Years Away)', artist: '邓紫棋 G.E.M.', thumbnail: 'https://i.ytimg.com/vi/T4SimnaiktU/hq720.jpg' },
+      { videoId: 'Y2ge3Kr53k8', title: '怎么了 (What\'s Wrong)', artist: '周兴哲 Eric Chou', thumbnail: 'https://i.ytimg.com/vi/Y2ge3Kr53k8/hq720.jpg' },
+      { videoId: 'eA4hBhy43cM', title: '阿拉斯加海湾 (Gulf of Alaska)', artist: '菲道尔 Firdhaus', thumbnail: 'https://i.ytimg.com/vi/eA4hBhy43cM/hq720.jpg' },
+      // Global Party & Anime Classics
       { videoId: 'dvgZkm1xWPE', title: 'Viva La Vida', artist: 'Coldplay', thumbnail: 'https://i.ytimg.com/vi/dvgZkm1xWPE/hq720.jpg' },
       { videoId: '34Na4j8AVgA', title: 'Starboy', artist: 'The Weeknd ft. Daft Punk', thumbnail: 'https://i.ytimg.com/vi/34Na4j8AVgA/hq720.jpg' },
       { videoId: 'JGwWNGJdvx8', title: 'Shape of You', artist: 'Ed Sheeran', thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/hq720.jpg' },
-      { videoId: 'hT_nvWreIhg', title: 'Counting Stars', artist: 'OneRepublic', thumbnail: 'https://i.ytimg.com/vi/hT_nvWreIhg/hq720.jpg' },
       { videoId: 'ArmDp-zijuc', title: 'Super Shy', artist: 'NewJeans', thumbnail: 'https://i.ytimg.com/vi/ArmDp-zijuc/hq720.jpg' },
-      { videoId: 'DyDfgMOUjCI', title: 'bad guy', artist: 'Billie Eilish', thumbnail: 'https://i.ytimg.com/vi/DyDfgMOUjCI/hq720.jpg' },
-      { videoId: 'a5uQMwRMHcs', title: 'Sparkle (スパークル)', artist: 'RADWIMPS', thumbnail: 'https://i.ytimg.com/vi/a5uQMwRMHcs/hq720.jpg' },
-      { videoId: 'fLexgOxsZu0', title: 'Bruno Mars - That’s What I Like', artist: 'Bruno Mars', thumbnail: 'https://i.ytimg.com/vi/fLexgOxsZu0/hq720.jpg' }
+      { videoId: 'x8VYWazR5mE', title: '夜に駆ける (Racing into the Night)', artist: 'YOASOBI', thumbnail: 'https://i.ytimg.com/vi/x8VYWazR5mE/hq720.jpg' },
+      { videoId: 'a5uQMwRMHcs', title: 'Sparkle (スパークル)', artist: 'RADWIMPS', thumbnail: 'https://i.ytimg.com/vi/a5uQMwRMHcs/hq720.jpg' }
     ];
 
     function renderDefaultRecommendations() {
@@ -1181,7 +1432,9 @@
       container.innerHTML = `
         <div class="pt-1 pb-2">
           <div class="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-gray-300 mb-2 px-1">
-            <span class="flex items-center gap-1.5 text-pink-600 dark:text-pink-400">🔥 Rekomendasi Lagu Populer</span>
+            <span class="flex items-center gap-1.5 text-pink-600 dark:text-pink-400">
+              <span>🔥</span> Rekomendasi Pilihan (Mandarin & Hits Populer)
+            </span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-normal">Tap + Queue untuk langsung request</span>
           </div>
           <div class="space-y-1.5">
@@ -1203,54 +1456,95 @@
       `;
     }
 
-    // Quick Category Chip Click
+    // Quick Mood / Category Chip Click
     function applyQuickFilter(keyword) {
-      document.getElementById('search-input').value = keyword;
+      const input = document.getElementById('search-input');
+      input.value = keyword;
+      document.getElementById('search-clear-btn').classList.remove('hidden');
       executeSearch(keyword);
+    }
+
+    // Clear Search Input
+    function clearSearch() {
+      const input = document.getElementById('search-input');
+      input.value = '';
+      document.getElementById('search-clear-btn').classList.add('hidden');
+      input.focus();
+      triggerSearchFilter();
     }
 
     // Country / Genre Dropdown Change
     function triggerSearchFilter() {
       const input = document.getElementById('search-input').value.trim();
-      const country = document.getElementById('filter-country').value;
-      const genre = document.getElementById('filter-genre').value;
+      
+      // If user selected a filter without typing a keyword, search curated hits for that filter!
+      if (!input) {
+        if (currentFilterCountry || currentFilterGenre) {
+          let queryTag = '';
+          if (currentFilterCountry.includes('Mandarin')) queryTag = 'Mandopop Hits 热门华语歌曲 周杰伦 林俊杰';
+          else if (currentFilterCountry.includes('Taiwan')) queryTag = 'Taiwan C-Pop 经典华语流行';
+          else if (currentFilterCountry.includes('Indonesia')) queryTag = 'Top Indo Pop Hits';
+          else if (currentFilterCountry.includes('Western')) queryTag = 'Top Western Global Hits';
+          else if (currentFilterCountry.includes('Korea')) queryTag = 'Trending K-Pop Hits';
+          else if (currentFilterCountry.includes('Jepang')) queryTag = 'Top Anime J-Pop Hits';
 
-      const parts = [];
-      if (input) parts.push(input);
-      if (country) parts.push(country);
-      if (genre) parts.push(genre);
-
-      const q = parts.join(' ').trim();
-      if (q) {
-        executeSearch(q);
-      } else {
+          if (currentFilterGenre) {
+            queryTag = (queryTag ? queryTag + ' ' : '') + currentFilterGenre;
+          }
+          executeSearch(queryTag);
+          return;
+        }
         renderDefaultRecommendations();
+        return;
       }
+
+      const parts = [input];
+      if (currentFilterCountry && !input.includes(currentFilterCountry)) parts.push(currentFilterCountry);
+      if (currentFilterGenre && !input.includes(currentFilterGenre)) parts.push(currentFilterGenre);
+
+      executeSearch(parts.join(' ').trim());
     }
+
+    // Keyboard Hotkey "/" to focus search
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && document.activeElement !== document.getElementById('search-input') && document.activeElement !== document.getElementById('paste-input')) {
+        e.preventDefault();
+        const input = document.getElementById('search-input');
+        input.focus();
+        input.select();
+      }
+      if (e.key === 'Escape') {
+        closeAllCustomSelects();
+      }
+    });
 
     // Search Handler with Debounce
     const searchInput = document.getElementById('search-input');
     searchInput.addEventListener('input', (e) => {
       const q = e.target.value.trim();
+      const clearBtn = document.getElementById('search-clear-btn');
+      if (q) {
+        clearBtn.classList.remove('hidden');
+      } else {
+        clearBtn.classList.add('hidden');
+      }
+
       clearTimeout(searchDebounceTimeout);
-      if (!q) {
+      if (!q && !currentFilterCountry && !currentFilterGenre) {
         renderDefaultRecommendations();
         return;
       }
 
       document.getElementById('search-spinner').classList.remove('hidden');
       searchDebounceTimeout = setTimeout(() => {
-        executeSearch(q);
+        triggerSearchFilter();
       }, 350);
     });
 
     async function executeSearch(query) {
-      const country = document.getElementById('filter-country').value;
-      const genre = document.getElementById('filter-genre').value;
-
       let finalQuery = query;
-      if (country && !finalQuery.includes(country)) finalQuery += ` ${country}`;
-      if (genre && !finalQuery.includes(genre)) finalQuery += ` ${genre}`;
+      if (currentFilterCountry && !finalQuery.includes(currentFilterCountry)) finalQuery += ` ${currentFilterCountry}`;
+      if (currentFilterGenre && !finalQuery.includes(currentFilterGenre)) finalQuery += ` ${currentFilterGenre}`;
 
       document.getElementById('search-spinner').classList.remove('hidden');
       try {
@@ -1271,7 +1565,7 @@
     function renderSearchResults(results) {
       const container = document.getElementById('search-results');
       if (results.length === 0) {
-        container.innerHTML = `<div class="p-4 text-center text-xs text-slate-400 dark:text-gray-500">Tidak ada lagu yang ditemukan. Coba kata kunci lain.</div>`;
+        container.innerHTML = `<div class="p-4 text-center text-xs text-slate-400 dark:text-gray-500">Tidak ada lagu yang ditemukan. Coba kata kunci lain atau pilih rekomendasi.</div>`;
         return;
       }
 
@@ -1616,14 +1910,14 @@
 
         // Promote new active lyric
         if (activeIdx >= 0) {
-          // In Modal
+          // Modal Line
           const currModal = document.getElementById(`lyric-line-${activeIdx}`);
           if (currModal) {
             currModal.className = 'lyric-line transition-all duration-300 py-2.5 px-4 rounded-xl text-pink-700 dark:text-white font-extrabold text-base sm:text-lg bg-pink-50 dark:bg-pink-500/15 border border-pink-200 dark:border-pink-500/30 shadow-md shadow-pink-500/15 scale-[1.02]';
             currModal.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
 
-          // In Desktop Panel
+          // Desktop Panel Line
           const currDesk = document.getElementById(`desk-lyric-line-${activeIdx}`);
           if (currDesk) {
             currDesk.className = 'desk-lyric-line transition-all duration-300 py-2 px-3 rounded-xl text-pink-700 dark:text-white font-extrabold text-sm bg-pink-50 dark:bg-pink-500/15 border border-pink-200 dark:border-pink-500/30 shadow-sm scale-[1.02]';
