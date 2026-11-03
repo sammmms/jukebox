@@ -1,22 +1,63 @@
 # 🎵 Party Jukebox
 
-> **Collaborative, real-time jukebox web application for house parties & hangouts.**  
-> Host your music on a laptop connected to speakers with YouTube Premium (lossless, ad-free), while friends control the queue, vote, read karaoke lyrics, and DJ from their phones—**no app installation and no login required for guests!**
+> **Collaborative, real-time social jukebox & karaoke hub for house parties, roadtrips, and hangouts.**  
+> Host your music on a laptop connected to speakers with YouTube Music Premium (lossless, ad-free), while friends control the queue, vote, read karaoke lyrics, and DJ from their phones—**no app installation and zero login required for guests!**
+
+[![GitHub Repo](https://img.shields.io/badge/GitHub-sammmms%2Fjukebox-ec4899?style=flat&logo=github)](https://github.com/sammmms/jukebox)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-green.svg)](https://nodejs.org)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v3.4-38bdf8.svg)](https://tailwindcss.com)
+
+---
+
+## 📸 Showcase & Preview
+
+<div align="center">
+
+### 💻 Widescreen Desktop Dashboard (Dark Mode)
+![Desktop Dashboard Dark](public/screenshots/01-desktop-dark-dashboard.png)
+
+<br/>
+
+### ☀️ Apple-Style Glassmorphic Light Theme & Custom Select
+![Desktop Light Custom Select](public/screenshots/02-desktop-light-custom-select.png)
+
+<br/>
+
+| 📱 Mobile Phone View (iPhone) | 🎤 Synced Karaoke Real-Time Lyrics |
+| :---: | :---: |
+| <img src="public/screenshots/03-mobile-phone-view.png" width="360" alt="Mobile View"/> | <img src="public/screenshots/04-karaoke-lyrics-synced.png" width="360" alt="Karaoke Lyrics"/> |
+
+</div>
 
 ---
 
 ## ✨ Features
 
-- 🎧 **Host Once, Stream Anywhere:** 1 Host machine (Mac, Windows, or Linux) plays music to your home speakers or sound system.
-- 📱 **Zero Friction for Friends:** Guests simply scan a QR code from the terminal or open the local Wi-Fi URL in Safari / Chrome.
-- 🎤 **Real-Time Karaoke Synced Lyrics:** Watch lyrics highlight and scroll smoothly line-by-line in sync with music playback (powered by LRCLib), with clean plain lyrics fallback.
-- 📜 **Previously Played History:** See what songs have already played, who queued them, and re-queue any favorite track with 1 tap (`+ Putar Lagi`).
+- 🎧 **Host Once, Stream Anywhere:** 1 Host machine (Mac, Windows, or Linux) plays music to your home speakers or sound system with zero background ad interruptions.
+- 📱 **Zero Friction for Friends:** Guests simply scan the host QR code or open the local Wi-Fi URL in Safari / Chrome on any iOS or Android smartphone.
+- 💻 **Desktop Widescreen & Mobile View Switcher:**
+  - `⚡ Auto`: Automatically switches between mobile phone layout and wide 2-column desktop dashboard.
+  - `📱 Mobile`: Forces compact smartphone view on any monitor.
+  - `💻 Desktop`: Expands into a 2-column command center with embedded lyrics and host QR panel.
+- 🌓 **System Theme Matching:** Automatically follows macOS / iOS / Android dark or light mode schedule via `matchMedia`, with manual overrides (`🌓 System` / `☀️ Light` / `🌙 Dark`).
+- 🇨🇳 **Mandarin / C-Pop (华语) Music Discovery:**
+  - Dedicated `🇨🇳 Mandarin / C-Pop (华语)` & `🇹🇼 Taiwan / C-Pop (台湾)` country filters.
+  - Preloaded with Mandopop chips: `🇨🇳 Mandopop Hits`, `🎤 KTV Mandarin`, `🏮 Classic Mandarin`.
+  - Curated party recommendations: 周杰伦 Jay Chou, 林俊杰 JJ Lin, 邓紫棋 G.E.M., 告五人 Accusefive, 周兴哲 Eric Chou, 菲道尔 Firdhaus.
+- 🧩 **Polished Custom Components:**
+  - **`CustomSelect`**: Glassmorphic floating popover with custom flags, animated rotating chevrons, and click-outside dismissal.
+  - **`CustomSearchInput`**: Instant clear button `✕`, loading spinner, and keyboard shortcut `/` or `⌘K`.
+  - **`CustomTimeline`**: Spotify-grade glowing playhead dot (`shadow-pink-500/80`) and monospace time tracker.
+  - **`CustomVolumeControl`**: Dynamic speaker emoji (`🔇`, `🔈`, `🔉`, `🔊`), percentage badge, and 1-tap presets (`30%`, `70%`, `100%`).
+  - **`CustomHostShare`**: 1-click `📋 Salin Link` button with instant clipboard copy feedback.
+- 🎤 **Real-Time Karaoke Synced Lyrics:** Syllable/line-accurate synced lyrics via LRCLib with auto-scrolling glow highlight and fade masks.
+- ⏭️ **Up Next Preview & Autoplay Labeling:** Displays the upcoming track directly under Now Playing with 1-tap `Play Now ⏭️`, distinguishing guest requests (`by [User]`) from YouTube's `✨ Autoplay YouTube`.
+- 🛡️ **COPPA "Made for Kids" Auto-Resume Watchdog:** Automatically bypasses YouTube Music's miniplayer auto-pause restriction on anime and kids' songs without physical intervention.
 - 🗳️ **Crowd Upvote System:** Guests upvote queued songs (`🔥`); songs with the most votes dynamically bubble up to play next.
-- ⠿ **Drag-and-Drop Queue Reordering:** DJ can reorder upcoming tracks on mobile using intuitive grab handles (`⠿`).
-- 🗑️ **Queue Management:** Remove unwanted requests with the delete button (`🗑️`).
-- ⏱️ **Read-Only Monotonic Timeline:** Live progress bar with steady second-by-second countdown. Read-only to prevent guests from seeking or interrupting audio.
+- ⠿ **Drag-and-Drop Queue Reordering:** DJ can reorder upcoming tracks using intuitive grab handles (`⠿`) powered by SortableJS.
+- 📜 **Previously Played History:** Review what songs have already played and re-queue any favorite track with 1 tap (`+ Putar Lagi`).
 - 🔊 **Master Speaker Volume Control:** Directly controls the host computer's master speaker output.
-- 👥 **Attribution Badges & Room Feed:** Color-coded DJ badges ("Added by Leo", "Added by Cia") and an activity feed showing who queued, skipped, moved, or voted on songs.
 
 ---
 
@@ -56,7 +97,7 @@ Open your terminal and run:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/sam/jukebox.git
+git clone https://github.com/sammmms/jukebox.git
 cd jukebox
 
 # 2. Install dependencies (express, cors, qrcode-terminal)
@@ -111,6 +152,7 @@ Upon launching, the terminal will automatically detect your local Wi-Fi IP addre
                      │   │   - Monotonic Playback Tracker         │  │
                      │   │   - LRCLib Karaoke Synced Lyrics API   │  │
                      │   │   - Queue Reordering & Voting Engine   │  │
+                     │   │   - COPPA Auto-Resume Watchdog         │  │
                      │   └───────────────────▲────────────────────┘  │
                      └───────────────────────┼───────────────────────┘
                                              │ Wi-Fi LAN (:3000)
@@ -119,17 +161,6 @@ Upon launching, the terminal will automatically detect your local Wi-Fi IP addre
                📱 Guest 1 (Leo)              📱 Guest 2 (Cia)         📱 Guest 3 (Andrew)
              Mobile Web Interface          Mobile Web Interface     Mobile Web Interface
 ```
-
-- **Host App (`server.js`):**
-  - Communicates with YouTube Music desktop's internal REST API and WebSocket events.
-  - Controls macOS physical speaker volume via `osascript`, with cross-platform fallback for Windows & Linux.
-  - Bridges requests to [LRCLib](https://lrclib.net/) to provide live synchronized LRC karaoke lines.
-  - Broadcasts instantaneous queue, playback, and volume state to all connected phones via lightweight **Server-Sent Events (SSE)**.
-- **Client App (`public/index.html`):**
-  - Single-page mobile-first interface styled with Tailwind CSS.
-  - Drag-and-drop powered by SortableJS.
-  - Real-time karaoke scrolling with auto-centering on the active line.
-  - Smooth 200ms interpolation ticker that counts steadily without snapping or jitter.
 
 ---
 
