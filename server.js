@@ -8,7 +8,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.7.0';
+const APP_VERSION = '2.8.0';
 
 const YTM_API = 'http://localhost:26538';
 let isYtmConnected = false;
@@ -220,7 +220,7 @@ function isUsingYtmDesktop() {
   return false;
 }
 
-// --- AUTO-VACANT PARTY HOST MANAGEMENT ---
+// --- AUTO-VACANT & TAKEOVER PARTY HOST MANAGEMENT ---
 // Set to 3 minutes (180s) to prevent background browser tab throttling from disconnecting the speaker host
 const HOST_VACANT_TIMEOUT_MS = 180 * 1000;
 let partyHost = {
@@ -230,11 +230,23 @@ let partyHost = {
   lastHeartbeat: null
 };
 
+let pendingTakeover = null;
+let pendingTakeoverTimer = null;
+
+function clearPendingTakeover() {
+  if (pendingTakeoverTimer) {
+    clearTimeout(pendingTakeoverTimer);
+    pendingTakeoverTimer = null;
+  }
+  pendingTakeover = null;
+}
+
 function checkHostVacant() {
   if (partyHost.name) {
     if (Date.now() - partyHost.lastHeartbeat > HOST_VACANT_TIMEOUT_MS) {
       const oldHost = partyHost.name;
       partyHost = { name: null, token: null, claimedAt: null, lastHeartbeat: null };
+      clearPendingTakeover();
       addActivity('System', 'vacant', `Host ${oldHost} offline. Status Host sekarang VACANT ⚠️`);
       broadcastUpdate();
       return true;
@@ -246,12 +258,30 @@ setInterval(checkHostVacant, 10000);
 
 function getPartyHostInfo() {
   checkHostVacant();
+
+  let takeoverInfo = null;
+  if (pendingTakeover) {
+    const remainingMs = pendingTakeover.expiresAt - Date.now();
+    if (remainingMs > 0) {
+      takeoverInfo = {
+        id: pendingTakeover.id,
+        requestedBy: pendingTakeover.requestedBy,
+        currentHost: pendingTakeover.currentHost,
+        expiresAt: pendingTakeover.expiresAt,
+        remainingSeconds: Math.max(0, Math.ceil(remainingMs / 1000))
+      };
+    } else {
+      clearPendingTakeover();
+    }
+  }
+
   return {
     name: partyHost.name,
     isVacant: partyHost.name === null,
     claimedAt: partyHost.claimedAt,
     lastHeartbeat: partyHost.lastHeartbeat,
-    timeoutMs: HOST_VACANT_TIMEOUT_MS
+    timeoutMs: HOST_VACANT_TIMEOUT_MS,
+    pendingTakeover: takeoverInfo
   };
 }
 
@@ -290,7 +320,58 @@ function resolveAddedBy(videoId, queue = [], title = '') {
   return 'Autoplay / Host';
 }
 
-function advanceNextTrack(skippedByUser = null) {
+const AUTOPLAY_FALLBACK_TRACKS = [
+  { videoId: 'bu7nU9Mhpyo', title: '告白气球 (Love Confession)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/bu7nU9Mhpyo/hqdefault.jpg', songDuration: 215 },
+  { videoId: '6ZXzn1jwtM4', title: '爱人错过 (Somewhere in time)', artist: '告五人 Accusefive', thumbnail: 'https://i.ytimg.com/vi/6ZXzn1jwtM4/hqdefault.jpg', songDuration: 298 },
+  { videoId: 'LWV-f6dMN3Q', title: '修炼爱情 (Practice Love)', artist: '林俊杰 JJ Lin', thumbnail: 'https://i.ytimg.com/vi/LWV-f6dMN3Q/hqdefault.jpg', songDuration: 284 },
+  { videoId: 'T4SimnaiktU', title: '光年之外 (Light Years Away)', artist: '邓紫棋 G.E.M.', thumbnail: 'https://i.ytimg.com/vi/T4SimnaiktU/hqdefault.jpg', songDuration: 235 },
+  { videoId: 'Y2ge3KrdeWs', title: '怎么了 (What\'s Wrong)', artist: '周兴哲 Eric Chou', thumbnail: 'https://i.ytimg.com/vi/Y2ge3KrdeWs/hqdefault.jpg', songDuration: 321 },
+  { videoId: '_MQVmPpMQEc', title: '阿拉斯加海湾 (Gulf of Alaska)', artist: '菲道尔 Firdhaus', thumbnail: 'https://i.ytimg.com/vi/_MQVmPpMQEc/hqdefault.jpg', songDuration: 247 },
+  { videoId: 'dvgZkm1xWPE', title: 'Viva La Vida', artist: 'Coldplay', thumbnail: 'https://i.ytimg.com/vi/dvgZkm1xWPE/hqdefault.jpg', songDuration: 242 },
+  { videoId: '34Na4j8AVgA', title: 'Starboy', artist: 'The Weeknd ft. Daft Punk', thumbnail: 'https://i.ytimg.com/vi/34Na4j8AVgA/hqdefault.jpg', songDuration: 230 },
+  { videoId: 'JGwWNGJdvx8', title: 'Shape of You', artist: 'Ed Sheeran', thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg', songDuration: 233 },
+  { videoId: 'ArmDp-zijuc', title: 'Super Shy', artist: 'NewJeans', thumbnail: 'https://i.ytimg.com/vi/ArmDp-zijuc/hqdefault.jpg', songDuration: 154 },
+  { videoId: 'x8VYWazR5mE', title: '夜に駆ける (Racing into the Night)', artist: 'YOASOBI', thumbnail: 'https://i.ytimg.com/vi/x8VYWazR5mE/hqdefault.jpg', songDuration: 261 },
+  { videoId: 'a5uQMwRMHcs', title: 'Sparkle (スパークル)', artist: 'RADWIMPS', thumbnail: 'https://i.ytimg.com/vi/a5uQMwRMHcs/hqdefault.jpg', songDuration: 410 }
+];
+
+async function getAutoplayNextTrack(prevSong) {
+  const recentVideoIds = new Set(playedHistory.slice(0, 15).map(h => h.videoId));
+  if (prevSong && prevSong.videoId) recentVideoIds.add(prevSong.videoId);
+
+  // 1. Try Innertube search based on previous song's artist or title
+  if (prevSong && (prevSong.artist || prevSong.title) && prevSong.title !== 'No song playing') {
+    try {
+      const searchKeyword = prevSong.artist ? `${prevSong.artist} popular songs` : `${prevSong.title} mix`;
+      const searchResults = await searchYouTubeMusic(searchKeyword);
+      const candidates = (searchResults || []).filter(r => r.videoId && !recentVideoIds.has(r.videoId));
+      if (candidates.length > 0) {
+        const picked = candidates[Math.floor(Math.random() * Math.min(candidates.length, 5))];
+        return {
+          videoId: picked.videoId,
+          title: picked.title,
+          artist: picked.artist || prevSong.artist || 'YouTube Music',
+          thumbnail: picked.thumbnail || '',
+          songDuration: 240,
+          addedBy: 'Autoplay / YouTube Algorithm'
+        };
+      }
+    } catch (e) {
+      console.warn('Autoplay search error:', e.message);
+    }
+  }
+
+  // 2. Fallback to curated popular party tracks
+  const availableFallback = AUTOPLAY_FALLBACK_TRACKS.filter(t => !recentVideoIds.has(t.videoId));
+  const pool = availableFallback.length > 0 ? availableFallback : AUTOPLAY_FALLBACK_TRACKS;
+  const picked = pool[Math.floor(Math.random() * pool.length)];
+  return {
+    ...picked,
+    addedBy: 'Autoplay / Rekomendasi Pesta'
+  };
+}
+
+async function advanceNextTrack(skippedByUser = null) {
   if (currentSong && currentSong.videoId && currentSong.title !== 'No song playing') {
     addPlayedHistory(currentSong);
   }
@@ -310,18 +391,21 @@ function advanceNextTrack(skippedByUser = null) {
       startedAt: Date.now()
     };
   } else {
+    // AUTOPLAY: Queue is empty -> fetch YouTube recommendation automatically!
+    const autoTrack = await getAutoplayNextTrack(currentSong);
     currentSong = {
-      videoId: '',
-      title: 'No song playing',
-      artist: '',
-      thumbnail: '',
-      imageSrc: '',
-      songDuration: 0,
+      videoId: autoTrack.videoId,
+      title: autoTrack.title,
+      artist: autoTrack.artist || '',
+      thumbnail: autoTrack.thumbnail || '',
+      imageSrc: autoTrack.thumbnail || '',
+      songDuration: autoTrack.songDuration || 240,
       elapsedSeconds: 0,
-      isPaused: true,
-      addedBy: 'Host',
-      startedAt: 0
+      isPaused: false,
+      addedBy: autoTrack.addedBy || 'Autoplay / YouTube Algorithm',
+      startedAt: Date.now()
     };
+    addActivity('System', 'autoplay', `memutar "${autoTrack.title}" (Autoplay)`);
   }
 
   playbackTracker.videoId = currentSong.videoId;
@@ -862,8 +946,10 @@ app.post('/api/host/claim', (req, res) => {
   const cleanName = name.trim().slice(0, 25);
   const hostToken = token || (Date.now() + '-' + Math.random().toString(36).slice(2, 8));
 
-  if (partyHost.name === null || partyHost.token === token || force) {
+  // If host is vacant, token matches existing host, or force takeover is allowed
+  if (partyHost.name === null || partyHost.token === token || (partyHost.name.toLowerCase() === cleanName.toLowerCase() && !pendingTakeover) || force) {
     const prevHost = partyHost.name;
+    clearPendingTakeover();
     partyHost = {
       name: cleanName,
       token: hostToken,
@@ -876,10 +962,85 @@ app.post('/api/host/claim', (req, res) => {
     return res.json({ success: true, partyHost: getPartyHostInfo(), token: hostToken });
   }
 
-  return res.status(409).json({
-    error: `Kursi Host sedang dipegang oleh ${partyHost.name}. Tunggu sampai status Vacant atau minta dioperkan.`,
-    partyHost: getPartyHostInfo()
+  // If host is occupied by someone else: Trigger takeover approval request with 30s auto-approval!
+  clearPendingTakeover();
+
+  const takeoverId = 'tk_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+  const expiresAt = Date.now() + 30000; // 30 seconds
+
+  pendingTakeover = {
+    id: takeoverId,
+    requestedBy: cleanName,
+    requestedToken: hostToken,
+    currentHost: partyHost.name,
+    expiresAt: expiresAt
+  };
+
+  // Start 30s auto-approval timer
+  pendingTakeoverTimer = setTimeout(() => {
+    if (pendingTakeover && pendingTakeover.id === takeoverId) {
+      const newHost = pendingTakeover.requestedBy;
+      const newToken = pendingTakeover.requestedToken;
+      const oldHost = partyHost.name;
+
+      partyHost = {
+        name: newHost,
+        token: newToken,
+        claimedAt: Date.now(),
+        lastHeartbeat: Date.now()
+      };
+      knownDJs.add(newHost);
+      addActivity(newHost, 'host_claimed', `mengambil alih kursi Host dari ${oldHost} (Auto-Approve 30 detik) 👑`);
+      clearPendingTakeover();
+      broadcastUpdate();
+    }
+  }, 30000);
+
+  addActivity(cleanName, 'takeover_request', `meminta izin mengambil alih kursi Host dari ${partyHost.name}`);
+  broadcastUpdate();
+
+  return res.json({
+    success: true,
+    pendingApproval: true,
+    message: `Permintaan pengalihan Host dikirim ke ${partyHost.name}. Menunggu persetujuan (otomatis disetujui dalam 30 detik)...`,
+    partyHost: getPartyHostInfo(),
+    token: hostToken
   });
+});
+
+app.post('/api/host/takeover/respond', (req, res) => {
+  const { approve, token } = req.body || {};
+  if (!pendingTakeover) {
+    return res.status(400).json({ error: 'Tidak ada permintaan ambil alih yang aktif saat ini' });
+  }
+
+  // Verify that the responder is the current host
+  if (partyHost.token && token && partyHost.token !== token) {
+    return res.status(403).json({ error: 'Hanya Host saat ini yang dapat menyetujui atau menolak pengalihan' });
+  }
+
+  const reqUser = pendingTakeover.requestedBy;
+  const reqToken = pendingTakeover.requestedToken;
+  const curHost = partyHost.name;
+
+  if (approve) {
+    clearPendingTakeover();
+    partyHost = {
+      name: reqUser,
+      token: reqToken,
+      claimedAt: Date.now(),
+      lastHeartbeat: Date.now()
+    };
+    knownDJs.add(reqUser);
+    addActivity(curHost, 'takeover_approved', `menyetujui pemindahan kursi Host ke ${reqUser} 👑`);
+    broadcastUpdate();
+    return res.json({ success: true, approved: true, partyHost: getPartyHostInfo() });
+  } else {
+    clearPendingTakeover();
+    addActivity(curHost, 'takeover_rejected', `menolak permintaan ambil alih Host dari ${reqUser}`);
+    broadcastUpdate();
+    return res.json({ success: true, approved: false, partyHost: getPartyHostInfo() });
+  }
 });
 
 app.post('/api/host/heartbeat', (req, res) => {
@@ -1244,14 +1405,14 @@ app.post('/api/control/next', async (req, res) => {
     } catch (e) {}
   }
 
-  const skipped = advanceNextTrack(user);
+  const skipped = await advanceNextTrack(user);
   res.json({ success: true, current: skipped });
 });
 
-app.post('/api/control/ended', (req, res) => {
+app.post('/api/control/ended', async (req, res) => {
   const { videoId, user } = req.body || {};
   if (!videoId || videoId === currentSong.videoId) {
-    const next = advanceNextTrack(user || 'Host Audio Engine');
+    const next = await advanceNextTrack(user || 'Host Audio Engine');
     return res.json({ success: true, current: next });
   }
   res.json({ success: false, reason: 'Track mismatch' });

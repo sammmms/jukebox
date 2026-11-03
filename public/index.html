@@ -3,20 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Party Jukebox - Connect. Play. Sing Together.</title>
-  <meta name="description" content="Collaborative, real-time social jukebox & karaoke hub for house parties and hangouts. Connect. Play. Sing Together.">
+  <title>Party Jukebox</title>
+  <meta name="description" content="Collaborative, real-time social jukebox & karaoke hub for house parties and hangouts.">
   
   <!-- Open Graph / Facebook / WhatsApp / Telegram -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://dj.wsnsam.my.id/">
-  <meta property="og:title" content="Party Jukebox - Connect. Play. Sing Together.">
+  <meta property="og:title" content="Party Jukebox">
   <meta property="og:description" content="Collaborative, real-time social jukebox & karaoke hub for house parties and hangouts.">
   <meta property="og:image" content="https://dj.wsnsam.my.id/banner.jpg">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="https://dj.wsnsam.my.id/">
-  <meta name="twitter:title" content="Party Jukebox - Connect. Play. Sing Together.">
+  <meta name="twitter:title" content="Party Jukebox">
   <meta name="twitter:description" content="Collaborative, real-time social jukebox & karaoke hub for house parties and hangouts.">
   <meta name="twitter:image" content="https://dj.wsnsam.my.id/banner.jpg">
 
@@ -237,47 +237,54 @@
   </div>
 
   <!-- ============================================================
-       TOP HEADER & CONTROLS BAR
+       TOP HEADER & CONTROLS BAR (Mobile Optimized & Tablet/Desktop Full)
        ============================================================ -->
-  <header class="sticky top-0 z-30 bg-white/85 dark:bg-[#0e1118]/85 backdrop-blur-md border-b border-slate-200/80 dark:border-gray-800/60 px-4 py-2.5 transition-colors duration-200">
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-2.5">
+  <header class="sticky top-0 z-30 bg-white/90 dark:bg-[#0e1118]/90 backdrop-blur-md border-b border-slate-200/80 dark:border-gray-800/60 px-3.5 sm:px-4 py-2 sm:py-2.5 transition-colors duration-200 shadow-xs">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-2.5">
       
-      <!-- Brand & Host Connection Status -->
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-pink-500 via-rose-500 to-indigo-600 flex items-center justify-center shadow-md shadow-pink-500/25 text-white font-extrabold text-sm">
-            ♫
+      <!-- Brand & Connection Status -->
+      <div class="flex items-center gap-2 sm:gap-2.5">
+        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-tr from-pink-500 via-rose-500 to-indigo-600 flex items-center justify-center shadow-md shadow-pink-500/25 text-white font-extrabold text-xs sm:text-sm">
+          ♫
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <h1 class="text-sm sm:text-base font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 dark:from-white dark:via-gray-200 dark:to-gray-400 bg-clip-text text-transparent">
+              Party Jukebox
+            </h1>
+            <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
+              Auto
+            </span>
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.8.0)"
+                    class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-colors cursor-pointer active:scale-95">
+              v2.8.0
+            </button>
           </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <h1 class="text-base font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 dark:from-white dark:via-gray-200 dark:to-gray-400 bg-clip-text text-transparent">
-                Party Jukebox
-              </h1>
-              <span id="current-view-badge" class="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
-                Auto
-              </span>
-              <button onclick="openChangelogModal()" title="View Version & Changelog (v2.7.0)"
-                      class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-colors cursor-pointer active:scale-95">
-                v2.7.0
-              </button>
-            </div>
-            <div id="connection-btn" class="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
-              <span id="connection-dot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span id="connection-text" class="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">Server Web Terhubung</span>
-            </div>
+          <div id="connection-btn" class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
+            <span id="connection-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="connection-text">Web Player Aktif</span>
           </div>
         </div>
+      </div>
 
-        <!-- Mobile Quick Refresh -->
-        <button onclick="handleManualRefresh(this)" id="refresh-btn-mobile" title="Refresh Status" class="md:hidden p-2 rounded-xl bg-slate-100 dark:bg-gray-800/80 hover:bg-slate-200 dark:hover:bg-gray-800 text-slate-600 dark:text-gray-300 transition-colors active:scale-90">
-          <svg class="refresh-icon w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <!-- Mobile Right Actions (< md:) -->
+      <div class="flex md:hidden items-center gap-1.5">
+        <!-- Quick Refresh -->
+        <button onclick="handleManualRefresh(this)" title="Refresh Status" class="p-2 rounded-xl bg-slate-100 dark:bg-gray-800/80 hover:bg-slate-200 dark:hover:bg-gray-800 text-slate-600 dark:text-gray-300 transition-colors active:scale-90">
+          <svg class="refresh-icon w-4 h-4 transition-transform duration-300 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
           </svg>
         </button>
+        <!-- Mobile Configuration & Room Menu Button -->
+        <button onclick="openSettingsModal()" id="mobile-settings-btn" title="Pengaturan & Room Party"
+                class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-800/90 hover:bg-slate-200 dark:hover:bg-gray-700 border border-slate-200 dark:border-gray-700/80 text-slate-800 dark:text-gray-100 text-xs font-bold active:scale-95 transition-all shadow-2xs cursor-pointer">
+          <span class="text-xs">⚙️</span>
+          <span id="mobile-header-user-name" class="max-w-[75px] truncate text-[11px]">DJ Sam</span>
+        </button>
       </div>
 
-      <!-- Segmented Controls: View Modes + System Theme + Refresh -->
-      <div class="flex items-center justify-between md:justify-end gap-2 text-xs">
+      <!-- Segmented Controls: View Modes + System Theme + Refresh (Desktop/Tablet >= md:) -->
+      <div class="hidden md:flex items-center justify-end gap-2 text-xs">
         
         <!-- CUSTOM SEGMENTED CONTROL: VIEW SWITCHER -->
         <div class="flex items-center gap-0.5 bg-slate-100 dark:bg-gray-900/90 p-1 rounded-xl border border-slate-200/90 dark:border-gray-800 font-semibold shadow-2xs">
@@ -319,7 +326,7 @@
 
         <!-- Desktop Refresh Button (Enhanced with tactile spin & feedback) -->
         <button onclick="handleManualRefresh(this)" id="refresh-btn-desktop" title="Refresh Status & Reconnect"
-                class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-800/80 hover:bg-slate-200 dark:hover:bg-gray-800 text-slate-700 dark:text-gray-200 transition-all font-semibold active:scale-95 shadow-2xs border border-slate-200 dark:border-gray-700/60 cursor-pointer">
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-800/80 hover:bg-slate-200 dark:hover:bg-gray-800 text-slate-700 dark:text-gray-200 transition-all font-semibold active:scale-95 shadow-2xs border border-slate-200 dark:border-gray-700/60 cursor-pointer">
           <svg class="refresh-icon w-3.5 h-3.5 transition-transform duration-300 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
           </svg>
@@ -329,8 +336,8 @@
       </div>
     </div>
 
-    <!-- Host & Guest Profile Bar (v2.3.0 - Auto-Vacant Host System) -->
-    <div class="max-w-7xl mx-auto mt-2.5 pt-2 border-t border-slate-200/60 dark:border-gray-800/60">
+    <!-- Host & Guest Profile Bar (Desktop/Tablet only: >= md: block) -->
+    <div class="hidden md:block max-w-7xl mx-auto mt-2.5 pt-2 border-t border-slate-200/60 dark:border-gray-800/60">
       <div class="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar py-0.5">
         
         <!-- LEFT: 👑 HOST STATUS (Read-Only for Guests, Auto-Vacant & Claimable) -->
@@ -370,8 +377,8 @@
            ======================================================== -->
       <div class="col-left space-y-4 sm:space-y-5">
 
-        <!-- PARTY STATUS & UP NEXT CARD -->
-        <div class="rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-3.5 sm:p-4 shadow-sm dark:shadow-md transition-colors duration-200 space-y-2.5">
+        <!-- DESKTOP-ONLY: PARTY STATUS & UP NEXT CARD -->
+        <div class="desktop-only rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-3.5 sm:p-4 shadow-sm dark:shadow-md transition-colors duration-200 space-y-2.5">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -1054,6 +1061,164 @@
   </div>
 
   <!-- ============================================================
+       MODAL: TAKEOVER APPROVAL (Host A -> B Handshake with 30s auto-approve)
+       ============================================================ -->
+  <div id="takeover-approval-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300">
+    <div class="relative w-full max-w-sm sm:max-w-md rounded-3xl bg-white dark:bg-[#121520] border-2 border-amber-500/50 shadow-2xl p-6 flex flex-col items-center text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
+      
+      <!-- Glowing Crown Icon -->
+      <div class="w-16 h-16 rounded-2xl bg-amber-500/20 text-amber-500 border border-amber-500/40 flex items-center justify-center text-3xl shadow-lg shadow-amber-500/20 animate-bounce">
+        👑
+      </div>
+
+      <!-- Title & Details -->
+      <div class="space-y-1.5">
+        <h3 class="text-base font-extrabold text-slate-900 dark:text-white">
+          Permintaan Ambil Alih Host
+        </h3>
+        <p class="text-xs text-slate-600 dark:text-gray-300 leading-relaxed">
+          <strong id="takeover-requester-name" class="text-pink-600 dark:text-pink-400 font-bold">User B</strong>
+          ingin mengambil alih kursi Host Speaker. Jika disetujui, musik akan dialihkan ke perangkat mereka.
+        </p>
+      </div>
+
+      <!-- 30-Second Countdown Timer Progress Bar -->
+      <div class="w-full space-y-1 bg-slate-100 dark:bg-gray-900/80 p-2.5 rounded-xl border border-slate-200 dark:border-gray-800">
+        <div class="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-gray-400">
+          <span>Otomatis disetujui dalam:</span>
+          <span id="takeover-countdown-text" class="font-mono text-amber-600 dark:text-amber-400 font-extrabold">30s</span>
+        </div>
+        <div class="w-full h-1.5 bg-slate-200 dark:bg-gray-800 rounded-full overflow-hidden">
+          <div id="takeover-countdown-bar" class="h-full bg-gradient-to-r from-amber-500 to-rose-500 rounded-full transition-all duration-1000" style="width: 100%;"></div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2.5 w-full pt-1">
+        <button onclick="respondTakeover(false)" class="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-slate-700 dark:text-gray-200 text-xs font-bold active:scale-95 transition-all cursor-pointer">
+          ✕ Tolak
+        </button>
+        <button onclick="respondTakeover(true)" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-xs font-extrabold shadow-md shadow-emerald-500/25 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5">
+          <span>✓</span>
+          <span>Izinkan Sekarang</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: SETTINGS & ROOM MANAGEMENT (Mobile Drawer / Config Page)
+       ============================================================ -->
+  <div id="settings-modal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300">
+    <div class="relative w-full max-w-sm sm:max-w-md rounded-3xl bg-white dark:bg-[#121520] border border-slate-200 dark:border-gray-800 shadow-2xl p-5 max-h-[90vh] flex flex-col space-y-4 overflow-y-auto">
+      
+      <!-- Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-gray-800 shrink-0">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">⚙️</span>
+          <div>
+            <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">Pengaturan & Room Party</h3>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Konfigurasi perangkat, profil, dan tampilan</p>
+          </div>
+        </div>
+        <button onclick="closeSettingsModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
+          ✕
+        </button>
+      </div>
+
+      <!-- Section 1: Profil Pengguna (Your Nickname) -->
+      <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-700 dark:text-gray-200 flex items-center gap-1.5">
+            <span>👤</span> Profil Kamu (Nama DJ)
+          </span>
+          <button onclick="openGuestModal(false); closeSettingsModal();" class="text-[11px] font-bold text-pink-600 dark:text-pink-400 hover:underline">
+            Ganti Nama ✏️
+          </button>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-pink-500 to-indigo-500 text-white font-extrabold text-sm flex items-center justify-center shadow-xs shrink-0">
+            <span id="settings-avatar-letter">S</span>
+          </div>
+          <div class="min-w-0 flex-1">
+            <div id="settings-user-name" class="text-xs font-extrabold text-slate-900 dark:text-white truncate">DJ Sam</div>
+            <div class="text-[10px] text-slate-400 truncate">Ditampilkan pada request lagu & vote</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Host Speaker Management -->
+      <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-700 dark:text-gray-200 flex items-center gap-1.5">
+            <span>👑</span> Status Host Speaker
+          </span>
+          <span id="settings-host-pill" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 border border-amber-500/30">
+            Host: Memuat...
+          </span>
+        </div>
+        <div id="settings-host-controls" class="pt-1 flex flex-wrap items-center gap-2">
+          <!-- Dynamically populated buttons (Klaim, Ambil Alih, Lepas) -->
+        </div>
+      </div>
+
+      <!-- Section 3: Room QR Code & Public Sharing Link -->
+      <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-700 dark:text-gray-200 flex items-center gap-1.5">
+            <span>📶</span> Bagikan Room Party
+          </span>
+        </div>
+        <div class="flex items-center gap-3">
+          <img id="settings-qr-img" src="" alt="QR" class="w-16 h-16 rounded-lg bg-white p-1 border border-slate-200 shrink-0">
+          <div class="min-w-0 flex-1 text-xs space-y-1.5">
+            <p id="settings-host-url" class="text-[11px] font-mono font-bold text-pink-600 dark:text-pink-400 truncate"></p>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <button onclick="copyHostUrl()" class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-slate-200 dark:bg-gray-800 text-slate-700 dark:text-gray-300 hover:bg-slate-300 active:scale-95 transition-all">
+                📋 Salin Link
+              </button>
+              <button onclick="toggleQuickTunnel()" id="settings-tunnel-btn" class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-pink-500/10 text-pink-600 dark:text-pink-400 border border-pink-500/30 active:scale-95 transition-all">
+                🌐 Link Publik
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4: Tampilan & Tema -->
+      <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800 space-y-2.5">
+        <span class="text-xs font-bold text-slate-700 dark:text-gray-200 flex items-center gap-1.5">
+          <span>🎨</span> Tampilan & Tema Warna
+        </span>
+        <div class="space-y-2">
+          <!-- View switcher -->
+          <div class="flex items-center justify-between gap-1 bg-white dark:bg-gray-800/90 p-1 rounded-xl border border-slate-200 dark:border-gray-700 text-xs">
+            <button onclick="setView('auto'); closeSettingsModal();" class="flex-1 py-1.5 rounded-lg text-[11px] font-bold text-center transition-all bg-slate-100 dark:bg-gray-700 text-pink-600 dark:text-pink-400">⚡ Auto</button>
+            <button onclick="setView('mobile'); closeSettingsModal();" class="flex-1 py-1.5 rounded-lg text-[11px] font-bold text-center transition-all text-slate-500 dark:text-gray-400">📱 Mobile</button>
+            <button onclick="setView('desktop'); closeSettingsModal();" class="flex-1 py-1.5 rounded-lg text-[11px] font-bold text-center transition-all text-slate-500 dark:text-gray-400">💻 Desktop</button>
+          </div>
+          <!-- Theme switcher -->
+          <div class="flex items-center justify-between gap-1 bg-white dark:bg-gray-800/90 p-1 rounded-xl border border-slate-200 dark:border-gray-700 text-xs">
+            <button onclick="setTheme('system'); closeSettingsModal();" class="flex-1 py-1.5 rounded-lg text-[11px] font-bold text-center transition-all bg-slate-100 dark:bg-gray-700 text-pink-600 dark:text-pink-400">🌓 System</button>
+            <button onclick="setTheme('light'); closeSettingsModal();" class="flex-1 py-1.5 rounded-lg text-[11px] font-bold text-center transition-all text-slate-500 dark:text-gray-400">☀️ Light</button>
+            <button onclick="setTheme('dark'); closeSettingsModal();" class="flex-1 py-1.5 rounded-lg text-[11px] font-bold text-center transition-all text-slate-500 dark:text-gray-400">🌙 Dark</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 5: Version & Release Notes -->
+      <div class="pt-1 flex items-center justify-between text-xs text-slate-400">
+        <span>Party Jukebox v2.8.0</span>
+        <button onclick="openChangelogModal(); closeSettingsModal();" class="font-bold text-pink-600 dark:text-pink-400 hover:underline">
+          Lihat Catatan Rilis 🚀
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================
        MODAL: REUSABLE CUSTOM DIALOG (No built-in alert/confirm/prompt)
        ============================================================ -->
   <div id="custom-dialog-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 transition-all duration-200 opacity-0 pointer-events-none">
@@ -1228,7 +1393,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.7.0';
+    const CLIENT_VERSION = '2.8.0';
     let isUpdateTriggered = false;
 
     // Embedded YouTube Host Audio Player Engine (Pure Standalone Web)
@@ -1371,6 +1536,17 @@
       }
     }
 
+    // Global touch/click interaction to unlock audio silently on mobile without needing the banner
+    document.addEventListener('pointerdown', () => {
+      if (!isHostSpeakerActive && isMeHost()) {
+        isHostSpeakerActive = true;
+        try { localStorage.setItem('jukebox_speaker_unlocked', 'true'); } catch (e) {}
+        const banner = document.getElementById('host-speaker-activation-banner');
+        if (banner) banner.classList.add('hidden');
+        syncHostAudioEngine();
+      }
+    }, { passive: true });
+
     function activateHostSpeaker() {
       isHostSpeakerActive = true;
       try { localStorage.setItem('jukebox_speaker_unlocked', 'true'); } catch (e) {}
@@ -1379,14 +1555,32 @@
       if (banner) banner.classList.add('hidden');
 
       if (ytPlayer && currentSongData && currentSongData.videoId) {
+        const targetSec = Math.max(0, Math.floor(currentSongData.currentElapsed || 0));
+        const state = (typeof ytPlayer.getPlayerState === 'function') ? ytPlayer.getPlayerState() : -1;
+
         if (currentLoadedVideoId !== currentSongData.videoId) {
           currentLoadedVideoId = currentSongData.videoId;
           ytPlayer.loadVideoById({
             videoId: currentSongData.videoId,
-            startSeconds: Math.floor(currentSongData.currentElapsed || 0)
+            startSeconds: targetSec
           });
+          if (currentSongData.isPaused) {
+            ytPlayer.pauseVideo();
+          } else {
+            ytPlayer.playVideo();
+          }
+        } else {
+          // If already the same video, avoid restart or stutter! Seek to target timeline
+          if (typeof ytPlayer.seekTo === 'function') {
+            const curTime = (typeof ytPlayer.getCurrentTime === 'function') ? (ytPlayer.getCurrentTime() || 0) : 0;
+            if (Math.abs(curTime - targetSec) > 2) {
+              ytPlayer.seekTo(targetSec, true);
+            }
+          }
+          if (state !== 1 && !currentSongData.isPaused) {
+            ytPlayer.playVideo();
+          }
         }
-        ytPlayer.playVideo();
       }
       showToast('🔊 Speaker pesta aktif! Suara musik keluar dari perangkat ini.');
     }
@@ -1414,15 +1608,14 @@
       // Check current YT player state
       const state = (ytPlayer && typeof ytPlayer.getPlayerState === 'function') ? ytPlayer.getPlayerState() : -1;
       
-      // If it's already playing or unlocked, speaker is active! Hide the banner!
-      if (state === 1 || isHostSpeakerActive) { // 1 = PLAYING
-        isHostSpeakerActive = true;
+      // Auto-unlock & banner suppression:
+      // NEVER show banner on desktop! On mobile, hide if playing or already unlocked or paused
+      if (!isMobileDevice || state === 1 || isHostSpeakerActive || currentSongData.isPaused) {
         if (banner) banner.classList.add('hidden');
-      } else if (isMobileDevice && !currentSongData.isPaused) {
-        // Only show banner on mobile touch devices if audio is supposed to play but locked by browser
-        if (banner) banner.classList.remove('hidden');
+        if (state === 1) isHostSpeakerActive = true;
       } else {
-        if (banner) banner.classList.add('hidden');
+        // Mobile touch devices only: audio blocked by browser autoplay policy
+        if (banner) banner.classList.remove('hidden');
       }
 
       // Check if another tab holds the audio master lock while this tab is hidden
@@ -1434,12 +1627,13 @@
 
       if (!ytPlayer || typeof ytPlayer.loadVideoById !== 'function') return;
 
+      const targetSec = Math.max(0, Math.floor(currentSongData.currentElapsed || 0));
+
       if (currentSongData.videoId !== currentLoadedVideoId) {
         currentLoadedVideoId = currentSongData.videoId;
-        const startSec = Math.max(0, Math.floor(currentSongData.currentElapsed || 0));
         ytPlayer.loadVideoById({
           videoId: currentSongData.videoId,
-          startSeconds: startSec
+          startSeconds: targetSec
         });
         if (currentSongData.isPaused) {
           ytPlayer.pauseVideo();
@@ -1447,9 +1641,17 @@
           ytPlayer.playVideo();
         }
       } else {
+        // Same video already loaded: synchronize timeline precisely on host takeover & playback
+        if (typeof ytPlayer.getCurrentTime === 'function') {
+          const localTime = ytPlayer.getCurrentTime() || 0;
+          if (Math.abs(localTime - targetSec) > 2) {
+            console.log(`⏱️ Resyncing host playback timeline to ${targetSec}s (local was ${localTime.toFixed(1)}s)`);
+            ytPlayer.seekTo(targetSec, true);
+          }
+        }
         if (currentSongData.isPaused && state === 1) { // 1 = PLAYING
           ytPlayer.pauseVideo();
-        } else if (!currentSongData.isPaused && (state === 2 || state === -1 || state === 5)) { // 2 = PAUSED
+        } else if (!currentSongData.isPaused && (state === 2 || state === -1 || state === 5 || state === 0)) {
           ytPlayer.playVideo();
         }
       }
@@ -1814,17 +2016,116 @@
     // ============================================================
     let currentPartyHost = null;
     let hostHeartbeatTimer = null;
+    let takeoverCountdownTimer = null;
 
     function isMeHost() {
       if (!currentPartyHost || currentPartyHost.isVacant || !currentPartyHost.name) return false;
       const myToken = localStorage.getItem('jukebox_host_token');
-      if (myToken) return true;
+      if (myToken && currentPartyHost.token) {
+        return myToken === currentPartyHost.token;
+      }
       if (currentUser && currentPartyHost.name.toLowerCase() === currentUser.toLowerCase()) return true;
       return false;
     }
 
+    function renderTakeoverModal(pendingTakeover) {
+      const modal = document.getElementById('takeover-approval-modal');
+      if (!modal) return;
+
+      if (!pendingTakeover || !isMeHost()) {
+        modal.classList.add('hidden');
+        if (takeoverCountdownTimer) {
+          clearInterval(takeoverCountdownTimer);
+          takeoverCountdownTimer = null;
+        }
+        return;
+      }
+
+      // I am currently host and someone requested to take over!
+      const reqNameEl = document.getElementById('takeover-requester-name');
+      if (reqNameEl) reqNameEl.textContent = pendingTakeover.requestedBy;
+      modal.classList.remove('hidden');
+
+      let remaining = pendingTakeover.remainingSeconds || 30;
+      const countText = document.getElementById('takeover-countdown-text');
+      const bar = document.getElementById('takeover-countdown-bar');
+
+      if (countText) countText.textContent = remaining + 's';
+      if (bar) bar.style.width = Math.max(0, (remaining / 30) * 100) + '%';
+
+      if (takeoverCountdownTimer) clearInterval(takeoverCountdownTimer);
+      takeoverCountdownTimer = setInterval(() => {
+        remaining--;
+        if (countText) countText.textContent = Math.max(0, remaining) + 's';
+        if (bar) bar.style.width = Math.max(0, (remaining / 30) * 100) + '%';
+        if (remaining <= 0) {
+          clearInterval(takeoverCountdownTimer);
+          takeoverCountdownTimer = null;
+        }
+      }, 1000);
+    }
+
+    async function respondTakeover(approve) {
+      const token = localStorage.getItem('jukebox_host_token');
+      try {
+        const res = await fetch('/api/host/takeover/respond', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ approve, token })
+        });
+        const data = await res.json();
+        const modal = document.getElementById('takeover-approval-modal');
+        if (modal) modal.classList.add('hidden');
+        if (takeoverCountdownTimer) {
+          clearInterval(takeoverCountdownTimer);
+          takeoverCountdownTimer = null;
+        }
+
+        if (approve) {
+          // Surrender host and stop audio immediately
+          isHostSpeakerActive = false;
+          localStorage.removeItem('jukebox_host_token');
+          if (ytPlayer) {
+            try {
+              if (typeof ytPlayer.pauseVideo === 'function') ytPlayer.pauseVideo();
+              if (typeof ytPlayer.stopVideo === 'function') ytPlayer.stopVideo();
+            } catch (e) {}
+          }
+          showToast('✓ Kursi Host telah diserahkan. Audio speaker dimatikan di perangkat ini.');
+        } else {
+          showToast('Permintaan ambil alih Host telah ditolak.');
+        }
+        if (data.partyHost) updateHostUI(data.partyHost);
+      } catch (e) {
+        showToast('Gagal memproses respon pengalihan Host');
+      }
+    }
+
     function updateHostUI(partyHost) {
       currentPartyHost = partyHost;
+
+      // Check if previous host lost the host token
+      const myToken = localStorage.getItem('jukebox_host_token');
+      if (myToken && partyHost.token && myToken !== partyHost.token) {
+        console.log('⚠️ Kursi Host diambil alih oleh:', partyHost.name);
+        localStorage.removeItem('jukebox_host_token');
+        if (hostHeartbeatTimer) {
+          clearInterval(hostHeartbeatTimer);
+          hostHeartbeatTimer = null;
+        }
+        isHostSpeakerActive = false;
+        if (ytPlayer) {
+          try {
+            if (typeof ytPlayer.pauseVideo === 'function') ytPlayer.pauseVideo();
+            if (typeof ytPlayer.stopVideo === 'function') ytPlayer.stopVideo();
+          } catch (e) {}
+        }
+        showToast(`⚠️ Kursi Host telah diambil alih oleh ${partyHost.name}. Audio di perangkat ini dimatikan.`);
+      }
+
+      // Check takeover approval modal
+      renderTakeoverModal(partyHost.pendingTakeover);
+
       const container = document.getElementById('host-status-container');
       if (!container) return;
 
@@ -1885,6 +2186,86 @@
       if (badgeText) {
         badgeText.textContent = currentUser || 'Pilih Nama';
       }
+      const mobileHeaderName = document.getElementById('mobile-header-user-name');
+      if (mobileHeaderName) {
+        mobileHeaderName.textContent = currentUser || 'Pilih DJ';
+      }
+      const settingsName = document.getElementById('settings-user-name');
+      if (settingsName) {
+        settingsName.textContent = currentUser || 'Pilih Nama';
+      }
+      const settingsAvatar = document.getElementById('settings-avatar-letter');
+      if (settingsAvatar) {
+        settingsAvatar.textContent = (currentUser || 'S').charAt(0).toUpperCase();
+      }
+    }
+
+    function openSettingsModal() {
+      const modal = document.getElementById('settings-modal');
+      if (!modal) return;
+
+      renderGuestBadge();
+
+      // Render Host Speaker status inside settings
+      const hostPill = document.getElementById('settings-host-pill');
+      const hostControls = document.getElementById('settings-host-controls');
+      const isVacant = !currentPartyHost || currentPartyHost.isVacant || !currentPartyHost.name;
+      const me = isMeHost();
+
+      if (hostPill) {
+        if (isVacant) {
+          hostPill.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-600 border border-rose-500/30';
+          hostPill.textContent = 'Host: Vacant ⚠️';
+        } else {
+          hostPill.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 border border-amber-500/30';
+          hostPill.textContent = `Host: ${currentPartyHost.name}${me ? ' (Kamu)' : ''}`;
+        }
+      }
+
+      if (hostControls) {
+        if (isVacant) {
+          hostControls.innerHTML = `
+            <button onclick="claimHostPrompt(); closeSettingsModal();" class="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-pink-500 text-white font-black text-xs shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+              <span>👑</span>
+              <span>Klaim Jadi Host</span>
+            </button>
+          `;
+        } else if (me) {
+          hostControls.innerHTML = `
+            <div class="flex items-center justify-between w-full gap-2">
+              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold bg-emerald-500/15 text-emerald-600 border border-emerald-500/30">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Speaker Aktif di HP ini</span>
+              </span>
+              <button onclick="releaseHost(); closeSettingsModal();" class="py-1.5 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 text-xs font-bold border border-rose-500/30 active:scale-95 transition-all cursor-pointer">
+                🔓 Lepas Host
+              </button>
+            </div>
+          `;
+        } else {
+          hostControls.innerHTML = `
+            <button onclick="claimHostPrompt(true); closeSettingsModal();" class="flex-1 py-2 px-3 rounded-xl bg-pink-500/15 hover:bg-pink-500/25 text-pink-600 font-bold text-xs border border-pink-500/30 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+              <span>👑</span>
+              <span>Ambil Alih Host Speaker</span>
+            </button>
+          `;
+        }
+      }
+
+      // Sync Room Sharing info
+      const qrImg = document.getElementById('settings-qr-img');
+      const hostUrlText = document.getElementById('settings-host-url');
+      const originQr = document.getElementById('host-qr-img');
+      const originUrl = document.getElementById('host-url-text');
+      if (qrImg && originQr) qrImg.src = originQr.src;
+      if (hostUrlText && originUrl) hostUrlText.textContent = originUrl.textContent;
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeSettingsModal() {
+      const modal = document.getElementById('settings-modal');
+      if (modal) modal.classList.add('hidden');
     }
 
     function openDJModal(mandatory = false) {
@@ -2140,18 +2521,18 @@
         defaultName,
         isTakeover ? 'Ambil Alih Host Audio' : 'Klaim Kursi Host Party',
         '👑',
-        isTakeover ? 'Ambil Alih Host 👑' : 'Klaim Host 👑'
+        isTakeover ? 'Kirim Permintaan 👑' : 'Klaim Host 👑'
       );
       if (name && name.trim()) {
         const cleanName = name.trim();
         currentUser = cleanName;
         localStorage.setItem('jukebox_user', cleanName);
         renderGuestBadge();
-        await claimHost(cleanName);
+        await claimHost(cleanName, isTakeover);
       }
     }
 
-    async function claimHost(name) {
+    async function claimHost(name, isTakeover = false) {
       try {
         let token = localStorage.getItem('jukebox_host_token');
         if (!token) {
@@ -2162,9 +2543,22 @@
         const res = await fetch('/api/host/claim', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, token, force: true })
+          body: JSON.stringify({ name, token, force: false })
         });
         const data = await res.json();
+
+        if (data.pendingApproval) {
+          if (data.token) localStorage.setItem('jukebox_host_token', data.token);
+          await showCustomDialog({
+            title: 'Menunggu Persetujuan Host',
+            message: `Permintaan pengalihan Host telah dikirim ke ${currentPartyHost?.name || 'Host'}. Menunggu persetujuan (akan otomatis dialihkan dalam 30 detik jika tidak ada respon)...`,
+            icon: '⏳',
+            type: 'alert',
+            confirmText: 'Mengerti'
+          });
+          return;
+        }
+
         if (data.success) {
           if (data.token) localStorage.setItem('jukebox_host_token', data.token);
           currentPartyHost = data.partyHost;
@@ -3226,7 +3620,7 @@
         showToast('✓ Status & antrean berhasil diperbarui!');
       } catch (err) {
         console.error('Manual refresh error:', err);
-        showToast('⚠️ Gagal terhubung ke host Mac');
+        showToast('⚠️ Gagal terhubung ke server');
         updateUI({ online: false });
       } finally {
         const elapsed = Date.now() - startTime;
