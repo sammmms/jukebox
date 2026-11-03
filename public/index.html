@@ -1236,6 +1236,11 @@
     let isCurrentAudioMaster = false;
     let audioCoordinator = null;
 
+    // Detect if client is a mobile device (requires touch activation) or desktop
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    // On Desktop, autoplay is permitted without activation banner. On mobile, remember if previously unlocked.
+    let isHostSpeakerActive = !isMobileDevice || (localStorage.getItem('jukebox_speaker_unlocked') === 'true');
+
     try {
       if (typeof window.BroadcastChannel === 'function') {
         audioCoordinator = new BroadcastChannel('jukebox_audio_coordinator');
@@ -1243,13 +1248,11 @@
           if (!ev || !ev.data) return;
           if (ev.data.type === 'CLAIM_AUDIO_MASTER') {
             if (ev.data.tabId !== myTabId) {
-              // Another tab took audio master! Yield immediately so sound is NEVER double
-              if (isCurrentAudioMaster) {
-                console.log('🔇 Suara dialihkan ke tab aktif lain:', ev.data.tabId);
-                isCurrentAudioMaster = false;
-                if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
-                  ytPlayer.pauseVideo();
-                }
+              // Another tab took audio master! Unconditionally pause this tab immediately so sound is NEVER double!
+              console.log('🔇 Suara dialihkan ke tab aktif lain:', ev.data.tabId);
+              isCurrentAudioMaster = false;
+              if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
+                try { ytPlayer.pauseVideo(); } catch (e) {}
               }
             }
           }
@@ -1258,6 +1261,24 @@
     } catch (e) {
       console.warn('BroadcastChannel not supported');
     }
+
+    // Cross-tab fallback via localStorage storage events (guarantees mutex even across isolated browser frames/spaces)
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'jukebox_active_audio_tab' && e.newValue && e.newValue !== myTabId) {
+        console.log('🔇 localStorage: audio master diambil oleh tab:', e.newValue);
+        isCurrentAudioMaster = false;
+        if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
+          try { ytPlayer.pauseVideo(); } catch (err) {}
+        }
+      }
+    });
+
+    // Pause immediately when tab is refreshed or closed to prevent audio overlap
+    window.addEventListener('beforeunload', () => {
+      if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
+        try { ytPlayer.pauseVideo(); } catch (e) {}
+      }
+    });
 
     function claimAudioMaster() {
       isCurrentAudioMaster = true;
@@ -1271,7 +1292,6 @@
 
     let ytPlayer = null;
     let isYTReady = false;
-    let isHostSpeakerActive = false;
     let currentLoadedVideoId = '';
     let lastHostSyncTime = 0;
 
@@ -1320,6 +1340,7 @@
       // If audio starts playing, speaker is active! Hide activation banner immediately
       if (event.data === YT.PlayerState.PLAYING) {
         isHostSpeakerActive = true;
+        try { localStorage.setItem('jukebox_speaker_unlocked', 'true'); } catch (e) {}
         const banner = document.getElementById('host-speaker-activation-banner');
         if (banner) banner.classList.add('hidden');
       } else if (event.data === YT.PlayerState.ENDED) {
@@ -1352,6 +1373,7 @@
 
     function activateHostSpeaker() {
       isHostSpeakerActive = true;
+      try { localStorage.setItem('jukebox_speaker_unlocked', 'true'); } catch (e) {}
       claimAudioMaster();
       const banner = document.getElementById('host-speaker-activation-banner');
       if (banner) banner.classList.add('hidden');
@@ -1392,12 +1414,12 @@
       // Check current YT player state
       const state = (ytPlayer && typeof ytPlayer.getPlayerState === 'function') ? ytPlayer.getPlayerState() : -1;
       
-      // If it's already playing, speaker is active! Hide the banner!
-      if (state === 1) { // 1 = PLAYING
+      // If it's already playing or unlocked, speaker is active! Hide the banner!
+      if (state === 1 || isHostSpeakerActive) { // 1 = PLAYING
         isHostSpeakerActive = true;
         if (banner) banner.classList.add('hidden');
-      } else if (!isHostSpeakerActive && !currentSongData.isPaused) {
-        // Only show banner if audio is supposed to play but hasn't started yet
+      } else if (isMobileDevice && !currentSongData.isPaused) {
+        // Only show banner on mobile touch devices if audio is supposed to play but locked by browser
         if (banner) banner.classList.remove('hidden');
       } else {
         if (banner) banner.classList.add('hidden');
