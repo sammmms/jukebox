@@ -176,13 +176,25 @@
         </div>
       </div>
 
-      <!-- NOW PLAYING FOOTER: LYRICS BUTTON -->
+      <!-- NOW PLAYING FOOTER: LYRICS BUTTON & UP NEXT PREVIEW -->
       <div class="mt-3 pt-2.5 border-t border-gray-800/40 flex items-center justify-between">
         <button onclick="openLyrics()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/30 text-pink-400 text-xs font-bold transition-all active:scale-95 shadow-sm">
           <span>🎤</span>
           <span>Lihat Lirik Real-Time</span>
         </button>
         <span class="text-[10px] text-gray-500 font-medium">Party Mode Active</span>
+      </div>
+
+      <!-- UP NEXT PREVIEW BANNER -->
+      <div id="up-next-banner" class="mt-3 p-2.5 rounded-xl bg-gradient-to-r from-indigo-950/40 to-purple-950/30 border border-indigo-800/50 flex items-center justify-between text-xs hidden">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 uppercase tracking-wider shrink-0 border border-indigo-500/30">Up Next</span>
+          <span id="up-next-title" class="text-gray-200 font-semibold truncate">Song Title</span>
+          <span id="up-next-badge" class="text-[10px] text-gray-400 shrink-0"></span>
+        </div>
+        <button onclick="skipNext()" class="text-xs text-pink-400 hover:text-pink-300 font-bold flex items-center gap-1 shrink-0 ml-2 active:scale-95 transition-transform">
+          <span>Play Now ⏭️</span>
+        </button>
       </div>
     </div>
 
@@ -205,8 +217,9 @@
 
       <!-- TAB CONTENT: SEARCH -->
       <div id="content-search" class="mt-3 space-y-3">
+        <!-- Search Input -->
         <div class="relative">
-          <input type="text" id="search-input" placeholder="Search songs, artists (e.g. Coldplay, Bruno Mars)..."
+          <input type="text" id="search-input" placeholder="Search songs, artists (e.g. Bernadya, Coldplay)..."
                  class="w-full bg-[#121520] border border-gray-800 rounded-xl px-4 py-3 pl-10 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-pink-500/80 focus:ring-1 focus:ring-pink-500/80 transition-all">
           <svg class="w-4 h-4 text-gray-500 absolute left-3.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -216,8 +229,59 @@
           </div>
         </div>
 
-        <!-- Search Results Container -->
-        <div id="search-results" class="space-y-2 max-h-72 overflow-y-auto pr-1"></div>
+        <!-- Filters: Country & Genre Selectors -->
+        <div class="grid grid-cols-2 gap-2">
+          <select id="filter-country" onchange="triggerSearchFilter()" class="bg-[#121520] border border-gray-800 text-xs text-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:border-pink-500 cursor-pointer">
+            <option value="">🌍 Semua Negara (All)</option>
+            <option value="Indonesia">🇮🇩 Indonesia</option>
+            <option value="Western">🇺🇸 Barat / Global</option>
+            <option value="K-Pop Korea">🇰🇷 Korea (K-Pop)</option>
+            <option value="J-Pop Anime Jepang">🇯🇵 Jepang (Anime/J-Pop)</option>
+          </select>
+          <select id="filter-genre" onchange="triggerSearchFilter()" class="bg-[#121520] border border-gray-800 text-xs text-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:border-pink-500 cursor-pointer">
+            <option value="">🎵 Semua Genre (All)</option>
+            <option value="Pop">Pop Hits</option>
+            <option value="Rock">Rock</option>
+            <option value="R&B Soul">R&B / Soul</option>
+            <option value="EDM Dance">EDM / Dance</option>
+            <option value="Acoustic Chill">Acoustic / Chill</option>
+            <option value="Anime OST">Anime / OST</option>
+          </select>
+        </div>
+
+        <!-- Quick Recommendations & Mood Chips -->
+        <div>
+          <div class="text-[11px] font-semibold text-gray-400 mb-1.5 flex items-center justify-between">
+            <span>✨ Rekomendasi Kategori:</span>
+            <span class="text-[10px] text-gray-500">Tap untuk cari</span>
+          </div>
+          <div class="flex gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
+            <button onclick="applyQuickFilter('Top Indo Hits')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-gray-900 border border-gray-800 hover:border-pink-500/60 text-gray-300 text-[11px] font-semibold transition-all">
+              🇮🇩 Indo Hits
+            </button>
+            <button onclick="applyQuickFilter('Trending K-Pop')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-gray-900 border border-gray-800 hover:border-pink-500/60 text-gray-300 text-[11px] font-semibold transition-all">
+              🇰🇷 K-Pop
+            </button>
+            <button onclick="applyQuickFilter('Anime OST Hits')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-gray-900 border border-gray-800 hover:border-pink-500/60 text-gray-300 text-[11px] font-semibold transition-all">
+              🇯🇵 Anime Hits
+            </button>
+            <button onclick="applyQuickFilter('Top 50 Global Hits')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-gray-900 border border-gray-800 hover:border-pink-500/60 text-gray-300 text-[11px] font-semibold transition-all">
+              🔥 Top Global
+            </button>
+            <button onclick="applyQuickFilter('Best Party Dance EDM')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-gray-900 border border-gray-800 hover:border-pink-500/60 text-gray-300 text-[11px] font-semibold transition-all">
+              💃 Party EDM
+            </button>
+            <button onclick="applyQuickFilter('Acoustic Chill Pop')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-gray-900 border border-gray-800 hover:border-pink-500/60 text-gray-300 text-[11px] font-semibold transition-all">
+              ☕ Acoustic Chill
+            </button>
+            <button onclick="applyQuickFilter('Classic Rock Anthems')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-gray-900 border border-gray-800 hover:border-pink-500/60 text-gray-300 text-[11px] font-semibold transition-all">
+              🎸 Classic Rock
+            </button>
+          </div>
+        </div>
+
+        <!-- Search Results / Recommendations Container -->
+        <div id="search-results" class="space-y-2 max-h-80 overflow-y-auto pr-1"></div>
       </div>
 
       <!-- TAB CONTENT: PASTE -->
@@ -566,6 +630,19 @@
       currentUpcomingList = upcoming;
       countEl.textContent = upcoming.length;
 
+      // Update UP NEXT preview banner on Now Playing card
+      const upNextBanner = document.getElementById('up-next-banner');
+      const upNextTitle = document.getElementById('up-next-title');
+      const upNextBadge = document.getElementById('up-next-badge');
+
+      if (upcoming.length > 0) {
+        upNextBanner.classList.remove('hidden');
+        upNextTitle.textContent = upcoming[0].title;
+        upNextBadge.textContent = upcoming[0].addedBy ? `(by ${upcoming[0].addedBy})` : '✨ Autoplay YouTube';
+      } else {
+        upNextBanner.classList.add('hidden');
+      }
+
       if (upcoming.length === 0) {
         queueList.innerHTML = `
           <div class="p-6 rounded-xl bg-gray-900/40 border border-gray-800/60 text-center">
@@ -608,7 +685,11 @@
                 <span class="inline-block mt-0.5 px-1.5 py-0.2 rounded-md text-[9px] font-bold ${userStyle.bg} ${userStyle.text} border ${userStyle.border}">
                   by ${item.addedBy}
                 </span>
-              ` : ''}
+              ` : `
+                <span class="inline-block mt-0.5 px-1.5 py-0.2 rounded-md text-[9px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                  ✨ Autoplay YouTube
+                </span>
+              `}
             </div>
 
             <!-- Upvote Button (Raises queue priority) -->
@@ -717,38 +798,114 @@
       }).join('');
     }
 
+    // Curated Party Recommendations (Quick Picks)
+    const partyRecommendations = [
+      { videoId: 'dvgZkm1xWPE', title: 'Viva La Vida', artist: 'Coldplay', thumbnail: 'https://i.ytimg.com/vi/dvgZkm1xWPE/hq720.jpg' },
+      { videoId: '34Na4j8AVgA', title: 'Starboy', artist: 'The Weeknd ft. Daft Punk', thumbnail: 'https://i.ytimg.com/vi/34Na4j8AVgA/hq720.jpg' },
+      { videoId: 'JGwWNGJdvx8', title: 'Shape of You', artist: 'Ed Sheeran', thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/hq720.jpg' },
+      { videoId: 'hT_nvWreIhg', title: 'Counting Stars', artist: 'OneRepublic', thumbnail: 'https://i.ytimg.com/vi/hT_nvWreIhg/hq720.jpg' },
+      { videoId: 'ArmDp-zijuc', title: 'Super Shy', artist: 'NewJeans', thumbnail: 'https://i.ytimg.com/vi/ArmDp-zijuc/hq720.jpg' },
+      { videoId: 'DyDfgMOUjCI', title: 'bad guy', artist: 'Billie Eilish', thumbnail: 'https://i.ytimg.com/vi/DyDfgMOUjCI/hq720.jpg' },
+      { videoId: 'a5uQMwRMHcs', title: 'Sparkle (スパークル)', artist: 'RADWIMPS', thumbnail: 'https://i.ytimg.com/vi/a5uQMwRMHcs/hq720.jpg' },
+      { videoId: 'fLexgOxsZu0', title: 'Bruno Mars - That’s What I Like', artist: 'Bruno Mars', thumbnail: 'https://i.ytimg.com/vi/fLexgOxsZu0/hq720.jpg' }
+    ];
+
+    function renderDefaultRecommendations() {
+      const container = document.getElementById('search-results');
+      container.innerHTML = `
+        <div class="pt-1 pb-2">
+          <div class="flex items-center justify-between text-xs font-bold text-gray-300 mb-2 px-1">
+            <span class="flex items-center gap-1.5 text-pink-400">🔥 Rekomendasi Lagu Populer</span>
+            <span class="text-[10px] text-gray-500 font-normal">Tap + Queue untuk langsung putar</span>
+          </div>
+          <div class="space-y-1.5">
+            ${partyRecommendations.map(item => `
+              <div class="flex items-center gap-3 p-2 rounded-xl bg-gray-900/60 border border-gray-800/80 hover:border-gray-700 transition-colors">
+                <img src="${item.thumbnail}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-gray-800">
+                <div class="flex-1 min-w-0">
+                  <h5 class="text-xs font-bold text-white truncate">${item.title}</h5>
+                  <p class="text-[11px] text-gray-400 truncate">${item.artist}</p>
+                </div>
+                <button onclick='queueTrack(${JSON.stringify(item).replace(/'/g, "&#39;")})'
+                        class="px-2.5 py-1.5 rounded-lg bg-pink-500/15 hover:bg-pink-500 text-pink-400 hover:text-white border border-pink-500/30 text-xs font-bold active:scale-95 transition-all flex items-center gap-1 shrink-0">
+                  + Queue
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // Quick Category / Genre Pill Click
+    function applyQuickFilter(keyword) {
+      document.getElementById('search-input').value = keyword;
+      executeSearch(keyword);
+    }
+
+    // Country / Genre Dropdown Change
+    function triggerSearchFilter() {
+      const input = document.getElementById('search-input').value.trim();
+      const country = document.getElementById('filter-country').value;
+      const genre = document.getElementById('filter-genre').value;
+
+      const parts = [];
+      if (input) parts.push(input);
+      if (country) parts.push(country);
+      if (genre) parts.push(genre);
+
+      const q = parts.join(' ').trim();
+      if (q) {
+        executeSearch(q);
+      } else {
+        renderDefaultRecommendations();
+      }
+    }
+
     // Search Handler with Debounce
     const searchInput = document.getElementById('search-input');
     searchInput.addEventListener('input', (e) => {
       const q = e.target.value.trim();
       clearTimeout(searchDebounceTimeout);
       if (!q) {
-        document.getElementById('search-results').innerHTML = '';
+        renderDefaultRecommendations();
         return;
       }
 
       document.getElementById('search-spinner').classList.remove('hidden');
-      searchDebounceTimeout = setTimeout(async () => {
-        try {
-          const res = await fetch('/api/search', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: q })
-          });
-          const data = await res.json();
-          renderSearchResults(data.results || []);
-        } catch (err) {
-          console.error(err);
-        } finally {
-          document.getElementById('search-spinner').classList.add('hidden');
-        }
+      searchDebounceTimeout = setTimeout(() => {
+        executeSearch(q);
       }, 350);
     });
+
+    async function executeSearch(query) {
+      const country = document.getElementById('filter-country').value;
+      const genre = document.getElementById('filter-genre').value;
+
+      let finalQuery = query;
+      if (country && !finalQuery.includes(country)) finalQuery += ` ${country}`;
+      if (genre && !finalQuery.includes(genre)) finalQuery += ` ${genre}`;
+
+      document.getElementById('search-spinner').classList.remove('hidden');
+      try {
+        const res = await fetch('/api/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: finalQuery })
+        });
+        const data = await res.json();
+        renderSearchResults(data.results || []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        document.getElementById('search-spinner').classList.add('hidden');
+      }
+    }
 
     function renderSearchResults(results) {
       const container = document.getElementById('search-results');
       if (results.length === 0) {
-        container.innerHTML = `<div class="p-4 text-center text-xs text-gray-500">No songs found</div>`;
+        container.innerHTML = `<div class="p-4 text-center text-xs text-gray-500">Tidak ada lagu yang ditemukan. Coba kata kunci lain.</div>`;
         return;
       }
 
@@ -1062,6 +1219,7 @@
     selectUser(currentUser);
     fetchStatus();
     setupSSE();
+    renderDefaultRecommendations();
   </script>
 </body>
 </html>
