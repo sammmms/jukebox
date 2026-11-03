@@ -1820,6 +1820,21 @@
         document.getElementById('lyrics-body').innerHTML = '';
         await loadLyricsForSong(currentSongData);
       }
+
+      // Center scroll to current line in fullscreen modal
+      if (currentActiveLyricIndex >= 0) {
+        setTimeout(() => {
+          const currModal = document.getElementById(`lyric-line-${currentActiveLyricIndex}`);
+          const modalContainer = document.getElementById('lyrics-content-scroll');
+          if (currModal && modalContainer) {
+            const targetScroll = currModal.offsetTop - modalContainer.offsetTop - (modalContainer.clientHeight / 2) + (currModal.clientHeight / 2);
+            modalContainer.scrollTo({
+              top: Math.max(0, targetScroll),
+              behavior: 'smooth'
+            });
+          }
+        }, 120);
+      }
     }
 
     function closeLyrics() {
@@ -1913,18 +1928,34 @@
 
         // Promote new active lyric
         if (activeIdx >= 0) {
-          // Modal Line
+          // 1. In Fullscreen Modal (ONLY scroll if modal is open, isolated to modal container!)
           const currModal = document.getElementById(`lyric-line-${activeIdx}`);
           if (currModal) {
             currModal.className = 'lyric-line transition-all duration-300 py-2.5 px-4 rounded-xl text-pink-700 dark:text-white font-extrabold text-base sm:text-lg bg-pink-50 dark:bg-pink-500/15 border border-pink-200 dark:border-pink-500/30 shadow-md shadow-pink-500/15 scale-[1.02]';
-            currModal.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (isLyricsOpen) {
+              const modalContainer = document.getElementById('lyrics-content-scroll');
+              if (modalContainer) {
+                const targetScroll = currModal.offsetTop - modalContainer.offsetTop - (modalContainer.clientHeight / 2) + (currModal.clientHeight / 2);
+                modalContainer.scrollTo({
+                  top: Math.max(0, targetScroll),
+                  behavior: 'smooth'
+                });
+              }
+            }
           }
 
-          // Desktop Panel Line
+          // 2. In Desktop Panel (isolated container scroll only - NEVER touches window or outer page!)
           const currDesk = document.getElementById(`desk-lyric-line-${activeIdx}`);
           if (currDesk) {
             currDesk.className = 'desk-lyric-line transition-all duration-300 py-2 px-3 rounded-xl text-pink-700 dark:text-white font-extrabold text-sm bg-pink-50 dark:bg-pink-500/15 border border-pink-200 dark:border-pink-500/30 shadow-sm scale-[1.02]';
-            currDesk.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const deskContainer = document.getElementById('desktop-lyrics-scroll');
+            if (deskContainer) {
+              const deskTarget = currDesk.offsetTop - deskContainer.offsetTop - (deskContainer.clientHeight / 2) + (currDesk.clientHeight / 2);
+              deskContainer.scrollTo({
+                top: Math.max(0, deskTarget),
+                behavior: 'smooth'
+              });
+            }
           }
         }
       }
