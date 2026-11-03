@@ -444,11 +444,19 @@ let liveSong = {
 
 // Helper to extract video ID from various YouTube URL formats
 function extractVideoId(input) {
-  if (!input) return null;
+  if (!input || typeof input !== 'string') return null;
   input = input.trim();
-  const match = input.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=)|music\.youtube\.com\/watch\?v=)([^#&?]{11})/);
-  if (match) return match[1];
+  // Direct 11-char ID
   if (/^[a-zA-Z0-9_-]{11}$/.test(input)) return input;
+  // Standard and shortened URLs, including shorts and live
+  const match = input.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/|live\/)|music\.youtube\.com\/watch\?v=)([^#&?]{11})/);
+  if (match) return match[1];
+  // Parse query parameter v= if full URL
+  try {
+    const url = new URL(input);
+    const v = url.searchParams.get('v');
+    if (v && /^[a-zA-Z0-9_-]{11}$/.test(v)) return v;
+  } catch (e) {}
   return null;
 }
 
@@ -467,15 +475,23 @@ async function validateYouTubeMusicTrack(videoId) {
   let oembedData = null;
   try {
     const oembedRes = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${cleanId}&format=json`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json'
+      },
       signal: AbortSignal.timeout(3500)
     });
-    if (!oembedRes.ok) {
+    // ONLY reject if YouTube explicitly returns 404 (does not exist/deleted).
+    // If rate-limited (429), forbidden (403), or network glitch, do NOT block the track!
+    if (oembedRes.status === 404) {
       return {
         valid: false,
-        error: 'Lagu/video tidak ditemukan di YouTube, telah dihapus, atau disetel privat.'
+        error: 'Lagu/video tidak ditemukan di YouTube (404 Not Found), telah dihapus, atau disetel privat.'
       };
     }
-    oembedData = await oembedRes.json();
+    if (oembedRes.ok) {
+      oembedData = await oembedRes.json();
+    }
   } catch (err) {
     console.warn(`[ValidateTrack] oEmbed check warning for ${cleanId}:`, err.message);
   }
@@ -786,7 +802,7 @@ async function searchYouTubeMusic(query) {
   }
 }
 
-const APP_VERSION = '2.4.2';
+const APP_VERSION = '2.5.0';
 
 // --- API ROUTES ---
 
@@ -896,7 +912,7 @@ app.get('/api/status', async (req, res) => {
     host: {
       ip: currentIp,
       url: `http://${currentIp}:${PORT}`,
-      publicUrl: 'https://dj.wsnsam.my.id'
+      publicUrl: process.env.PUBLIC_URL || (process.env.CLOUDFLARE_TUNNEL_TOKEN ? 'https://dj.wsnsam.my.id' : null)
     },
     current: {
       ...liveSong,
@@ -957,16 +973,16 @@ app.post('/api/queue', async (req, res) => {
       return res.status(503).json({ error: 'Gagal menghubungi YouTube Music Desktop. Pastikan aplikasi aktif.' });
     }
 
-    // 3. Verification: ensure YouTube Music actually enqueued the track and didn't silently reject it
-    await new Promise(r => setTimeout(r, 450));
-    const { queue: currentQueue } = await getQueueData();
-    const isEnqueued = Array.isArray(currentQueue) && currentQueue.some(item => item.videoId === videoId);
-
-    if (!isEnqueued) {
-      return res.status(422).json({
-        error: 'YouTube Music Desktop menolak lagu ini (tidak dapat dimasukkan ke antrean pemutaran).'
-      });
-    }
+    // 3. Background Verification log (non-blocking to prevent false rejections on large queues)
+    setTimeout(async () => {
+      try {
+        const { queue: currentQueue } = await getQueueData();
+        const isEnqueued = Array.isArray(currentQueue) && currentQueue.some(item => item.videoId === videoId);
+        if (!isEnqueued) {
+          console.log(`[Queue] Note: Track ${videoId} enqueued to companion API; queue may be paginated.`);
+        }
+      } catch (e) {}
+    }, 500);
 
     // 4. Save to social tracking only upon verified enqueue!
     socialQueue.set(videoId, {

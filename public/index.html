@@ -342,119 +342,34 @@
   <!-- ============================================================
        MAIN APP WRAPPER (Responsive Layout)
        ============================================================ -->
-  <main id="app-wrapper" class="mt-4 sm:mt-6 transition-all duration-300">
+  <main id="app-wrapper" class="mt-4 sm:mt-6 pb-28 sm:pb-32 transition-all duration-300">
     <div class="app-grid space-y-5 lg:space-y-0">
 
       <!-- ========================================================
-           COLUMN 1 (LEFT ON DESKTOP): NOW PLAYING + LIVE LYRICS + HOST INFO
+           COLUMN 1 (LEFT ON DESKTOP): PARTY STATUS + LIVE LYRICS + HOST INFO
            ======================================================== -->
-      <div class="col-left space-y-5">
+      <div class="col-left space-y-4 sm:space-y-5">
 
-        <!-- NOW PLAYING CARD -->
-        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-b from-white via-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-4 sm:p-5 shadow-lg shadow-slate-200/50 dark:shadow-xl dark:shadow-black/40 transition-colors duration-200">
-          <div class="flex items-center gap-4">
-            
-            <!-- Vinyl Disc Cover Component -->
-            <div class="relative w-20 h-20 sm:w-24 sm:h-24 shrink-0">
-              <img id="now-thumbnail" src="https://via.placeholder.com/150" alt="Cover"
-                   class="w-full h-full object-cover rounded-2xl shadow-md border border-slate-200 dark:border-gray-700/50 relative z-10">
-              <div id="vinyl-disc" class="absolute -right-2.5 top-0 w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-slate-800 dark:border-gray-900/80 bg-slate-900/90 dark:bg-black/80 z-0 vinyl-spin paused flex items-center justify-center shadow-md">
-                <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-tr from-pink-500 to-rose-500 border border-white/20"></div>
-              </div>
+        <!-- PARTY STATUS & UP NEXT CARD -->
+        <div class="rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-3.5 sm:p-4 shadow-sm dark:shadow-md transition-colors duration-200 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span class="text-xs font-black text-slate-900 dark:text-white tracking-tight">Party Playback Live</span>
             </div>
-
-            <!-- Track Metadata -->
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">
-                  NOW PLAYING
-                </span>
-                <span id="now-added-by" class="text-[11px] text-slate-500 dark:text-gray-400 truncate font-medium"></span>
-              </div>
-              <h2 id="now-title" class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white truncate mt-1">No song playing</h2>
-              <p id="now-artist" class="text-xs sm:text-sm font-semibold text-slate-500 dark:text-gray-400 truncate">Connect YouTube Music</p>
-            </div>
-
-            <!-- Play/Pause & Skip Controls -->
-            <div class="flex items-center gap-2 shrink-0">
-              <button onclick="togglePlay()" class="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-slate-900 text-white dark:bg-white dark:text-black flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-transform">
-                <svg id="play-icon" class="w-5 h-5 translate-x-0.5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z"/>
-                </svg>
-                <svg id="pause-icon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-                </svg>
-              </button>
-              <button onclick="skipNext()" title="Skip song" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-700 dark:text-gray-200 hover:text-slate-900 dark:hover:text-white flex items-center justify-center hover:bg-slate-200 dark:hover:bg-gray-700 active:scale-95 transition-all">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <!-- CUSTOM TIMELINE COMPONENT (With glowing playhead indicator) -->
-          <div class="mt-4 select-none">
-            <div class="w-full bg-slate-200 dark:bg-gray-800/80 rounded-full h-2 relative overflow-visible">
-              <div id="progress-bar" class="bg-gradient-to-r from-pink-500 via-rose-500 to-indigo-500 h-2 rounded-full relative transition-all duration-300" style="width: 0%">
-                <!-- Glowing playhead dot -->
-                <div class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-3.5 h-3.5 rounded-full bg-white shadow-md shadow-pink-500/80 border-2 border-pink-500"></div>
-              </div>
-            </div>
-            <div class="flex justify-between text-[11px] text-slate-500 dark:text-gray-400 font-bold mt-2 px-0.5">
-              <span id="time-elapsed" class="font-mono">0:00</span>
-              <span class="text-[9px] text-slate-400 dark:text-gray-500 uppercase tracking-wider font-semibold">Synced Timeline</span>
-              <span id="time-duration" class="font-mono">0:00</span>
-            </div>
-          </div>
-
-          <!-- CUSTOM VOLUME CONTROL COMPONENT (With dynamic emoji speaker & presets) -->
-          <div class="mt-3 pt-3 border-t border-slate-200/80 dark:border-gray-800/60 flex items-center gap-3">
-            <button onclick="toggleMuteQuick()" id="vol-mute-btn" title="Toggle Mute"
-                    class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-gray-800/80 hover:bg-slate-200 dark:hover:bg-gray-800 text-slate-700 dark:text-gray-200 flex items-center justify-center shrink-0 transition-all active:scale-90">
-              <span id="vol-icon" class="text-sm">🔊</span>
-            </button>
-            
-            <div class="flex-1 flex items-center gap-2">
-              <input type="range" id="volume-slider" min="0" max="100" value="70"
-                     oninput="handleVolumeInput(this.value)"
-                     class="w-full h-2 bg-slate-200 dark:bg-gray-800 rounded-full appearance-none cursor-pointer accent-pink-500">
-              <span id="volume-label" class="px-2 py-0.5 rounded-md text-[11px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-pink-600 dark:text-pink-400 w-11 text-center shrink-0 border border-slate-200/60 dark:border-gray-700/60">
-                70%
-              </span>
-              <!-- Snap 10% Toggle Button -->
-              <button id="vol-snap-btn" onclick="toggleVolumeSnap()" title="Snap volume per 10% (0%, 10%, 20%...)"
-                      class="px-2 py-0.5 rounded-md text-[10px] font-bold border transition-all cursor-pointer shrink-0 flex items-center gap-1 active:scale-95 bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 border-slate-200/60 dark:border-gray-700/60">
-                <span>🧲</span>
-                <span id="vol-snap-text">10%</span>
-              </button>
-            </div>
-
-            <!-- Quick Volume Presets (Desktop) -->
-            <div class="hidden sm:flex items-center gap-1 shrink-0 text-[10px] font-bold">
-              <button onclick="handleVolumeInput(30)" class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-400 hover:text-pink-500 transition-colors">30%</button>
-              <button onclick="handleVolumeInput(70)" class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-400 hover:text-pink-500 transition-colors">70%</button>
-              <button onclick="handleVolumeInput(100)" class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-400 hover:text-pink-500 transition-colors">100%</button>
-            </div>
-          </div>
-
-          <!-- Mobile Lyrics Trigger -->
-          <div class="mobile-only mt-3 pt-2.5 border-t border-slate-200/70 dark:border-gray-800/40 flex items-center justify-between">
-            <button onclick="openLyrics()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/30 text-pink-600 dark:text-pink-400 text-xs font-bold transition-all active:scale-95 shadow-xs">
-              <span>🎤</span>
-              <span>Lihat Lirik Real-Time</span>
-            </button>
-            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-semibold">Party Mode Active</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-500/10 text-pink-600 dark:text-pink-400 border border-pink-500/20">
+              Synced Timeline ⚡
+            </span>
           </div>
 
           <!-- UP NEXT PREVIEW BANNER -->
-          <div id="up-next-banner" class="mt-3 p-2.5 rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/30 border border-indigo-200 dark:border-indigo-800/50 flex items-center justify-between text-xs hidden">
+          <div id="up-next-banner" class="p-2.5 rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/30 border border-indigo-200 dark:border-indigo-800/50 flex items-center justify-between text-xs hidden">
             <div class="flex items-center gap-2 min-w-0">
               <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 uppercase tracking-wider shrink-0 border border-indigo-300/40 dark:border-indigo-500/30">Up Next</span>
               <span id="up-next-title" class="text-slate-800 dark:text-gray-200 font-bold truncate">Song Title</span>
               <span id="up-next-badge" class="text-[10px] text-slate-500 dark:text-gray-400 shrink-0 font-medium"></span>
             </div>
-            <button onclick="skipNext()" class="text-xs text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-bold flex items-center gap-1 shrink-0 ml-2 active:scale-95 transition-transform">
+            <button onclick="skipNext()" class="text-xs text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-bold flex items-center gap-1 shrink-0 ml-2 active:scale-95 transition-transform cursor-pointer">
               <span>Play Now ⏭️</span>
             </button>
           </div>
@@ -850,7 +765,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.4.2</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.5.0</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -861,16 +776,28 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.4.2 -->
+        <!-- v2.5.0 -->
         <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-800 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.4.2 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.5.0 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">🧊 Frozen Bottom Now Playing Bar:</strong> Pinned, persistent player docked at the bottom of the screen with synced glowing timeline progress, play/pause, skip, volume slider with 10% snap, and quick lyrics button—always visible without scrolling.</li>
+            <li><strong class="text-slate-800 dark:text-white">⚡ Universal Track Ingestion:</strong> Fixed song addition errors caused by false-positive rate-limit checks (429/403) and special character titles; added encoded payload decoder for instant queuing of any song.</li>
+            <li><strong class="text-slate-800 dark:text-white">🌐 Dynamic Public Addressing:</strong> Decoupled <code>dj.wsnsam.my.id</code> to be strictly personal for Sam; party URLs & QR codes now automatically adapt to each host's network/domain.</li>
+          </ul>
+        </div>
+
+        <!-- v2.4.2 -->
+        <div class="p-3 rounded-xl bg-slate-50/60 dark:bg-gray-900/40 border border-slate-200/60 dark:border-gray-800/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-200 dark:bg-gray-800 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-700">v2.4.2</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
             <li><strong class="text-slate-800 dark:text-white">🎨 Elegant Dialog Modal Padding:</strong> Restored spacious padding (24-32px), glowing centered icon, high-contrast typography, and responsive rounded dialog cards.</li>
             <li><strong class="text-slate-800 dark:text-white">🎵 Fixed Mandarin Recommendation Tracks:</strong> Corrected official video IDs for Eric Chou's <em>怎么了 (What's Wrong)</em> and Firdhaus' <em>阿拉斯加海湾 (Gulf of Alaska)</em> with instant 1-tap queueing and reliable thumbnails.</li>
-            <li><strong class="text-slate-800 dark:text-white">🛡️ Refined Catalog Validator:</strong> Fixed false-positive 429 rate-limit rejections, ensuring all valid YouTube Music songs add seamlessly from search or recommendations.</li>
           </ul>
         </div>
 
@@ -1094,8 +1021,107 @@
     </div>
   </div>
 
+  <!-- ============================================================
+       FROZEN BOTTOM PLAYER BAR (ALWAYS VISIBLE / PERSISTENT DOCK)
+       ============================================================ -->
+  <div id="sticky-bottom-player" class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#0f121d]/95 backdrop-blur-xl border-t border-slate-200/90 dark:border-gray-800 shadow-[0_-10px_35px_rgba(0,0,0,0.08)] dark:shadow-[0_-10px_35px_rgba(0,0,0,0.6)] transition-all duration-300">
+    
+    <!-- Ultra-Sleek Synced Timeline Progress Bar at the Top Edge -->
+    <div class="relative w-full bg-slate-200/80 dark:bg-gray-800/80 h-1.5 select-none overflow-visible group cursor-pointer"
+         title="Synced Real-Time Timeline">
+      <div id="progress-bar" class="bg-gradient-to-r from-pink-500 via-rose-500 to-indigo-500 h-1.5 relative transition-all duration-300" style="width: 0%">
+        <!-- Glowing playhead dot -->
+        <div class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-3.5 h-3.5 rounded-full bg-white shadow-md shadow-pink-500/80 border-2 border-pink-500 opacity-90 group-hover:scale-125 transition-transform"></div>
+      </div>
+    </div>
+
+    <!-- Main Player Bar Content -->
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between gap-2 sm:gap-4">
+      
+      <!-- LEFT: Vinyl Cover & Track Metadata -->
+      <div class="flex items-center gap-2.5 sm:gap-3.5 min-w-0 max-w-[55%] sm:max-w-[42%]">
+        <!-- Compact Vinyl Disc -->
+        <div class="relative w-11 h-11 sm:w-13 sm:h-13 shrink-0">
+          <img id="now-thumbnail" src="https://via.placeholder.com/150" alt="Cover"
+               class="w-full h-full object-cover rounded-xl shadow-md border border-slate-200 dark:border-gray-700/60 relative z-10">
+          <div id="vinyl-disc" class="absolute -right-2 top-0 w-11 h-11 sm:w-13 sm:h-13 rounded-full border border-slate-800 dark:border-gray-900 bg-black/90 z-0 vinyl-spin paused flex items-center justify-center shadow-xs">
+            <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-gradient-to-tr from-pink-500 to-rose-500 border border-white/20"></div>
+          </div>
+        </div>
+
+        <!-- Title, Artist, & Added By -->
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="px-1.5 py-0.2 rounded text-[9px] font-black tracking-wide bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30 uppercase shrink-0">
+              Playing
+            </span>
+            <span id="now-added-by" class="text-[10px] text-slate-500 dark:text-gray-400 truncate font-semibold"></span>
+          </div>
+          <h3 id="now-title" class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white truncate mt-0.5 leading-snug">No song playing</h3>
+          <div class="flex items-center gap-2 text-[10px] sm:text-[11px] text-slate-500 dark:text-gray-400 truncate">
+            <p id="now-artist" class="truncate font-medium">Connect YouTube Music</p>
+            <span class="opacity-40 shrink-0">•</span>
+            <span class="font-mono shrink-0 text-slate-600 dark:text-gray-300 font-bold"><span id="time-elapsed">0:00</span> / <span id="time-duration">0:00</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CENTER: Controls (Play/Pause, Skip, Karaoke Trigger) -->
+      <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
+        <!-- Play / Pause Button -->
+        <button onclick="togglePlay()" title="Play / Pause"
+                class="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 text-white flex items-center justify-center shadow-lg shadow-pink-500/30 hover:scale-105 active:scale-95 transition-all cursor-pointer">
+          <svg id="play-icon" class="w-5 h-5 translate-x-0.5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+          <svg id="pause-icon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+          </svg>
+        </button>
+
+        <!-- Skip Button -->
+        <button onclick="skipNext()" title="Skip Lagu (Next)"
+                class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-slate-700 dark:text-gray-200 hover:text-slate-900 dark:hover:text-white flex items-center justify-center active:scale-95 transition-all cursor-pointer border border-slate-200 dark:border-gray-700">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+          </svg>
+        </button>
+
+        <!-- Quick Lyrics Toggle Button -->
+        <button onclick="openLyrics()" title="Lihat Lirik Real-Time"
+                class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-pink-500/10 hover:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30 text-xs font-bold active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer">
+          <span class="text-sm">🎤</span>
+          <span class="hidden sm:inline">Lirik</span>
+        </button>
+      </div>
+
+      <!-- RIGHT: Volume Controls & Snapping -->
+      <div class="hidden md:flex items-center gap-2.5 min-w-[200px] max-w-[280px]">
+        <button onclick="toggleMuteQuick()" id="vol-mute-btn" title="Toggle Mute"
+                class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-gray-800 hover:bg-slate-200 dark:hover:bg-gray-700 text-slate-700 dark:text-gray-200 flex items-center justify-center shrink-0 transition-all active:scale-90">
+          <span id="vol-icon" class="text-xs">🔊</span>
+        </button>
+        
+        <div class="flex-1 flex items-center gap-2">
+          <input type="range" id="volume-slider" min="0" max="100" value="70"
+                 oninput="handleVolumeInput(this.value)"
+                 class="w-full h-1.5 bg-slate-200 dark:bg-gray-800 rounded-full appearance-none cursor-pointer accent-pink-500">
+          <span id="volume-label" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-pink-600 dark:text-pink-400 w-10 text-center shrink-0 border border-slate-200 dark:border-gray-700">
+            70%
+          </span>
+          <button id="vol-snap-btn" onclick="toggleVolumeSnap()" title="Snap volume per 10%"
+                  class="px-1.5 py-0.5 rounded text-[10px] font-bold border transition-all cursor-pointer shrink-0 flex items-center gap-1 active:scale-95 bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 border-slate-200 dark:border-gray-700">
+            <span>🧲</span>
+            <span id="vol-snap-text">10%</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Notification Toast -->
-  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-slate-900/95 dark:bg-gray-900/95 border border-slate-700 dark:border-gray-700 text-white text-xs font-semibold shadow-2xl transition-all duration-300 opacity-0 pointer-events-none translate-y-4 flex items-center gap-2">
+  <div id="toast" class="fixed bottom-24 sm:bottom-28 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-slate-900/95 dark:bg-gray-900/95 border border-slate-700 dark:border-gray-700 text-white text-xs font-semibold shadow-2xl transition-all duration-300 opacity-0 pointer-events-none translate-y-4 flex items-center gap-2">
     <span>Notification</span>
   </div>
 
@@ -1107,7 +1133,7 @@
     <div class="text-left text-xs min-w-0 flex-1">
       <div class="flex items-center gap-1.5 flex-wrap">
         <span class="font-black text-white">Versi Baru Tersedia!</span>
-        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.4.2</span>
+        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.5.0</span>
       </div>
       <p class="text-[11px] text-pink-100 opacity-90 mt-0.5">Memuat pembaruan otomatis dalam <span id="update-countdown" class="font-extrabold underline">3</span>s...</p>
     </div>
@@ -1129,7 +1155,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.4.2';
+    const CLIENT_VERSION = '2.5.0';
     let isUpdateTriggered = false;
 
     function triggerVersionUpdateBanner(newVersion) {
@@ -2322,8 +2348,8 @@
                   <h5 class="text-xs font-bold text-slate-900 dark:text-white truncate">${item.title}</h5>
                   <p class="text-[11px] font-medium text-slate-500 dark:text-gray-400 truncate">${item.artist}</p>
                 </div>
-                <button onclick='queueTrack(${JSON.stringify(item).replace(/'/g, "&#39;")})'
-                        class="px-2.5 py-1.5 rounded-lg bg-pink-500/15 hover:bg-pink-500 text-pink-600 dark:text-pink-400 hover:text-white border border-pink-500/30 text-xs font-bold active:scale-95 transition-all flex items-center gap-1 shrink-0">
+                <button onclick="queueTrackEncoded('${encodeURIComponent(JSON.stringify(item))}')"
+                        class="px-2.5 py-1.5 rounded-lg bg-pink-500/15 hover:bg-pink-500 text-pink-600 dark:text-pink-400 hover:text-white border border-pink-500/30 text-xs font-bold active:scale-95 transition-all flex items-center gap-1 shrink-0 cursor-pointer">
                   + Queue
                 </button>
               </div>
@@ -2523,12 +2549,22 @@
             <h5 class="text-xs font-bold text-slate-900 dark:text-white truncate">${item.title}</h5>
             <p class="text-[11px] font-medium text-slate-500 dark:text-gray-400 truncate">${item.artist}</p>
           </div>
-          <button onclick='queueTrack(${JSON.stringify(item).replace(/'/g, "&#39;")})'
-                  class="px-3 py-1.5 rounded-lg bg-pink-500/20 text-pink-600 dark:text-pink-400 hover:bg-pink-500 hover:text-white border border-pink-500/30 text-xs font-bold active:scale-95 transition-all flex items-center gap-1">
+          <button onclick="queueTrackEncoded('${encodeURIComponent(JSON.stringify(item))}')"
+                  class="px-3 py-1.5 rounded-lg bg-pink-500/20 text-pink-600 dark:text-pink-400 hover:bg-pink-500 hover:text-white border border-pink-500/30 text-xs font-bold active:scale-95 transition-all flex items-center gap-1 cursor-pointer">
             + Queue
           </button>
         </div>
       `).join('');
+    }
+
+    // Queue Song (With safe JSON decode helper)
+    function queueTrackEncoded(encodedStr) {
+      try {
+        const item = JSON.parse(decodeURIComponent(encodedStr));
+        return queueTrack(item);
+      } catch (e) {
+        console.error('Error decoding track JSON:', e);
+      }
     }
 
     // Queue Song

@@ -19,7 +19,8 @@ const fs = require('fs');
 const os = require('os');
 
 const DEFAULT_TUNNEL_TOKEN = 'eyJhIjoiMTkwMzVmM2VlN2YyMmIxMTkyZjFiZWNlZTY1ZjlkODEiLCJ0IjoiNmNjMjVjNGUtOWFiYy00ZTk3LWI4NTUtMDRkN2NlNTFiOTlhIiwicyI6Ill6SXlZVGxoWlRVdE1tRTVZeTAwT0dNMkxXRTRZVEl0T0RFelpERXdaVE5sTW1RMyJ9';
-const TUNNEL_TOKEN = process.env.TUNNEL_TOKEN || DEFAULT_TUNNEL_TOKEN;
+// Only enable personal tunnel if explicitly requested via environment variable or --tunnel flag
+const TUNNEL_TOKEN = process.env.TUNNEL_TOKEN || (process.argv.includes('--tunnel') ? DEFAULT_TUNNEL_TOKEN : null);
 const ROOT_DIR = path.resolve(__dirname, '..');
 
 // ANSI Colors
@@ -105,43 +106,35 @@ async function main() {
     console.log(`${c.gray}      dan akan otomatis terhubung begitu YouTube Music dibuka.${c.reset}`);
   }
 
-  console.log(`\n${c.cyan}🌐 [2/3] Memeriksa Cloudflare Tunnel (${c.bold}https://dj.wsnsam.my.id${c.reset}${c.cyan})...${c.reset}`);
-  const cloudflaredPath = findCloudflared();
-  const alreadyRunning = isCloudflaredRunning();
+  if (TUNNEL_TOKEN) {
+    console.log(`\n${c.cyan}🌐 [2/3] Memeriksa Cloudflare Tunnel (${c.bold}https://dj.wsnsam.my.id${c.reset}${c.cyan})...${c.reset}`);
+    const cloudflaredPath = findCloudflared();
+    const alreadyRunning = isCloudflaredRunning();
 
-  let tunnelProcess = null;
+    if (alreadyRunning) {
+      console.log(`${c.emerald}   ✅ Service cloudflared sudah aktif di latar belakang laptop ini!${c.reset}`);
+    } else if (cloudflaredPath) {
+      console.log(`${c.emerald}   ✅ cloudflared ditemukan di: ${cloudflaredPath}${c.reset}`);
+      console.log(`${c.pink}   🚀 Menghubungkan tunnel ke dj.wsnsam.my.id...${c.reset}`);
+      
+      tunnelProcess = spawn(cloudflaredPath, ['tunnel', 'run', '--token', TUNNEL_TOKEN], {
+        stdio: ['ignore', 'pipe', 'pipe']
+      });
 
-  if (alreadyRunning) {
-    console.log(`${c.emerald}   ✅ Service cloudflared sudah aktif di latar belakang laptop ini!${c.reset}`);
-  } else if (cloudflaredPath) {
-    console.log(`${c.emerald}   ✅ cloudflared ditemukan di: ${cloudflaredPath}${c.reset}`);
-    console.log(`${c.pink}   🚀 Menghubungkan tunnel ke dj.wsnsam.my.id...${c.reset}`);
-    
-    tunnelProcess = spawn(cloudflaredPath, ['tunnel', 'run', '--token', TUNNEL_TOKEN], {
-      stdio: ['ignore', 'pipe', 'pipe']
-    });
+      tunnelProcess.stderr.on('data', (d) => {
+        const line = d.toString();
+        if (line.includes('Registered tunnel connection') || line.includes('Connection registered')) {
+          console.log(`${c.emerald}   ⚡ Tunnel Cloudflare terhubung secara global!${c.reset}`);
+        }
+      });
 
-    tunnelProcess.stderr.on('data', (d) => {
-      const line = d.toString();
-      if (line.includes('Registered tunnel connection') || line.includes('Connection registered')) {
-        console.log(`${c.emerald}   ⚡ Tunnel Cloudflare terhubung secara global!${c.reset}`);
-      }
-    });
-
-    tunnelProcess.on('error', (err) => {
-      console.warn(`${c.rose}   ⚠️  Gagal menjalankan cloudflared: ${err.message}${c.reset}`);
-    });
-  } else {
-    console.log(`${c.amber}   ⚠️  cloudflared belum terinstall di laptop ini.${c.reset}`);
-    console.log(`${c.white}      Untuk menghubungkan domain https://dj.wsnsam.my.id secara otomatis:${c.reset}`);
-    if (process.platform === 'darwin') {
-      console.log(`${c.pink}      👉 Jalankan: brew install cloudflared${c.reset}`);
-    } else if (process.platform === 'win32') {
-      console.log(`${c.pink}      👉 Jalankan: winget install --id Cloudflare.cloudflared${c.reset}`);
-    } else {
-      console.log(`${c.pink}      👉 Unduh dari: https://github.com/cloudflare/cloudflared/releases${c.reset}`);
+      tunnelProcess.on('error', (err) => {
+        console.warn(`${c.rose}   ⚠️  Gagal menjalankan cloudflared: ${err.message}${c.reset}`);
+      });
     }
-    console.log(`${c.gray}      (Tanpa tunnel, Jukebox tetap bisa diakses di jaringan lokal WiFi).${c.reset}`);
+  } else {
+    console.log(`\n${c.cyan}🌐 [2/3] Mode Akses: Jaringan Lokal WiFi & Auto-Address${c.reset}`);
+    console.log(`${c.gray}   (Domain pribadi dj.wsnsam.my.id dimatikan untuk publik; gunakan --tunnel bila host Sam).${c.reset}`);
   }
 
   console.log(`\n${c.cyan}🎶 [3/3] Menjalankan Server Jukebox Lokal...${c.reset}`);
