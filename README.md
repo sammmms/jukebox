@@ -127,7 +127,7 @@ Upon launching, the terminal will automatically detect your local Wi-Fi IP addre
 
 1. Make sure your friends are connected to the **same Wi-Fi network** as the host laptop.
 2. Tell them to open their phone camera and **scan the terminal QR code**, or enter the `Local Network URL` (e.g. `http://192.168.0.180:3000`) in their mobile browser.
-3. Each friend picks their DJ name (Leo, Andrew, Cia, Sam, or custom).
+3. First-time guests are prompted to enter their custom DJ name (or select an existing party profile).
 4. Anyone can search for songs, paste YouTube URLs, upvote, reorder, view synchronized lyrics, and enjoy the party!
 
 ---
@@ -153,12 +153,13 @@ Upon launching, the terminal will automatically detect your local Wi-Fi IP addre
                      │   │   - LRCLib Karaoke Synced Lyrics API   │  │
                      │   │   - Queue Reordering & Voting Engine   │  │
                      │   │   - COPPA Auto-Resume Watchdog         │  │
+                     │   │   - Dynamic DJ Profiles & Onboarding   │  │
                      │   └───────────────────▲────────────────────┘  │
                      └───────────────────────┼───────────────────────┘
                                              │ Wi-Fi LAN (:3000)
                      ┌───────────────────────┴───────────────────────┐
                      │                                               │
-               📱 Guest 1 (Leo)              📱 Guest 2 (Cia)         📱 Guest 3 (Andrew)
+               📱 Guest 1 (Alex)             📱 Guest 2 (Michelle)     📱 Guest 3 (DJ Sam)
              Mobile Web Interface          Mobile Web Interface     Mobile Web Interface
 ```
 

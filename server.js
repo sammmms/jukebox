@@ -20,6 +20,8 @@ const socialQueue = new Map();
 const upvotes = new Map();
 // Activity Feed / History Log: Array of { id, user, action, details, timestamp }
 const activityLogs = [];
+// Dynamic DJ Profiles Registry: Set of all active/known party DJs
+const knownDJs = new Set();
 // Previously Played Songs History
 const playedHistory = [];
 // In-memory lyrics cache
@@ -42,7 +44,7 @@ function addPlayedHistory(track) {
     title: track.title,
     artist: track.artist || '',
     thumbnail: track.thumbnail || track.imageSrc || '',
-    addedBy: track.addedBy || 'Autoplay / Sam',
+    addedBy: track.addedBy || 'Autoplay / Host',
     playedAt: Date.now()
   });
   if (playedHistory.length > 60) playedHistory.pop();
@@ -173,10 +175,13 @@ async function fetchLyrics(title, artist, duration) {
 }
 
 function addActivity(user, action, details) {
+  if (user && typeof user === 'string' && user !== 'System' && user !== 'Someone' && user !== 'Anonymous' && user !== 'Autoplay / Host') {
+    knownDJs.add(user.trim());
+  }
   const item = {
     id: Date.now() + '-' + Math.random().toString(36).slice(2, 6),
     user: user || 'Someone',
-    action, // 'add' | 'skip' | 'pause' | 'play' | 'remove' | 'move' | 'upvote' | 'unvote' | 'volume'
+    action, // 'add' | 'skip' | 'pause' | 'play' | 'remove' | 'move' | 'upvote' | 'unvote' | 'volume' | 'join'
     details: details || '',
     timestamp: Date.now()
   };
@@ -317,7 +322,7 @@ async function fetchCurrentSongFromYTM() {
       songDuration: song.songDuration || 0,
       elapsedSeconds: song.elapsedSeconds || 0,
       videoId: song.videoId || '',
-      addedBy: socialQueue.get(song.videoId)?.user || 'Autoplay / Sam'
+      addedBy: socialQueue.get(song.videoId)?.user || 'Autoplay / Host'
     };
   } catch (err) {
     return null;
@@ -348,7 +353,7 @@ function connectYTMWebSocket() {
               songDuration: msg.song.songDuration || 0,
               elapsedSeconds: msg.position ?? msg.song.elapsedSeconds ?? 0,
               videoId: msg.song.videoId || '',
-              addedBy: socialQueue.get(msg.song.videoId)?.user || 'Autoplay / Sam'
+              addedBy: socialQueue.get(msg.song.videoId)?.user || 'Autoplay / Host'
             };
             updatePlaybackTracker(liveSong);
             broadcastUpdate();
@@ -573,13 +578,29 @@ async function searchYouTubeMusic(query) {
   }
 }
 
-const APP_VERSION = '2.1.0';
+const APP_VERSION = '2.2.0';
 
 // --- API ROUTES ---
 
 // 0. Version Endpoint
 app.get('/api/version', (req, res) => {
   res.json({ version: APP_VERSION, name: 'Party Jukebox' });
+});
+
+// 0.1 Register / Join as Dynamic DJ
+app.post('/api/dj/join', (req, res) => {
+  const { name } = req.body || {};
+  if (!name || typeof name !== 'string' || !name.trim()) {
+    return res.status(400).json({ error: 'Valid DJ name is required' });
+  }
+  const cleanName = name.trim().slice(0, 20);
+  const isNew = !knownDJs.has(cleanName);
+  knownDJs.add(cleanName);
+  if (isNew) {
+    addActivity(cleanName, 'join', 'joined the party as a DJ');
+    broadcastUpdate();
+  }
+  res.json({ success: true, name: cleanName, djs: Array.from(knownDJs) });
 });
 
 // 1. Status (Now Playing + Queue + Volume + Activity Feed)
@@ -611,6 +632,7 @@ app.get('/api/status', async (req, res) => {
     },
     queue,
     selectedIndex,
+    djs: Array.from(knownDJs),
     volume: { state: currentVolume, isMuted },
     activity: activityLogs.slice(0, 30),
     history: playedHistory.slice(0, 30)

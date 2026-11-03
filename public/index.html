@@ -220,9 +220,9 @@
               <span id="current-view-badge" class="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
                 Auto
               </span>
-              <button onclick="openChangelogModal()" title="View Version & Changelog (v2.1.0)"
+              <button onclick="openChangelogModal()" title="View Version & Changelog (v2.2.0)"
                       class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-colors cursor-pointer active:scale-95">
-                v2.1.0
+                v2.2.0
               </button>
             </div>
             <div class="flex items-center gap-1.5">
@@ -293,22 +293,26 @@
       </div>
     </div>
 
-    <!-- DJ Profile Selector Pills -->
+    <!-- Dynamic DJ Profile Bar (v2.2.0) -->
     <div class="max-w-7xl mx-auto mt-2.5 pt-2 border-t border-slate-200/60 dark:border-gray-800/60">
-      <div class="flex items-center justify-between gap-2">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400 shrink-0">You are DJing as:</div>
-        <div class="grid grid-cols-4 gap-1.5 flex-1 max-w-md ml-auto" id="user-pills">
-          <button onclick="selectUser('Leo')" data-user="Leo" class="user-pill flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold border transition-all duration-200 border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900/60 text-slate-600 dark:text-gray-400 hover:border-blue-500/50">
-            <span class="w-2 h-2 rounded-full bg-blue-500"></span> Leo
+      <div class="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar py-0.5">
+        <div class="flex items-center gap-2 shrink-0">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">DJ Aktif:</span>
+          <button id="active-dj-badge" onclick="openDJModal(false)" title="Klik untuk ganti atau edit nama DJ"
+                  class="flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold border transition-all duration-200 cursor-pointer shadow-2xs active:scale-95">
+            <!-- Dynamic DJ badge rendered here -->
           </button>
-          <button onclick="selectUser('Andrew')" data-user="Andrew" class="user-pill flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold border transition-all duration-200 border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900/60 text-slate-600 dark:text-gray-400 hover:border-emerald-500/50">
-            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Andrew
-          </button>
-          <button onclick="selectUser('Cia')" data-user="Cia" class="user-pill flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold border transition-all duration-200 border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900/60 text-slate-600 dark:text-gray-400 hover:border-pink-500/50">
-            <span class="w-2 h-2 rounded-full bg-pink-500"></span> Cia
-          </button>
-          <button onclick="selectUser('Sam')" data-user="Sam" class="user-pill flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold border transition-all duration-200 border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900/60 text-slate-600 dark:text-gray-400 hover:border-amber-500/50">
-            <span class="w-2 h-2 rounded-full bg-amber-500"></span> Sam
+        </div>
+
+        <!-- Dynamic DJ Quick Pills & Switcher Button -->
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar ml-auto shrink-0">
+          <div id="user-pills" class="flex items-center gap-1.5">
+            <!-- Dynamic DJ pills rendered here -->
+          </div>
+          <button onclick="openDJModal(false)" title="Ganti atau Tambah Profil DJ"
+                  class="flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-200 dark:border-gray-700 transition-all cursor-pointer active:scale-95 shrink-0">
+            <span class="text-pink-500 font-extrabold">+</span>
+            <span>Ganti DJ</span>
           </button>
         </div>
       </div>
@@ -808,7 +812,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.1.0</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.2.0</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -819,10 +823,24 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
+        <!-- v2.2.0 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.2.0 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">🎧 Dynamic DJ System:</strong> Removed hardcoded DJ profiles (Leo, Andrew, Cia, Sam). Any party guest can now enter their own custom DJ name.</li>
+            <li><strong class="text-slate-800 dark:text-white">🚀 Mandatory First-Time Onboarding:</strong> First-time visitors without local cache are required to set their DJ name via a welcoming onboarding modal before DJing.</li>
+            <li><strong class="text-slate-800 dark:text-white">🎨 Deterministic Dynamic Color Palette:</strong> Generates beautiful matching neon/pastel color pills, badges, and avatar dots for any DJ name.</li>
+            <li><strong class="text-slate-800 dark:text-white">🔄 Real-time DJ Sync & Switcher:</strong> Party guests can seamlessly switch between known active DJs or add new DJ profiles with instant network broadcasting.</li>
+          </ul>
+        </div>
+
         <!-- v2.1.0 -->
         <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-800 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.1.0 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-800 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-700">v2.1.0</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -885,6 +903,53 @@
     </div>
   </div>
 
+  <!-- ============================================================
+       MODAL: MANDATORY FIRST-TIME DJ ONBOARDING & PROFILE SWITCHER (v2.2.0)
+       ============================================================ -->
+  <div id="dj-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300 opacity-0 pointer-events-none">
+    <div class="relative w-full max-w-sm sm:max-w-md rounded-2xl bg-white dark:bg-[#121520] border border-slate-200 dark:border-gray-800 shadow-2xl p-6 transition-all duration-300 transform scale-95" id="dj-modal-card">
+      
+      <!-- Close Button (Only shown if a valid user is already selected) -->
+      <button id="dj-modal-close-btn" onclick="closeDJModal()" class="hidden absolute top-4 right-4 w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-500 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer text-xs active:scale-95">
+        ✕
+      </button>
+
+      <div class="text-center mb-5">
+        <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-tr from-pink-500 via-rose-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-pink-500/25 text-white text-2xl font-black">
+          🎧
+        </div>
+        <h3 id="dj-modal-title" class="text-lg font-black text-slate-900 dark:text-white tracking-tight">Siapa Nama DJ Kamu?</h3>
+        <p id="dj-modal-subtitle" class="text-xs text-slate-500 dark:text-gray-400 mt-1 max-w-xs mx-auto">
+          Masukkan nama kamu untuk mulai request lagu, upvote antrean, dan karaokean bareng di pesta!
+        </p>
+      </div>
+
+      <!-- Form to input name -->
+      <form onsubmit="handleDJFormSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-gray-400 mb-1.5">Nama DJ / Panggilan</label>
+          <div class="relative">
+            <input type="text" id="dj-name-input" maxlength="20" placeholder="Ketik nama kamu (misal: Alex, Michelle...)"
+                   class="w-full px-4 py-2.5 rounded-xl text-sm font-semibold bg-slate-50 dark:bg-gray-900/80 border border-slate-300 dark:border-gray-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
+                   autocomplete="off" required>
+            <span class="absolute right-3 top-2.5 text-base pointer-events-none">✨</span>
+          </div>
+        </div>
+
+        <!-- Known DJs List (if any exist on the party server / local storage) -->
+        <div id="known-djs-container" class="hidden">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-gray-500 mb-2">Atau gabung sebagai profil pesta:</div>
+          <div id="known-djs-pills" class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto no-scrollbar"></div>
+        </div>
+
+        <button type="submit" id="dj-submit-btn" class="w-full py-2.5 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white shadow-lg shadow-pink-500/25 active:scale-95 transition-all cursor-pointer">
+          Mulai DJing 🎵
+        </button>
+      </form>
+
+    </div>
+  </div>
+
   <!-- Notification Toast -->
   <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-slate-900/95 dark:bg-gray-900/95 border border-slate-700 dark:border-gray-700 text-white text-xs font-semibold shadow-2xl transition-all duration-300 opacity-0 pointer-events-none translate-y-4 flex items-center gap-2">
     <span>Notification</span>
@@ -895,7 +960,9 @@
        ============================================================ -->
   <script>
     // State
-    let currentUser = localStorage.getItem('jukebox_user') || 'Sam';
+    let currentUser = localStorage.getItem('jukebox_user') || '';
+    let knownDJs = JSON.parse(localStorage.getItem('jukebox_known_djs') || '[]');
+    let isDJModalMandatory = false;
     let currentTheme = localStorage.getItem('jukebox_theme') || 'system';
     let currentView = localStorage.getItem('jukebox_view') || 'auto';
     let currentSongData = null;
@@ -921,13 +988,39 @@
     let currentActiveLyricIndex = -1;
     let fetchedLyricsForVideoId = '';
 
-    const userColors = {
-      'Leo': { bg: 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/40', pill: 'border-blue-500 bg-blue-500/15 text-blue-700 dark:text-white' },
-      'Andrew': { bg: 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/40', pill: 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-white' },
-      'Cia': { bg: 'bg-pink-500/20 text-pink-600 dark:text-pink-400 border-pink-500/40', pill: 'border-pink-500 bg-pink-500/15 text-pink-700 dark:text-white' },
-      'Sam': { bg: 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/40', pill: 'border-amber-500 bg-amber-500/15 text-amber-700 dark:text-white' },
-      'System': { bg: 'bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-400 border-slate-300 dark:border-gray-700', pill: '' }
-    };
+    // Deterministic 9-Color Vibrant Palette for Dynamic DJs (v2.2.0)
+    const DJ_PALETTES = [
+      { dot: 'bg-pink-500', bg: 'bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30', pill: 'border-pink-500 bg-pink-500/15 text-pink-700 dark:text-pink-300 shadow-pink-500/20' },
+      { dot: 'bg-indigo-500', bg: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30', pill: 'border-indigo-500 bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 shadow-indigo-500/20' },
+      { dot: 'bg-emerald-500', bg: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30', pill: 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 shadow-emerald-500/20' },
+      { dot: 'bg-amber-500', bg: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30', pill: 'border-amber-500 bg-amber-500/15 text-amber-700 dark:text-amber-300 shadow-amber-500/20' },
+      { dot: 'bg-cyan-500', bg: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30', pill: 'border-cyan-500 bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 shadow-cyan-500/20' },
+      { dot: 'bg-purple-500', bg: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30', pill: 'border-purple-500 bg-purple-500/15 text-purple-700 dark:text-purple-300 shadow-purple-500/20' },
+      { dot: 'bg-rose-500', bg: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30', pill: 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300 shadow-rose-500/20' },
+      { dot: 'bg-teal-500', bg: 'bg-teal-500/15 text-teal-600 dark:text-teal-400 border border-teal-500/30', pill: 'border-teal-500 bg-teal-500/15 text-teal-700 dark:text-teal-300 shadow-teal-500/20' },
+      { dot: 'bg-orange-500', bg: 'bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-500/30', pill: 'border-orange-500 bg-orange-500/15 text-orange-700 dark:text-orange-300 shadow-orange-500/20' }
+    ];
+
+    function getUserColor(name) {
+      if (!name || name === 'System' || name === 'Autoplay / Host' || name === 'Someone' || name === 'Anonymous') {
+        return {
+          dot: 'bg-slate-400',
+          bg: 'bg-slate-200/80 dark:bg-gray-800 text-slate-600 dark:text-gray-400 border border-slate-300 dark:border-gray-700',
+          pill: 'border-slate-300 dark:border-gray-700 text-slate-700 dark:text-gray-300'
+        };
+      }
+      let hash = 0;
+      for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      const index = Math.abs(hash) % DJ_PALETTES.length;
+      return DJ_PALETTES[index];
+    }
+
+    // Proxy fallback for direct userColors[name] accesses
+    const userColors = new Proxy({}, {
+      get: (target, prop) => getUserColor(prop)
+    });
 
     // ============================================================
     // THEME MANAGEMENT (System Matching + Light + Dark)
@@ -1107,21 +1200,161 @@
     }
 
     // ============================================================
-    // USER SELECTION
+    // DYNAMIC DJ MANAGEMENT & ONBOARDING (v2.2.0)
     // ============================================================
-    function selectUser(user) {
-      currentUser = user;
-      localStorage.setItem('jukebox_user', user);
-      document.querySelectorAll('.user-pill').forEach(pill => {
-        const u = pill.getAttribute('data-user');
-        if (u === currentUser) {
-          pill.className = `user-pill flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-bold border transition-all duration-200 ${userColors[u].pill}`;
-        } else {
-          pill.className = 'user-pill flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold border transition-all duration-200 border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900/60 text-slate-600 dark:text-gray-400 hover:border-slate-300 dark:hover:border-gray-700';
-        }
-      });
-      showToast(`DJ set to: ${user}`);
+    function openDJModal(mandatory = false) {
+      isDJModalMandatory = mandatory;
+      const modal = document.getElementById('dj-modal');
+      const card = document.getElementById('dj-modal-card');
+      const closeBtn = document.getElementById('dj-modal-close-btn');
+      const input = document.getElementById('dj-name-input');
+      const title = document.getElementById('dj-modal-title');
+      const subtitle = document.getElementById('dj-modal-subtitle');
+      const knownContainer = document.getElementById('known-djs-container');
+      const knownPills = document.getElementById('known-djs-pills');
+
+      if (mandatory) {
+        closeBtn.classList.add('hidden');
+        title.innerText = 'Siapa Nama DJ Kamu?';
+        subtitle.innerText = 'Masukkan nama kamu untuk mulai request lagu, upvote antrean, dan karaokean bareng di pesta!';
+        input.value = '';
+      } else {
+        closeBtn.classList.remove('hidden');
+        title.innerText = 'Ganti Profil DJ';
+        subtitle.innerText = currentUser
+          ? `Saat ini kamu sedang DJing sebagai "${currentUser}". Kamu bisa mengganti nama atau memilih profil DJ lain.`
+          : 'Pilih nama atau buat profil DJ baru untuk pesta ini.';
+        input.value = currentUser || '';
+      }
+
+      // Render Known DJs in modal
+      if (knownDJs && knownDJs.length > 0) {
+        knownContainer.classList.remove('hidden');
+        knownPills.innerHTML = knownDJs.map(dj => {
+          const col = getUserColor(dj);
+          const isCurrent = dj === currentUser;
+          return `
+            <button type="button" onclick="selectUser('${dj.replace(/'/g, "\\'")}', true)"
+                    class="flex items-center gap-1.5 py-1 px-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer active:scale-95 ${isCurrent ? col.pill + ' ring-1 ring-pink-500' : 'border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 text-slate-700 dark:text-gray-300 hover:border-pink-500/50'}">
+              <span class="w-2 h-2 rounded-full ${col.dot}"></span>
+              <span>${dj}</span>
+              ${isCurrent ? '<span class="text-[10px] text-pink-500 font-bold">✓</span>' : ''}
+            </button>
+          `;
+        }).join('');
+      } else {
+        knownContainer.classList.add('hidden');
+      }
+
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      modal.classList.add('opacity-100');
+      card.classList.remove('scale-95');
+      card.classList.add('scale-100');
+
+      setTimeout(() => input.focus(), 120);
+    }
+
+    function closeDJModal() {
+      if (isDJModalMandatory && !currentUser) {
+        showToast('⚠️ Silakan masukkan nama DJ terlebih dahulu');
+        return;
+      }
+      const modal = document.getElementById('dj-modal');
+      const card = document.getElementById('dj-modal-card');
+      modal.classList.remove('opacity-100');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+      card.classList.remove('scale-100');
+      card.classList.add('scale-95');
+    }
+
+    async function handleDJFormSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById('dj-name-input');
+      const val = input.value.trim();
+      if (!val) {
+        showToast('⚠️ Nama DJ tidak boleh kosong');
+        return;
+      }
+      selectUser(val, true);
+    }
+
+    async function selectUser(user, shouldNotifyServer = false) {
+      if (!user || !user.trim()) return;
+      const cleanUser = user.trim().slice(0, 20);
+      currentUser = cleanUser;
+      localStorage.setItem('jukebox_user', cleanUser);
+
+      // Add to local known DJs
+      if (!knownDJs.includes(cleanUser)) {
+        knownDJs.unshift(cleanUser);
+      }
+      localStorage.setItem('jukebox_known_djs', JSON.stringify(knownDJs));
+
+      // Close modal if open
+      isDJModalMandatory = false;
+      closeDJModal();
+
+      // Render updated DJ Bar
+      renderDJPills();
+
+      showToast(`🎧 DJ disetel ke: ${cleanUser}`);
+
+      // Notify server if requested
+      if (shouldNotifyServer) {
+        try {
+          fetch('/api/dj/join', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: cleanUser })
+          }).catch(() => {});
+        } catch (e) {}
+      }
+
       fetchStatus();
+    }
+
+    function renderDJPills() {
+      const activeBadge = document.getElementById('active-dj-badge');
+      const pillsContainer = document.getElementById('user-pills');
+
+      if (!currentUser) {
+        if (activeBadge) {
+          activeBadge.innerHTML = `
+            <span class="w-2 h-2 rounded-full bg-pink-500 animate-ping"></span>
+            <span class="text-pink-600 dark:text-pink-400 font-bold">Pilih DJ</span>
+            <span class="text-xs">👉</span>
+          `;
+          activeBadge.className = 'flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold border border-pink-500/50 bg-pink-500/10 text-pink-600 dark:text-pink-400 transition-all duration-200 cursor-pointer shadow-xs active:scale-95';
+        }
+        if (pillsContainer) pillsContainer.innerHTML = '';
+        return;
+      }
+
+      const col = getUserColor(currentUser);
+      const djDisplayName = currentUser.toLowerCase().startsWith('dj ') ? currentUser : `DJ ${currentUser}`;
+      if (activeBadge) {
+        activeBadge.innerHTML = `
+          <span class="w-2 h-2 rounded-full ${col.dot}"></span>
+          <span class="truncate max-w-[120px] sm:max-w-none">${djDisplayName}</span>
+          <span class="text-[10px] text-pink-500 dark:text-pink-400 font-normal">✏️</span>
+        `;
+        activeBadge.className = `flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold border transition-all duration-200 cursor-pointer shadow-2xs active:scale-95 ${col.pill}`;
+      }
+
+      if (pillsContainer) {
+        // Show other known DJs (up to 4 pills)
+        const others = knownDJs.filter(d => d !== currentUser).slice(0, 4);
+        pillsContainer.innerHTML = others.map(dj => {
+          const c = getUserColor(dj);
+          return `
+            <button onclick="selectUser('${dj.replace(/'/g, "\\'")}', false)" data-user="${dj}"
+                    class="user-pill flex items-center justify-center gap-1.5 py-1 px-2.5 rounded-xl text-xs font-semibold border transition-all duration-200 border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900/60 text-slate-600 dark:text-gray-400 hover:border-pink-500/50 cursor-pointer active:scale-95 shrink-0">
+              <span class="w-1.5 h-1.5 rounded-full ${c.dot}"></span>
+              <span class="truncate max-w-[90px]">${dj}</span>
+            </button>
+          `;
+        }).join('');
+      }
     }
 
     // Tab Switching (Search vs Paste)
@@ -1190,9 +1423,10 @@
         
         const addedByEl = document.getElementById('now-added-by');
         if (song.addedBy) {
-          addedByEl.textContent = `• Added by ${song.addedBy}`;
+          const col = getUserColor(song.addedBy);
+          addedByEl.innerHTML = `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold ${col.bg}"><span class="w-1.5 h-1.5 rounded-full ${col.dot}"></span>${song.addedBy}</span>`;
         } else {
-          addedByEl.textContent = '';
+          addedByEl.innerHTML = '';
         }
 
         // Check if song changed
@@ -1243,6 +1477,21 @@
           volSlider.value = status.volume.state;
           updateVolumeUI(status.volume.state);
         }
+      }
+
+      // Sync Dynamic DJs from server
+      if (status.djs && Array.isArray(status.djs)) {
+        let changed = false;
+        status.djs.forEach(dj => {
+          if (dj && !knownDJs.includes(dj)) {
+            knownDJs.push(dj);
+            changed = true;
+          }
+        });
+        if (changed) {
+          localStorage.setItem('jukebox_known_djs', JSON.stringify(knownDJs));
+        }
+        renderDJPills();
       }
 
       // Queue List (Upcoming only)
@@ -1359,7 +1608,7 @@
       }
 
       queueList.innerHTML = upcoming.map((item, idx) => {
-        const userStyle = userColors[item.addedBy] || { bg: 'bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-400 border-slate-300 dark:border-gray-700' };
+        const userStyle = getUserColor(item.addedBy);
         const hasVoted = item.votedUsers && item.votedUsers.includes(currentUser);
         const voteBtnClass = hasVoted
           ? 'bg-gradient-to-r from-pink-500 to-indigo-600 text-white shadow-xs'
@@ -1480,11 +1729,12 @@
         'upvote': { icon: '🔥', label: 'upvoted' },
         'unvote': { icon: '↩️', label: 'cancelled vote on' },
         'volume': { icon: '🔊', label: '' },
+        'join': { icon: '🎧', label: '' },
         'start': { icon: '🚀', label: '' }
       };
 
       container.innerHTML = logs.map(item => {
-        const userStyle = userColors[item.user] || { bg: 'bg-slate-200 dark:bg-gray-800 text-slate-700 dark:text-gray-300' };
+        const userStyle = getUserColor(item.user);
         const meta = actionIcons[item.action] || { icon: '•', label: item.action };
 
         return `
@@ -1921,7 +2171,7 @@
             <h4 class="text-xs font-bold text-slate-800 dark:text-gray-200 truncate">${item.title}</h4>
             <p class="text-[11px] font-medium text-slate-500 dark:text-gray-400 truncate">${item.artist}</p>
             <div class="flex items-center gap-2 mt-0.5">
-              <span class="text-[10px] font-bold text-pink-600 dark:text-pink-400">by ${item.addedBy || 'Sam'}</span>
+              <span class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[10px] font-bold ${getUserColor(item.addedBy || 'Host').bg}"><span class="w-1.5 h-1.5 rounded-full ${getUserColor(item.addedBy || 'Host').dot}"></span>${item.addedBy || 'Host'}</span>
               <span class="text-[10px] text-slate-400 dark:text-gray-500">• ${timeAgo(item.playedAt)}</span>
             </div>
           </div>
@@ -2120,14 +2370,39 @@
     }
 
     // ============================================================
-    // INITIALIZATION
+    // INITIALIZATION & EVENT LISTENERS
     // ============================================================
     initTheme();
     initView();
-    selectUser(currentUser);
+    renderDJPills();
+
+    // First time entry check (no cached DJ name)
+    if (!currentUser) {
+      openDJModal(true);
+    } else {
+      selectUser(currentUser, false);
+    }
+
     fetchStatus();
     setupSSE();
     renderDefaultRecommendations();
+
+    // Global Key Listener for Modals
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (!isDJModalMandatory) closeDJModal();
+        closeChangelogModal();
+        closeLyrics();
+        closeAllCustomSelects();
+      }
+    });
+
+    // Close on backdrop click (only if not mandatory)
+    document.getElementById('dj-modal')?.addEventListener('click', (e) => {
+      if (e.target.id === 'dj-modal' && !isDJModalMandatory) {
+        closeDJModal();
+      }
+    });
   </script>
 </body>
 </html>

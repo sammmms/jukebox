@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.0] - 2026-11-03
+
+### Added
+- **Dynamic DJ Profiles & Custom Name Entry:**
+  - Removed all 4 static hardcoded DJ profiles (Leo, Andrew, Cia, Sam).
+  - Any party guest can now enter their own custom DJ name or nickname upon joining.
+  - New server-side dynamic DJ registry with `POST /api/dj/join` tracking active party participants across all connected devices.
+  - Included active party DJs list (`djs: []`) in `GET /api/status` for real-time guest sync.
+- **Mandatory First-Time Onboarding Modal:**
+  - Guests opening the app without cached credentials are automatically prompted with a blocking, welcoming DJ setup modal.
+  - Prevents anonymous requests and ensures attribution for every added song and upvote.
+  - Allows quick 1-tap selection if other party profiles are already active.
+- **Deterministic 9-Color DJ Palette:**
+  - Automatically generates unique, consistent neon/pastel accent colors, avatar dots, and badge styles for any arbitrary DJ name across all views.
+- **Dynamic DJ Header Bar & Switcher:**
+  - Replaced the static button grid with a sleek dynamic DJ bar: active DJ badge with quick-edit trigger, dynamic horizontal pills for other active guests, and a `+ Ganti DJ` modal switcher.
+
+---
+
 ## [2.1.0] - 2026-11-03
 
 ### Added
