@@ -100,12 +100,18 @@ Open your terminal and run:
 git clone https://github.com/sammmms/jukebox.git
 cd jukebox
 
-# 2. Install dependencies (express, cors, qrcode-terminal)
+# 2. Install dependencies
 npm install
 
-# 3. Start the Jukebox server
-npm start
+# 3. Jalankan sebagai Host Utama dengan domain publik:
+npm run host
 ```
+
+> [!TIP]
+> **1-Click Multi-Host Launcher (`npm run host`):**
+> Perintah `npm run host` otomatis mengecek koneksi YouTube Music Desktop, menjalankan server lokal, dan mengaktifkan Cloudflare Tunnel sehingga domain publik **`https://dj.wsnsam.my.id`** langsung mengarah ke laptop host aktif tanpa perlu konfigurasi IP atau DNS manual!
+>
+> Jika hanya ingin menjalankan server di jaringan lokal Wi-Fi tanpa tunnel publik, jalankan `npm start`.
 
 Upon launching, the terminal will automatically detect your local Wi-Fi IP address and print:
 

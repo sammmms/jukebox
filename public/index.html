@@ -1004,6 +1004,40 @@
     </div>
   </div>
 
+  <!-- ============================================================
+       MODAL: REUSABLE CUSTOM DIALOG (No built-in alert/confirm/prompt)
+       ============================================================ -->
+  <div id="custom-dialog-modal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-200 opacity-0 pointer-events-none">
+    <div id="custom-dialog-card" class="relative w-full max-w-sm rounded-2xl bg-white dark:bg-[#121520] border border-slate-200 dark:border-gray-800 shadow-2xl p-5.5 transition-all duration-200 transform scale-95 text-center space-y-4">
+      <div id="custom-dialog-icon" class="w-12 h-12 mx-auto rounded-2xl bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30 flex items-center justify-center text-2xl font-black">
+        ✨
+      </div>
+      <div>
+        <h4 id="custom-dialog-title" class="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">Title</h4>
+        <p id="custom-dialog-message" class="text-xs text-slate-500 dark:text-gray-400 mt-1.5 leading-relaxed">Message</p>
+      </div>
+      
+      <!-- Input for prompt type -->
+      <div id="custom-dialog-input-container" class="hidden text-left">
+        <label class="block text-[11px] font-bold text-slate-500 dark:text-gray-400 mb-1">Nama Host Baru:</label>
+        <input type="text" id="custom-dialog-input" maxlength="25"
+               class="w-full px-3.5 py-2.5 rounded-xl text-sm font-semibold bg-slate-50 dark:bg-gray-900 border border-slate-300 dark:border-gray-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all">
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2 pt-1">
+        <button type="button" id="custom-dialog-cancel-btn"
+                class="flex-1 py-2.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-slate-700 dark:text-gray-300 transition-all cursor-pointer active:scale-95">
+          Batal
+        </button>
+        <button type="button" id="custom-dialog-confirm-btn"
+                class="flex-1 py-2.5 rounded-xl font-extrabold text-xs bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 hover:opacity-95 text-white shadow-md shadow-pink-500/25 transition-all cursor-pointer active:scale-95">
+          Konfirmasi
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Notification Toast -->
   <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-slate-900/95 dark:bg-gray-900/95 border border-slate-700 dark:border-gray-700 text-white text-xs font-semibold shadow-2xl transition-all duration-300 opacity-0 pointer-events-none translate-y-4 flex items-center gap-2">
     <span>Notification</span>
@@ -1294,7 +1328,7 @@
             <span>⚠️</span>
             <span>Host Vacant</span>
           </div>
-          <button onclick="claimHostPrompt()" title="Klaim kontrol Host pesta malam ini"
+          <button id="host-claim-btn" onclick="claimHostPrompt()" title="Klaim kontrol Host pesta malam ini"
                   class="flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 via-pink-500 to-rose-500 text-white shadow-sm hover:opacity-90 active:scale-95 transition-all cursor-pointer">
             <span>👑</span>
             <span>Klaim Jadi Host</span>
@@ -1311,11 +1345,11 @@
         container.innerHTML = `
           <div class="flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 shadow-2xs">
             <span>👑</span>
-            <span class="truncate max-w-[140px]">${partyHost.name}</span>
+            <span id="host-name-text" class="truncate max-w-[140px]">${partyHost.name}</span>
             ${me ? '<span class="text-[9px] bg-amber-500 text-white font-extrabold px-1.5 py-0.2 rounded-full uppercase tracking-wider ml-0.5">Kamu</span>' : ''}
           </div>
           ${me ? `
-            <button onclick="releaseHost()" title="Lepas posisi Host agar jadi Vacant"
+            <button id="host-release-btn" onclick="releaseHost()" title="Lepas posisi Host agar jadi Vacant"
                     class="px-2 py-1 rounded-lg text-[10px] font-bold bg-slate-100 hover:bg-rose-50 dark:bg-gray-800 dark:hover:bg-rose-950/40 text-slate-500 hover:text-rose-600 dark:text-gray-400 dark:hover:text-rose-400 border border-slate-200 dark:border-gray-700 transition-all cursor-pointer">
               🔓 Lepas Host
             </button>
@@ -1484,9 +1518,108 @@
       fetchStatus();
     }
 
+    // ============================================================
+    // REUSABLE CUSTOM DIALOGS (No native alert/confirm/prompt)
+    // ============================================================
+    function showCustomDialog({ title, message, icon = '✨', type = 'alert', defaultValue = '', placeholder = '', confirmText = 'Konfirmasi', cancelText = 'Batal' }) {
+      return new Promise((resolve) => {
+        const modal = document.getElementById('custom-dialog-modal');
+        const card = document.getElementById('custom-dialog-card');
+        const iconEl = document.getElementById('custom-dialog-icon');
+        const titleEl = document.getElementById('custom-dialog-title');
+        const msgEl = document.getElementById('custom-dialog-message');
+        const inputContainer = document.getElementById('custom-dialog-input-container');
+        const input = document.getElementById('custom-dialog-input');
+        const confirmBtn = document.getElementById('custom-dialog-confirm-btn');
+        const cancelBtn = document.getElementById('custom-dialog-cancel-btn');
+
+        if (!modal) return resolve(type === 'prompt' ? null : false);
+
+        iconEl.innerHTML = icon;
+        titleEl.textContent = title;
+        msgEl.textContent = message;
+        confirmBtn.textContent = confirmText;
+        cancelBtn.textContent = cancelText;
+
+        if (type === 'prompt') {
+          inputContainer.classList.remove('hidden');
+          input.value = defaultValue;
+          input.placeholder = placeholder || 'Ketik di sini...';
+        } else {
+          inputContainer.classList.add('hidden');
+        }
+
+        if (type === 'alert') {
+          cancelBtn.classList.add('hidden');
+        } else {
+          cancelBtn.classList.remove('hidden');
+        }
+
+        function cleanup() {
+          modal.classList.add('opacity-0', 'pointer-events-none');
+          card.classList.add('scale-95');
+          setTimeout(() => modal.classList.add('hidden'), 200);
+          confirmBtn.onclick = null;
+          cancelBtn.onclick = null;
+          document.removeEventListener('keydown', handleKey);
+        }
+
+        function handleKey(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            confirmBtn.click();
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            cancelBtn.click();
+          }
+        }
+
+        confirmBtn.onclick = () => {
+          const val = type === 'prompt' ? input.value : true;
+          cleanup();
+          resolve(val);
+        };
+
+        cancelBtn.onclick = () => {
+          cleanup();
+          resolve(type === 'prompt' ? null : false);
+        };
+
+        document.addEventListener('keydown', handleKey);
+
+        modal.classList.remove('hidden');
+        requestAnimationFrame(() => {
+          modal.classList.remove('opacity-0', 'pointer-events-none');
+          card.classList.remove('scale-95');
+        });
+
+        if (type === 'prompt') {
+          setTimeout(() => { input.focus(); input.select(); }, 120);
+        }
+      });
+    }
+
+    function customAlert(message, title = 'Perhatian', icon = 'ℹ️') {
+      return showCustomDialog({ title, message, icon, type: 'alert', confirmText: 'OK' });
+    }
+
+    function customConfirm(message, title = 'Konfirmasi', icon = '❓', confirmText = 'Ya', cancelText = 'Batal') {
+      return showCustomDialog({ title, message, icon, type: 'confirm', confirmText, cancelText });
+    }
+
+    function customPrompt(message, defaultValue = '', title = 'Input Diperlukan', icon = '✏️', confirmText = 'Simpan', cancelText = 'Batal') {
+      return showCustomDialog({ title, message, icon, type: 'prompt', defaultValue, confirmText, cancelText });
+    }
+
     async function claimHostPrompt() {
       const defaultName = currentUser || 'DJ Sam';
-      const name = prompt('👑 Kursi Host sedang kosong! Masukkan nama kamu untuk klaim status Host:', defaultName);
+      const name = await customPrompt(
+        'Kursi Host sedang kosong (Auto-Vacant)! Masukkan nama kamu untuk mengambil alih status Host malam ini:',
+        defaultName,
+        'Klaim Kursi Host Party',
+        '👑',
+        'Klaim Host 👑'
+      );
       if (name && name.trim()) {
         const cleanName = name.trim();
         currentUser = cleanName;
@@ -1525,7 +1658,14 @@
     }
 
     async function releaseHost() {
-      if (!confirm('Lepas status Host sekarang? Kursi Host akan menjadi Vacant dan bisa diambil alih teman lain.')) return;
+      const ok = await customConfirm(
+        'Lepas status Host sekarang? Kursi Host akan menjadi Vacant dan bisa diambil alih teman lain.',
+        'Lepas Status Host?',
+        '🔓',
+        'Ya, Lepas Host',
+        'Batal'
+      );
+      if (!ok) return;
       try {
         const token = localStorage.getItem('jukebox_host_token');
         const res = await fetch('/api/host/release', {
@@ -1638,9 +1778,19 @@
         document.getElementById('now-thumbnail').src = song.imageSrc || 'https://via.placeholder.com/150';
         
         const addedByEl = document.getElementById('now-added-by');
-        if (song.addedBy) {
-          const col = getUserColor(song.addedBy);
-          addedByEl.innerHTML = `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold ${col.bg}"><span class="w-1.5 h-1.5 rounded-full ${col.dot}"></span>${song.addedBy}</span>`;
+        const effectiveAddedBy = (song.addedBy && song.addedBy !== 'Autoplay / Host')
+          ? song.addedBy
+          : (song.videoId ? localStorage.getItem('jukebox_addedby_' + song.videoId) : null) || song.addedBy || 'Autoplay / Host';
+
+        if (song.videoId && effectiveAddedBy && effectiveAddedBy !== 'Autoplay / Host') {
+          try { localStorage.setItem('jukebox_addedby_' + song.videoId, effectiveAddedBy); } catch (e) {}
+        }
+
+        if (effectiveAddedBy) {
+          const isAutoplay = effectiveAddedBy.toLowerCase().includes('autoplay') || effectiveAddedBy.toLowerCase().includes('host');
+          const col = getUserColor(effectiveAddedBy);
+          const label = isAutoplay ? '📻 ' + effectiveAddedBy : 'by ' + effectiveAddedBy;
+          addedByEl.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${col.bg}"><span class="w-1.5 h-1.5 rounded-full ${col.dot}"></span>${label}</span>`;
         } else {
           addedByEl.innerHTML = '';
         }
@@ -2071,7 +2221,7 @@
         const kw = chip.getAttribute('data-keyword');
         const isAct = kw === currentActiveCategoryKeyword;
         if (isAct) {
-          chip.className = 'category-chip shrink-0 px-3 py-1.5 rounded-xl border transition-all duration-200 shadow-md flex items-center gap-1.5 font-extrabold text-[11px] cursor-pointer bg-gradient-to-r from-pink-500 to-rose-500 text-white border-pink-400 shadow-pink-500/25 ring-2 ring-pink-500/30 scale-[1.03]';
+          chip.className = 'category-chip active shrink-0 px-3 py-1.5 rounded-xl border transition-all duration-200 shadow-md flex items-center gap-1.5 font-extrabold text-[11px] cursor-pointer bg-gradient-to-r from-pink-500 to-rose-500 text-white border-pink-400 shadow-pink-500/25 ring-2 ring-pink-500/30 scale-[1.03]';
         } else {
           chip.className = 'category-chip shrink-0 px-3 py-1.5 rounded-xl border transition-all duration-200 shadow-2xs flex items-center gap-1 font-bold text-[11px] cursor-pointer bg-slate-100 dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-700 dark:text-gray-300 hover:border-pink-500/50 hover:bg-slate-200/60 dark:hover:bg-gray-800';
         }

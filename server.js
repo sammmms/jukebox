@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const os = require('os');
+const fs = require('fs');
 const { exec } = require('child_process');
 const qrcode = require('qrcode-terminal');
 
@@ -13,6 +14,14 @@ const YTM_WS = 'ws://localhost:26538/api/v1/ws';
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Persisted Data Storage (data/social_queue.json & data/played_history.json)
+const DATA_DIR = path.join(__dirname, 'data');
+if (!fs.existsSync(DATA_DIR)) {
+  try { fs.mkdirSync(DATA_DIR, { recursive: true }); } catch (e) {}
+}
+const SOCIAL_QUEUE_FILE = path.join(DATA_DIR, 'social_queue.json');
+const PLAYED_HISTORY_FILE = path.join(DATA_DIR, 'played_history.json');
 
 // In-memory social tracking for queued tracks: videoId -> { user, addedAt, title, artist, thumbnail }
 const socialQueue = new Map();
@@ -26,6 +35,44 @@ const knownDJs = new Set();
 const playedHistory = [];
 // In-memory lyrics cache
 const lyricsCache = new Map();
+
+// Load persisted social queue & history on boot
+try {
+  if (fs.existsSync(SOCIAL_QUEUE_FILE)) {
+    const raw = JSON.parse(fs.readFileSync(SOCIAL_QUEUE_FILE, 'utf8'));
+    for (const [k, v] of Object.entries(raw)) {
+      socialQueue.set(k, v);
+      if (v && v.user) knownDJs.add(v.user);
+    }
+  }
+} catch (e) {
+  console.warn('Could not load persisted social queue:', e.message);
+}
+
+try {
+  if (fs.existsSync(PLAYED_HISTORY_FILE)) {
+    const raw = JSON.parse(fs.readFileSync(PLAYED_HISTORY_FILE, 'utf8'));
+    if (Array.isArray(raw)) playedHistory.push(...raw.slice(0, 60));
+  }
+} catch (e) {
+  console.warn('Could not load persisted history:', e.message);
+}
+
+function persistSocialQueue() {
+  try {
+    const obj = {};
+    for (const [k, v] of socialQueue.entries()) {
+      obj[k] = v;
+    }
+    fs.writeFileSync(SOCIAL_QUEUE_FILE, JSON.stringify(obj, null, 2));
+  } catch (e) {}
+}
+
+function persistPlayedHistory() {
+  try {
+    fs.writeFileSync(PLAYED_HISTORY_FILE, JSON.stringify(playedHistory.slice(0, 60), null, 2));
+  } catch (e) {}
+}
 
 // --- AUTO-VACANT PARTY HOST MANAGEMENT (v2.3.0) ---
 const HOST_VACANT_TIMEOUT_MS = 60 * 1000; // 60s without heartbeat -> Auto-Vacant
@@ -84,6 +131,32 @@ function addPlayedHistory(track) {
     playedAt: Date.now()
   });
   if (playedHistory.length > 60) playedHistory.pop();
+  persistPlayedHistory();
+}
+
+function resolveAddedBy(videoId, queue = [], title = '') {
+  if (!videoId && !title) return 'Autoplay / Host';
+  if (videoId && socialQueue.has(videoId)) {
+    return socialQueue.get(videoId).user;
+  }
+  if (title) {
+    const cleanT = title.trim().toLowerCase();
+    for (const [k, v] of socialQueue.entries()) {
+      if (v && v.title && v.title.trim().toLowerCase() === cleanT) {
+        return v.user;
+      }
+    }
+  }
+  if (liveSong && (liveSong.videoId === videoId || (title && liveSong.title === title)) && liveSong.addedBy && liveSong.addedBy !== 'Autoplay / Host') {
+    return liveSong.addedBy;
+  }
+  if (Array.isArray(queue)) {
+    const inQueue = queue.find(q => (videoId && q.videoId === videoId) || (title && q.title === title));
+    if (inQueue && inQueue.addedBy) return inQueue.addedBy;
+  }
+  const inHistory = playedHistory.find(h => (videoId && h.videoId === videoId) || (title && h.title === title));
+  if (inHistory && inHistory.addedBy) return inHistory.addedBy;
+  return 'Autoplay / Host';
 }
 
 // Cross-Platform System Volume Control (Mac OS, Windows, Linux)
@@ -358,7 +431,7 @@ async function fetchCurrentSongFromYTM() {
       songDuration: song.songDuration || 0,
       elapsedSeconds: song.elapsedSeconds || 0,
       videoId: song.videoId || '',
-      addedBy: socialQueue.get(song.videoId)?.user || 'Autoplay / Host'
+      addedBy: resolveAddedBy(song.videoId, [], song.title)
     };
   } catch (err) {
     return null;
@@ -389,7 +462,7 @@ function connectYTMWebSocket() {
               songDuration: msg.song.songDuration || 0,
               elapsedSeconds: msg.position ?? msg.song.elapsedSeconds ?? 0,
               videoId: msg.song.videoId || '',
-              addedBy: socialQueue.get(msg.song.videoId)?.user || 'Autoplay / Host'
+              addedBy: resolveAddedBy(msg.song.videoId, [], msg.song.title)
             };
             updatePlaybackTracker(liveSong);
             broadcastUpdate();
@@ -710,6 +783,7 @@ app.get('/api/status', async (req, res) => {
   ]);
 
   if (freshSong) {
+    freshSong.addedBy = resolveAddedBy(freshSong.videoId, queue, freshSong.title);
     liveSong = freshSong;
     updatePlaybackTracker(freshSong);
   }
@@ -781,6 +855,7 @@ app.post('/api/queue', async (req, res) => {
       artist: artist || '',
       thumbnail: thumbnail || ''
     });
+    persistSocialQueue();
 
     addActivity(user, 'add', songTitle);
     broadcastUpdate();

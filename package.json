@@ -1,10 +1,11 @@
 {
   "name": "jukebox",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "Collaborative, real-time social jukebox & karaoke hub for house parties and hangouts",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "host": "node scripts/start-host.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

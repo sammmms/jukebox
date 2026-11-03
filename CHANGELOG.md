@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.1] - 2026-11-03
+
+### Added
+- **1-Click Multi-Host Portable Launcher (`npm run host`):**
+  - Enabled any friend who clones the repository to immediately become the active Party Host with their own laptop and YouTube Music Desktop.
+  - Automatically verifies YouTube Music Desktop Companion Server status (`port 26538`).
+  - Seamlessly starts the Jukebox server and connects the portable Cloudflare Tunnel token so that `https://dj.wsnsam.my.id` instantly points to whoever is running `npm run host` without changing any DNS or router settings.
+- **100% Custom Glassmorphic Dialog System:**
+  - Completely eliminated all native browser blocking dialogs (`window.alert`, `window.confirm`, `window.prompt`).
+  - Implemented responsive, theme-aware custom dialogs (`customAlert`, `customConfirm`, `customPrompt`) with keyboard shortcuts (`Enter` to submit, `Esc` to cancel), auto-focus, and smooth spring animations.
+
+### Fixed
+- **Now Playing Song Request Attribution Lost on Reload:**
+  - Resolved issue where refreshing the browser caused the `by [Requester]` pill on Now Playing to disappear or revert to `Autoplay / Host`.
+  - Added JSON disk persistence (`data/social_queue.json` & `data/played_history.json`) so server restarts never wipe social attribution.
+  - Upgraded server attribution resolver (`resolveAddedBy`) to cross-reference video IDs, queue arrays, and exact track titles.
+  - Added frontend `localStorage` requester cache fallback so attribution renders instantly even during reloads.
+
+---
+
 ## [2.3.0] - 2026-11-03
 
 ### Added
