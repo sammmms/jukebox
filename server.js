@@ -490,16 +490,18 @@ async function validateYouTubeMusicTrack(videoId) {
       signal: AbortSignal.timeout(3500)
     });
 
-    const html = await ytmRes.text();
-    const hasOgTitle = html.includes('property="og:title"');
-    const isGenericYTM = html.includes('<title>YouTube Music</title>') && !hasOgTitle;
-    const isDeprecatedNotice = html.includes('Browser Anda sudah tidak digunakan lagi') && !hasOgTitle;
+    if (ytmRes.ok) {
+      const html = await ytmRes.text();
+      const hasOgTitle = html.includes('property="og:title"');
+      const isGenericYTM = html.includes('<title>YouTube Music</title>') && !hasOgTitle;
+      const isDeprecatedNotice = html.includes('Browser Anda sudah tidak digunakan lagi') && !hasOgTitle;
 
-    if (isGenericYTM || isDeprecatedNotice || !hasOgTitle) {
-      return {
-        valid: false,
-        error: 'Video ini tidak tersedia di katalog YouTube Music (tidak dapat diputar di aplikasi musik).'
-      };
+      if (isGenericYTM || isDeprecatedNotice) {
+        return {
+          valid: false,
+          error: 'Video ini tidak tersedia di katalog YouTube Music (tidak dapat diputar di aplikasi musik).'
+        };
+      }
     }
   } catch (err) {
     console.warn(`[ValidateTrack] YTM catalog check warning for ${cleanId}:`, err.message);
@@ -784,7 +786,7 @@ async function searchYouTubeMusic(query) {
   }
 }
 
-const APP_VERSION = '2.4.1';
+const APP_VERSION = '2.4.2';
 
 // --- API ROUTES ---
 

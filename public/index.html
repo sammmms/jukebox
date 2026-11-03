@@ -850,7 +850,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.4.1</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.4.2</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -861,10 +861,23 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.4.1 -->
+        <!-- v2.4.2 -->
         <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-800 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.4.1 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.4.2 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">🎨 Elegant Dialog Modal Padding:</strong> Restored spacious padding (24-32px), glowing centered icon, high-contrast typography, and responsive rounded dialog cards.</li>
+            <li><strong class="text-slate-800 dark:text-white">🎵 Fixed Mandarin Recommendation Tracks:</strong> Corrected official video IDs for Eric Chou's <em>怎么了 (What's Wrong)</em> and Firdhaus' <em>阿拉斯加海湾 (Gulf of Alaska)</em> with instant 1-tap queueing and reliable thumbnails.</li>
+            <li><strong class="text-slate-800 dark:text-white">🛡️ Refined Catalog Validator:</strong> Fixed false-positive 429 rate-limit rejections, ensuring all valid YouTube Music songs add seamlessly from search or recommendations.</li>
+          </ul>
+        </div>
+
+        <!-- v2.4.1 -->
+        <div class="p-3 rounded-xl bg-slate-50/60 dark:bg-gray-900/40 border border-slate-200/60 dark:border-gray-800/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-200 dark:bg-gray-800 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-700">v2.4.1</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -1043,31 +1056,38 @@
   <!-- ============================================================
        MODAL: REUSABLE CUSTOM DIALOG (No built-in alert/confirm/prompt)
        ============================================================ -->
-  <div id="custom-dialog-modal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-200 opacity-0 pointer-events-none">
-    <div id="custom-dialog-card" class="relative w-full max-w-sm rounded-2xl bg-white dark:bg-[#121520] border border-slate-200 dark:border-gray-800 shadow-2xl p-5.5 transition-all duration-200 transform scale-95 text-center space-y-4">
-      <div id="custom-dialog-icon" class="w-12 h-12 mx-auto rounded-2xl bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30 flex items-center justify-center text-2xl font-black">
-        ✨
+  <div id="custom-dialog-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 transition-all duration-200 opacity-0 pointer-events-none">
+    <div id="custom-dialog-card" class="relative w-[92%] sm:w-full max-w-sm sm:max-w-md rounded-3xl bg-white dark:bg-[#151926] border border-slate-200/90 dark:border-gray-800/90 shadow-2xl p-6 sm:p-8 transition-all duration-200 transform scale-95 text-center space-y-5 ring-1 ring-black/5 dark:ring-white/10">
+      
+      <!-- Icon with soft glow pill -->
+      <div class="relative mx-auto w-16 h-16 flex items-center justify-center">
+        <div class="absolute inset-0 rounded-2xl bg-gradient-to-tr from-pink-500/30 to-rose-500/10 blur-lg"></div>
+        <div id="custom-dialog-icon" class="relative w-16 h-16 rounded-2xl bg-gradient-to-b from-pink-500/15 to-rose-500/25 dark:from-pink-500/20 dark:to-rose-500/30 text-pink-600 dark:text-pink-400 border border-pink-500/30 flex items-center justify-center text-3xl font-black shadow-inner">
+          ✨
+        </div>
       </div>
-      <div>
-        <h4 id="custom-dialog-title" class="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">Title</h4>
-        <p id="custom-dialog-message" class="text-xs text-slate-500 dark:text-gray-400 mt-1.5 leading-relaxed">Message</p>
+
+      <!-- Typography -->
+      <div class="px-1 space-y-2">
+        <h4 id="custom-dialog-title" class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">Title</h4>
+        <p id="custom-dialog-message" class="text-xs sm:text-sm text-slate-600 dark:text-gray-300 leading-relaxed max-w-xs mx-auto">Message</p>
       </div>
       
       <!-- Input for prompt type -->
-      <div id="custom-dialog-input-container" class="hidden text-left">
-        <label class="block text-[11px] font-bold text-slate-500 dark:text-gray-400 mb-1">Nama Host Baru:</label>
+      <div id="custom-dialog-input-container" class="hidden text-left pt-1">
+        <label class="block text-[11px] font-bold text-slate-500 dark:text-gray-400 mb-1.5 uppercase tracking-wider">Nama Host Baru:</label>
         <input type="text" id="custom-dialog-input" maxlength="25"
-               class="w-full px-3.5 py-2.5 rounded-xl text-sm font-semibold bg-slate-50 dark:bg-gray-900 border border-slate-300 dark:border-gray-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all">
+               class="w-full px-4 py-3 rounded-xl text-sm font-semibold bg-slate-50 dark:bg-gray-900 border border-slate-300 dark:border-gray-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all shadow-inner">
       </div>
 
       <!-- Action Buttons -->
-      <div class="flex items-center gap-2 pt-1">
+      <div class="flex items-center gap-2.5 pt-2">
         <button type="button" id="custom-dialog-cancel-btn"
-                class="flex-1 py-2.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-slate-700 dark:text-gray-300 transition-all cursor-pointer active:scale-95">
+                class="flex-1 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-slate-700 dark:text-gray-300 transition-all cursor-pointer active:scale-95 border border-slate-200 dark:border-gray-700">
           Batal
         </button>
         <button type="button" id="custom-dialog-confirm-btn"
-                class="flex-1 py-2.5 rounded-xl font-extrabold text-xs bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 hover:opacity-95 text-white shadow-md shadow-pink-500/25 transition-all cursor-pointer active:scale-95">
+                class="flex-1 py-3 px-4 rounded-xl font-black text-xs sm:text-sm bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 hover:opacity-95 text-white shadow-lg shadow-pink-500/30 transition-all cursor-pointer active:scale-95 border border-white/20">
           Konfirmasi
         </button>
       </div>
@@ -1087,7 +1107,7 @@
     <div class="text-left text-xs min-w-0 flex-1">
       <div class="flex items-center gap-1.5 flex-wrap">
         <span class="font-black text-white">Versi Baru Tersedia!</span>
-        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.4.1</span>
+        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.4.2</span>
       </div>
       <p class="text-[11px] text-pink-100 opacity-90 mt-0.5">Memuat pembaruan otomatis dalam <span id="update-countdown" class="font-extrabold underline">3</span>s...</p>
     </div>
@@ -1109,7 +1129,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.4.1';
+    const CLIENT_VERSION = '2.4.2';
     let isUpdateTriggered = false;
 
     function triggerVersionUpdateBanner(newVersion) {
@@ -2269,19 +2289,19 @@
     // ============================================================
     const partyRecommendations = [
       // Top Mandarin / C-Pop Hits
-      { videoId: 'bu7nU9Mhpyo', title: '告白气球 (Love Confession)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/bu7nU9Mhpyo/hq720.jpg' },
-      { videoId: '6ZXzn1jwtM4', title: '爱人错过 (Somewhere in time)', artist: '告五人 Accusefive', thumbnail: 'https://i.ytimg.com/vi/6ZXzn1jwtM4/hq720.jpg' },
-      { videoId: 'LWV-f6dMN3Q', title: '修炼爱情 (Practice Love)', artist: '林俊杰 JJ Lin', thumbnail: 'https://i.ytimg.com/vi/LWV-f6dMN3Q/hq720.jpg' },
-      { videoId: 'T4SimnaiktU', title: '光年之外 (Light Years Away)', artist: '邓紫棋 G.E.M.', thumbnail: 'https://i.ytimg.com/vi/T4SimnaiktU/hq720.jpg' },
-      { videoId: 'Y2ge3Kr53k8', title: '怎么了 (What\'s Wrong)', artist: '周兴哲 Eric Chou', thumbnail: 'https://i.ytimg.com/vi/Y2ge3Kr53k8/hq720.jpg' },
-      { videoId: 'eA4hBhy43cM', title: '阿拉斯加海湾 (Gulf of Alaska)', artist: '菲道尔 Firdhaus', thumbnail: 'https://i.ytimg.com/vi/eA4hBhy43cM/hq720.jpg' },
+      { videoId: 'bu7nU9Mhpyo', title: '告白气球 (Love Confession)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/bu7nU9Mhpyo/hqdefault.jpg' },
+      { videoId: '6ZXzn1jwtM4', title: '爱人错过 (Somewhere in time)', artist: '告五人 Accusefive', thumbnail: 'https://i.ytimg.com/vi/6ZXzn1jwtM4/hqdefault.jpg' },
+      { videoId: 'LWV-f6dMN3Q', title: '修炼爱情 (Practice Love)', artist: '林俊杰 JJ Lin', thumbnail: 'https://i.ytimg.com/vi/LWV-f6dMN3Q/hqdefault.jpg' },
+      { videoId: 'T4SimnaiktU', title: '光年之外 (Light Years Away)', artist: '邓紫棋 G.E.M.', thumbnail: 'https://i.ytimg.com/vi/T4SimnaiktU/hqdefault.jpg' },
+      { videoId: 'Y2ge3KrdeWs', title: '怎么了 (What\'s Wrong)', artist: '周兴哲 Eric Chou', thumbnail: 'https://i.ytimg.com/vi/Y2ge3KrdeWs/hqdefault.jpg' },
+      { videoId: '_MQVmPpMQEc', title: '阿拉斯加海湾 (Gulf of Alaska)', artist: '菲道尔 Firdhaus', thumbnail: 'https://i.ytimg.com/vi/_MQVmPpMQEc/hqdefault.jpg' },
       // Global Party & Anime Classics
-      { videoId: 'dvgZkm1xWPE', title: 'Viva La Vida', artist: 'Coldplay', thumbnail: 'https://i.ytimg.com/vi/dvgZkm1xWPE/hq720.jpg' },
-      { videoId: '34Na4j8AVgA', title: 'Starboy', artist: 'The Weeknd ft. Daft Punk', thumbnail: 'https://i.ytimg.com/vi/34Na4j8AVgA/hq720.jpg' },
-      { videoId: 'JGwWNGJdvx8', title: 'Shape of You', artist: 'Ed Sheeran', thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/hq720.jpg' },
-      { videoId: 'ArmDp-zijuc', title: 'Super Shy', artist: 'NewJeans', thumbnail: 'https://i.ytimg.com/vi/ArmDp-zijuc/hq720.jpg' },
-      { videoId: 'x8VYWazR5mE', title: '夜に駆ける (Racing into the Night)', artist: 'YOASOBI', thumbnail: 'https://i.ytimg.com/vi/x8VYWazR5mE/hq720.jpg' },
-      { videoId: 'a5uQMwRMHcs', title: 'Sparkle (スパークル)', artist: 'RADWIMPS', thumbnail: 'https://i.ytimg.com/vi/a5uQMwRMHcs/hq720.jpg' }
+      { videoId: 'dvgZkm1xWPE', title: 'Viva La Vida', artist: 'Coldplay', thumbnail: 'https://i.ytimg.com/vi/dvgZkm1xWPE/hqdefault.jpg' },
+      { videoId: '34Na4j8AVgA', title: 'Starboy', artist: 'The Weeknd ft. Daft Punk', thumbnail: 'https://i.ytimg.com/vi/34Na4j8AVgA/hqdefault.jpg' },
+      { videoId: 'JGwWNGJdvx8', title: 'Shape of You', artist: 'Ed Sheeran', thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg' },
+      { videoId: 'ArmDp-zijuc', title: 'Super Shy', artist: 'NewJeans', thumbnail: 'https://i.ytimg.com/vi/ArmDp-zijuc/hqdefault.jpg' },
+      { videoId: 'x8VYWazR5mE', title: '夜に駆ける (Racing into the Night)', artist: 'YOASOBI', thumbnail: 'https://i.ytimg.com/vi/x8VYWazR5mE/hqdefault.jpg' },
+      { videoId: 'a5uQMwRMHcs', title: 'Sparkle (スパークル)', artist: 'RADWIMPS', thumbnail: 'https://i.ytimg.com/vi/a5uQMwRMHcs/hqdefault.jpg' }
     ];
 
     function renderDefaultRecommendations() {
@@ -2297,7 +2317,7 @@
           <div class="space-y-1.5">
             ${partyRecommendations.map(item => `
               <div class="flex items-center gap-3 p-2 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800/80 hover:border-pink-500/50 shadow-2xs transition-colors">
-                <img src="${item.thumbnail}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-slate-200 dark:border-gray-800">
+                <img src="${item.thumbnail}" onerror="this.onerror=null;this.src='https://placehold.co/80x80/1e293b/white?text=🎵';" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-slate-200 dark:border-gray-800">
                 <div class="flex-1 min-w-0">
                   <h5 class="text-xs font-bold text-slate-900 dark:text-white truncate">${item.title}</h5>
                   <p class="text-[11px] font-medium text-slate-500 dark:text-gray-400 truncate">${item.artist}</p>
