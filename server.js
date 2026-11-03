@@ -13,7 +13,15 @@ const YTM_WS = 'ws://localhost:26538/api/v1/ws';
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    }
+  }
+}));
 
 // Persisted Data Storage (data/social_queue.json & data/played_history.json)
 const DATA_DIR = path.join(__dirname, 'data');
@@ -776,7 +784,7 @@ async function searchYouTubeMusic(query) {
   }
 }
 
-const APP_VERSION = '2.4.0';
+const APP_VERSION = '2.4.1';
 
 // --- API ROUTES ---
 

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.4.1] - 2026-11-03
+
+### Added
+- **Auto-Update Version Watchdog with Floating Countdown Banner:**
+  - Automatically detects when a newer build or backend server release is deployed.
+  - Floating top banner notifies attendees with a 3-second countdown and 1-tap `[Refresh ⚡]` button, then automatically triggers `window.location.reload(true)` to ensure open browser sessions never stay stuck on outdated code.
+- **Cache-Busting HTTP Headers on HTML Assets:**
+  - Configured `express.static` with `no-cache, no-store, must-revalidate` specifically for `.html` files, completely preventing mobile browsers (iOS Safari, Android Chrome) from serving stale HTML from disk cache.
+
+---
+
 ## [2.4.0] - 2026-11-03
 
 ### Added

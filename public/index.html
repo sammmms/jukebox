@@ -850,7 +850,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.3.0</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.4.1</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -861,10 +861,23 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.3.0 -->
+        <!-- v2.4.1 -->
         <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-800 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.3.0 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.4.1 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">🚀 Auto-Update Version Watchdog:</strong> Real-time detection of server updates with an automated floating countdown banner that seamlessly reloads open tabs without manual effort.</li>
+            <li><strong class="text-slate-800 dark:text-white">🧲 10% Volume Snapping:</strong> Quick 1-tap snap toggle (0%, 10%, 20%... 100%) beside the volume slider with local preference persistence.</li>
+            <li><strong class="text-slate-800 dark:text-white">🛡️ YouTube Music Track Validation:</strong> Rejects unplayable/non-music YouTube links and prevents previous song audio hang.</li>
+          </ul>
+        </div>
+
+        <!-- v2.3.0 -->
+        <div class="p-3 rounded-xl bg-slate-50/60 dark:bg-gray-900/40 border border-slate-200/60 dark:border-gray-800/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-200 dark:bg-gray-800 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-700">v2.3.0</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -1066,6 +1079,23 @@
     <span>Notification</span>
   </div>
 
+  <!-- Auto-Update Version Banner (Real-time detection bila server/build baru dirilis) -->
+  <div id="update-banner" class="hidden fixed top-5 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-2xl bg-gradient-to-r from-pink-600 via-rose-600 to-indigo-600 text-white shadow-2xl flex items-center gap-3 border border-white/25 transition-all duration-300 transform -translate-y-4 opacity-0 max-w-sm w-[92%] sm:w-auto">
+    <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-base shrink-0 animate-pulse">
+      🚀
+    </div>
+    <div class="text-left text-xs min-w-0 flex-1">
+      <div class="flex items-center gap-1.5 flex-wrap">
+        <span class="font-black text-white">Versi Baru Tersedia!</span>
+        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.4.1</span>
+      </div>
+      <p class="text-[11px] text-pink-100 opacity-90 mt-0.5">Memuat pembaruan otomatis dalam <span id="update-countdown" class="font-extrabold underline">3</span>s...</p>
+    </div>
+    <button onclick="window.location.reload(true)" class="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-black text-xs shadow-md active:scale-95 transition-all cursor-pointer shrink-0">
+      Refresh ⚡
+    </button>
+  </div>
+
   <!-- ============================================================
        APPLICATION LOGIC
        ============================================================ -->
@@ -1079,6 +1109,37 @@
     } catch (e) {
       knownDJs = [];
     }
+    const CLIENT_VERSION = '2.4.1';
+    let isUpdateTriggered = false;
+
+    function triggerVersionUpdateBanner(newVersion) {
+      if (isUpdateTriggered) return;
+      if (!newVersion || newVersion === CLIENT_VERSION) return;
+      isUpdateTriggered = true;
+
+      const banner = document.getElementById('update-banner');
+      const tag = document.getElementById('update-version-tag');
+      const countdownEl = document.getElementById('update-countdown');
+
+      if (tag) tag.textContent = 'v' + newVersion;
+      if (banner) {
+        banner.classList.remove('hidden');
+        requestAnimationFrame(() => {
+          banner.classList.remove('-translate-y-4', 'opacity-0');
+        });
+      }
+
+      let seconds = 3;
+      const timer = setInterval(() => {
+        seconds--;
+        if (countdownEl) countdownEl.textContent = seconds;
+        if (seconds <= 0) {
+          clearInterval(timer);
+          window.location.reload(true);
+        }
+      }, 1000);
+    }
+
     let isDJModalMandatory = false;
     let currentTheme = localStorage.getItem('jukebox_theme') || 'system';
     let currentView = localStorage.getItem('jukebox_view') || 'auto';
@@ -1783,7 +1844,14 @@
 
     // Update UI from Status
     function updateUI(status) {
-      if (!status || !status.online) {
+      if (!status) return;
+
+      // Auto-Update Version Watchdog: Detect new builds and prompt/auto-refresh
+      if (status.version && status.version !== CLIENT_VERSION) {
+        triggerVersionUpdateBanner(status.version);
+      }
+
+      if (!status.online) {
         document.getElementById('connection-dot').className = 'w-2 h-2 rounded-full bg-red-500';
         document.getElementById('connection-text').textContent = 'Connecting to Mac...';
         return;
