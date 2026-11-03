@@ -592,13 +592,39 @@ app.post('/api/control/toggle', async (req, res) => {
 app.post('/api/control/next', async (req, res) => {
   const { user } = req.body;
   try {
-    const skippedTitle = liveSong.title;
-    await fetch(`${YTM_API}/api/v1/next`, { method: 'POST' });
+    const skippedTitle = liveSong.title || 'Song';
+    const { queue, selectedIndex } = await getQueueData();
+
+    let skipped = false;
+
+    // 1. If there is a next song in the queue, jump to it directly via SET_INDEX
+    if (selectedIndex >= 0 && selectedIndex + 1 < queue.length) {
+      const targetIndex = queue[selectedIndex + 1].rawIndex;
+      const resp = await fetch(`${YTM_API}/api/v1/queue`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ index: targetIndex })
+      });
+      if (resp.ok || resp.status === 204) {
+        skipped = true;
+      }
+    }
+
+    // 2. If no next song in queue or index jump didn't succeed, fallback to POST /api/v1/next
+    if (!skipped) {
+      await fetch(`${YTM_API}/api/v1/next`, { method: 'POST' }).catch(() => {});
+    }
+
+    // 3. Reset playbackTracker to immediately reflect transition
+    playbackTracker.elapsed = 0;
+    playbackTracker.lastReportedElapsed = -1;
+    playbackTracker.lastUpdated = Date.now();
 
     addActivity(user, 'skip', skippedTitle);
-    setTimeout(syncAndBroadcast, 400);
-    res.json({ success: true });
+    setTimeout(syncAndBroadcast, 500);
+    res.json({ success: true, skipped });
   } catch (e) {
+    console.error('Skip error:', e);
     res.status(500).json({ error: 'Control error' });
   }
 });
