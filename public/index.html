@@ -1529,10 +1529,12 @@
         renderDJPills();
       }
 
-      // Sync Host URL & QR Code with the true dynamic host LAN IP
-      if (status.host && status.host.url) {
-        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const targetShare = isLocalhost ? status.host.url : window.location.origin;
+      // Sync Host URL & QR Code with the permanent Cloudflare Domain (https://dj.wsnsam.my.id)
+      if (status.host) {
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const targetShare = (isLocal && status.host.publicUrl)
+          ? status.host.publicUrl
+          : (status.host.publicUrl || status.host.url || window.location.origin);
         updateHostShareUrl(targetShare);
       }
 

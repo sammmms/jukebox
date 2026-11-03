@@ -629,7 +629,8 @@ app.get('/api/status', async (req, res) => {
     version: APP_VERSION,
     host: {
       ip: currentIp,
-      url: `http://${currentIp}:${PORT}`
+      url: `http://${currentIp}:${PORT}`,
+      publicUrl: 'https://dj.wsnsam.my.id'
     },
     current: {
       ...liveSong,
