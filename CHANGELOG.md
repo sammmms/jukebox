@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.0] - 2026-11-03
+
+### Added
+- **Auto-Vacant Party Host Architecture:**
+  - Resolved role confusion between Party Host (room master controller) and Guest Requesters.
+  - The Party Host badge is now strictly **read-only** for normal guests (`👑 Host Party: [Name]`).
+  - Guests manage their own personal requester profile independently (`👤 Kamu: [Nickname] ✏️`).
+  - **Auto-Vacant Lifecycle:**
+    - Host device transmits background heartbeat every 15s (`POST /api/host/heartbeat`).
+    - If the Host closes their browser or disconnects for >60s, server automatically sets status to **VACANT** (`⚠️ Host Vacant`).
+    - Any attendee can immediately claim Host via `[👑 Klaim Jadi Host]` or voluntarily release host ownership (`[🔓 Lepas Host]`).
+    - New endpoints: `GET /api/host`, `POST /api/host/claim`, `POST /api/host/release`, and `POST /api/host/heartbeat`.
+- **Interactive Reactive Category Recommendation Chips:**
+  - Fixed category recommendation chips not visually updating when pressed.
+  - Tapping any chip immediately applies high-contrast vibrant gradient highlighting, active shadow, and subtle scale transform.
+  - Dynamic results counter banner displays above search results with quick `✕ Reset` button.
+  - 1-tap toggle-off: tapping the currently active category deselects it and reverts to default recommendations.
+- **Cloudflare Tunnel Deployment:**
+  - Permanent public SSL endpoint deployed at `https://dj.wsnsam.my.id`.
+  - Background daemon configured via macOS LaunchAgent (`~/Library/LaunchAgents/com.cloudflare.cloudflared.plist`).
+
+---
+
 ## [2.2.0] - 2026-11-03
 
 ### Added

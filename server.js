@@ -27,6 +27,42 @@ const playedHistory = [];
 // In-memory lyrics cache
 const lyricsCache = new Map();
 
+// --- AUTO-VACANT PARTY HOST MANAGEMENT (v2.3.0) ---
+const HOST_VACANT_TIMEOUT_MS = 60 * 1000; // 60s without heartbeat -> Auto-Vacant
+let partyHost = {
+  name: null,          // e.g. "DJ Sam" or null (Vacant)
+  token: null,         // Session token for host device ownership verification
+  claimedAt: null,
+  lastHeartbeat: null
+};
+
+function checkHostVacant() {
+  if (partyHost.name) {
+    if (Date.now() - partyHost.lastHeartbeat > HOST_VACANT_TIMEOUT_MS) {
+      const oldHost = partyHost.name;
+      partyHost = { name: null, token: null, claimedAt: null, lastHeartbeat: null };
+      addActivity('System', 'vacant', `Host ${oldHost} offline. Status Host sekarang VACANT ⚠️`);
+      broadcastUpdate();
+      return true;
+    }
+  }
+  return false;
+}
+
+// Periodically check for host vacancy every 10 seconds
+setInterval(checkHostVacant, 10000);
+
+function getPartyHostInfo() {
+  checkHostVacant();
+  return {
+    name: partyHost.name,
+    isVacant: partyHost.name === null,
+    claimedAt: partyHost.claimedAt,
+    lastHeartbeat: partyHost.lastHeartbeat,
+    timeoutMs: HOST_VACANT_TIMEOUT_MS
+  };
+}
+
 let currentVolume = 70;
 let isMuted = false;
 let userExplicitlyPaused = false;
@@ -578,7 +614,7 @@ async function searchYouTubeMusic(query) {
   }
 }
 
-const APP_VERSION = '2.2.0';
+const APP_VERSION = '2.3.0';
 
 // --- API ROUTES ---
 
@@ -587,7 +623,64 @@ app.get('/api/version', (req, res) => {
   res.json({ version: APP_VERSION, name: 'Party Jukebox' });
 });
 
-// 0.1 Register / Join as Dynamic DJ
+// 0.1 Host Management Endpoints (Auto-Vacant System v2.3.0)
+app.get('/api/host', (req, res) => {
+  res.json({ partyHost: getPartyHostInfo() });
+});
+
+app.post('/api/host/claim', (req, res) => {
+  checkHostVacant();
+  const { name, token, force } = req.body || {};
+  if (!name || typeof name !== 'string' || !name.trim()) {
+    return res.status(400).json({ error: 'Valid host name is required' });
+  }
+  const cleanName = name.trim().slice(0, 25);
+  const hostToken = token || (Date.now() + '-' + Math.random().toString(36).slice(2, 8));
+
+  // Can claim if currently vacant, or if existing token matches, or if forced
+  if (partyHost.name === null || partyHost.token === token || force) {
+    const prevHost = partyHost.name;
+    partyHost = {
+      name: cleanName,
+      token: hostToken,
+      claimedAt: Date.now(),
+      lastHeartbeat: Date.now()
+    };
+    knownDJs.add(cleanName);
+    addActivity(cleanName, 'host_claimed', prevHost && prevHost !== cleanName ? `mengambil alih kursi Host dari ${prevHost}` : 'menjadi Host Party malam ini 👑');
+    broadcastUpdate();
+    return res.json({ success: true, partyHost: getPartyHostInfo(), token: hostToken });
+  }
+
+  return res.status(409).json({
+    error: `Kursi Host sedang dipegang oleh ${partyHost.name}. Tunggu sampai status Vacant atau minta dioperkan.`,
+    partyHost: getPartyHostInfo()
+  });
+});
+
+app.post('/api/host/heartbeat', (req, res) => {
+  const { token } = req.body || {};
+  if (partyHost.name && partyHost.token && partyHost.token === token) {
+    partyHost.lastHeartbeat = Date.now();
+    return res.json({ success: true, partyHost: getPartyHostInfo() });
+  }
+  checkHostVacant();
+  res.json({ success: false, partyHost: getPartyHostInfo() });
+});
+
+app.post('/api/host/release', (req, res) => {
+  const { token } = req.body || {};
+  if (partyHost.name && (!token || partyHost.token === token)) {
+    const oldHost = partyHost.name;
+    partyHost = { name: null, token: null, claimedAt: null, lastHeartbeat: null };
+    addActivity(oldHost, 'host_released', 'melepas kursi Host. Status sekarang VACANT ⚠️');
+    broadcastUpdate();
+    return res.json({ success: true, partyHost: getPartyHostInfo() });
+  }
+  res.json({ success: true, partyHost: getPartyHostInfo() });
+});
+
+// 0.2 Register / Join as Dynamic DJ / Guest
 app.post('/api/dj/join', (req, res) => {
   const { name } = req.body || {};
   if (!name || typeof name !== 'string' || !name.trim()) {
@@ -597,10 +690,10 @@ app.post('/api/dj/join', (req, res) => {
   const isNew = !knownDJs.has(cleanName);
   knownDJs.add(cleanName);
   if (isNew) {
-    addActivity(cleanName, 'join', 'joined the party as a DJ');
+    addActivity(cleanName, 'join', 'bergabung ke pesta');
     broadcastUpdate();
   }
-  res.json({ success: true, name: cleanName, djs: Array.from(knownDJs) });
+  res.json({ success: true, name: cleanName, djs: Array.from(knownDJs), partyHost: getPartyHostInfo() });
 });
 
 // 1. Status (Now Playing + Queue + Volume + Activity Feed)
@@ -639,6 +732,7 @@ app.get('/api/status', async (req, res) => {
     },
     queue,
     selectedIndex,
+    partyHost: getPartyHostInfo(),
     djs: Array.from(knownDJs),
     volume: { state: currentVolume, isMuted },
     activity: activityLogs.slice(0, 30),
@@ -922,6 +1016,7 @@ async function broadcastUpdate() {
     },
     queue,
     selectedIndex,
+    partyHost: getPartyHostInfo(),
     djs: Array.from(knownDJs),
     volume: { state: currentVolume, isMuted },
     activity: activityLogs.slice(0, 30),

@@ -220,9 +220,9 @@
               <span id="current-view-badge" class="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
                 Auto
               </span>
-              <button onclick="openChangelogModal()" title="View Version & Changelog (v2.2.0)"
+              <button onclick="openChangelogModal()" title="View Version & Changelog (v2.3.0)"
                       class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-colors cursor-pointer active:scale-95">
-                v2.2.0
+                v2.3.0
               </button>
             </div>
             <div class="flex items-center gap-1.5">
@@ -293,28 +293,32 @@
       </div>
     </div>
 
-    <!-- Dynamic DJ Profile Bar (v2.2.0) -->
+    <!-- Host & Guest Profile Bar (v2.3.0 - Auto-Vacant Host System) -->
     <div class="max-w-7xl mx-auto mt-2.5 pt-2 border-t border-slate-200/60 dark:border-gray-800/60">
       <div class="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar py-0.5">
+        
+        <!-- LEFT: 👑 HOST STATUS (Read-Only for Guests, Auto-Vacant & Claimable) -->
         <div class="flex items-center gap-2 shrink-0">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">DJ Aktif:</span>
-          <button id="active-dj-badge" onclick="openDJModal(false)" title="Klik untuk ganti atau edit nama DJ"
-                  class="flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold border transition-all duration-200 cursor-pointer shadow-2xs active:scale-95">
-            <!-- Dynamic DJ badge rendered here -->
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">Host:</span>
+          <div id="host-status-container" class="flex items-center gap-1.5">
+            <!-- Rendered dynamically via updateHostUI() -->
+            <div class="flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 border border-slate-200 dark:border-gray-700">
+              <span>👑</span>
+              <span id="host-name-placeholder">Memuat Host...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: 👤 GUEST PROFILE (Your Requester Nickname) -->
+        <div class="flex items-center gap-1.5 ml-auto shrink-0">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">👤 Kamu:</span>
+          <button id="guest-profile-badge" onclick="openGuestModal(false)" title="Klik untuk edit nama panggilan kamu"
+                  class="flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-800 text-slate-800 dark:text-gray-200 hover:border-pink-500 shadow-2xs active:scale-95 transition-all cursor-pointer">
+            <span id="guest-name-text">DJ Sam</span>
+            <span class="text-slate-400 dark:text-gray-500 text-[10px]">✏️</span>
           </button>
         </div>
 
-        <!-- Dynamic DJ Quick Pills & Switcher Button -->
-        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar ml-auto shrink-0">
-          <div id="user-pills" class="flex items-center gap-1.5">
-            <!-- Dynamic DJ pills rendered here -->
-          </div>
-          <button onclick="openDJModal(false)" title="Ganti atau Tambah Profil DJ"
-                  class="flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-200 dark:border-gray-700 transition-all cursor-pointer active:scale-95 shrink-0">
-            <span class="text-pink-500 font-extrabold">+</span>
-            <span>Ganti DJ</span>
-          </button>
-        </div>
       </div>
     </div>
   </header>
@@ -651,40 +655,51 @@
 
             </div>
 
-            <!-- CHINESE / MANDARIN + GLOBAL QUICK MOOD CHIPS -->
+            <!-- CHINESE / MANDARIN + GLOBAL QUICK MOOD CHIPS (v2.3.0 Interactive Reactive) -->
             <div>
               <div class="text-[11px] font-bold text-slate-500 dark:text-gray-400 mb-1.5 flex items-center justify-between">
                 <span>✨ Rekomendasi Kategori:</span>
-                <span class="text-[10px] text-slate-400 dark:text-gray-500">Tap untuk cari</span>
+                <span id="category-active-label" class="text-[10px] text-pink-600 dark:text-pink-400 font-extrabold hidden">
+                  Aktif: <span id="category-active-name"></span> <button type="button" onclick="clearSearch()" class="ml-1 text-slate-400 hover:text-pink-500 font-normal">✕</button>
+                </span>
+                <span id="category-hint-label" class="text-[10px] text-slate-400 dark:text-gray-500">Tap untuk filter</span>
               </div>
-              <div class="flex gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
-                <!-- FEATURED MANDARIN CHIPS -->
-                <button onclick="applyQuickFilter('Mandopop Hits 周杰伦 林俊杰')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-gradient-to-r from-rose-500/10 to-pink-500/10 dark:from-rose-500/20 dark:to-pink-500/20 border border-rose-300 dark:border-rose-500/40 text-rose-700 dark:text-rose-300 text-[11px] font-extrabold hover:border-pink-500 transition-all shadow-2xs flex items-center gap-1">
-                  <span>🇨🇳</span> Mandopop Hits
+              <div id="category-chips-list" class="flex gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
+                <button type="button" data-keyword="Mandopop Hits 周杰伦 林俊杰" data-label="Mandopop Hits" onclick="toggleCategoryChip(this)"
+                        class="category-chip shrink-0 px-3 py-1.5 rounded-xl border transition-all duration-200 shadow-2xs flex items-center gap-1 font-bold text-[11px] cursor-pointer bg-slate-100 dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-700 dark:text-gray-300 hover:border-pink-500/50">
+                  <span>🇨🇳</span> <span>Mandopop Hits</span>
                 </button>
-                <button onclick="applyQuickFilter('Chinese Karaoke KTV 抖音热歌')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 hover:border-pink-500 text-slate-700 dark:text-gray-300 text-[11px] font-bold transition-all shadow-2xs flex items-center gap-1">
-                  <span>🎤</span> KTV Mandarin
+                <button type="button" data-keyword="Chinese Karaoke KTV 抖音热歌" data-label="KTV Mandarin" onclick="toggleCategoryChip(this)"
+                        class="category-chip shrink-0 px-3 py-1.5 rounded-xl border transition-all duration-200 shadow-2xs flex items-center gap-1 font-bold text-[11px] cursor-pointer bg-slate-100 dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-700 dark:text-gray-300 hover:border-pink-500/50">
+                  <span>🎤</span> <span>KTV Mandarin</span>
                 </button>
-                <button onclick="applyQuickFilter('Classic Mandarin Songs 邓丽君 张学友')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 hover:border-pink-500 text-slate-700 dark:text-gray-300 text-[11px] font-bold transition-all shadow-2xs flex items-center gap-1">
-                  <span>🏮</span> Classic Mandarin
+                <button type="button" data-keyword="Classic Mandarin Songs 邓丽君 张学友" data-label="Classic Mandarin" onclick="toggleCategoryChip(this)"
+                        class="category-chip shrink-0 px-3 py-1.5 rounded-xl border transition-all duration-200 shadow-2xs flex items-center gap-1 font-bold text-[11px] cursor-pointer bg-slate-100 dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-700 dark:text-gray-300 hover:border-pink-500/50">
+                  <span>🏮</span> <span>Classic Mandarin</span>
                 </button>
-                <button onclick="applyQuickFilter('Top Indo Hits')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 hover:border-pink-500 text-slate-700 dark:text-gray-300 text-[11px] font-bold transition-all shadow-2xs">
-                  🇮🇩 Indo Hits
+                <button type="button" data-keyword="Top Indo Hits" data-label="Indo Hits" onclick="toggleCategoryChip(this)"
+                        class="category-chip shrink-0 px-3 py-1.5 rounded-xl border transition-all duration-200 shadow-2xs flex items-center gap-1 font-bold text-[11px] cursor-pointer bg-slate-100 dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-700 dark:text-gray-300 hover:border-pink-500/50">
+                  <span>🇮🇩</span> <span>Indo Hits</span>
                 </button>
-                <button onclick="applyQuickFilter('Trending K-Pop')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 hover:border-pink-500 text-slate-700 dark:text-gray-300 text-[11px] font-bold transition-all shadow-2xs">
-                  🇰🇷 K-Pop
+                <button type="button" data-keyword="Trending K-Pop" data-label="K-Pop" onclick="toggleCategoryChip(this)"
+                        class="category-chip shrink-0 px-3 py-1.5 rounded-xl border transition-all duration-200 shadow-2xs flex items-center gap-1 font-bold text-[11px] cursor-pointer bg-slate-100 dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-700 dark:text-gray-300 hover:border-pink-500/50">
+                  <span>🇰🇷</span> <span>K-Pop</span>
                 </button>
-                <button onclick="applyQuickFilter('Anime OST Hits')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 hover:border-pink-500 text-slate-700 dark:text-gray-300 text-[11px] font-bold transition-all shadow-2xs">
-                  🇯🇵 Anime Hits
+                <button type="button" data-keyword="Anime OST Hits" data-label="Anime Hits" onclick="toggleCategoryChip(this)"
+                        class="category-chip shrink-0 px-3 py-1.5 rounded-xl border transition-all duration-200 shadow-2xs flex items-center gap-1 font-bold text-[11px] cursor-pointer bg-slate-100 dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-700 dark:text-gray-300 hover:border-pink-500/50">
+                  <span>🇯🇵</span> <span>Anime Hits</span>
                 </button>
-                <button onclick="applyQuickFilter('Top 50 Global Hits')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 hover:border-pink-500 text-slate-700 dark:text-gray-300 text-[11px] font-bold transition-all shadow-2xs">
-                  🔥 Top Global
+                <button type="button" data-keyword="Top 50 Global Hits" data-label="Top Global" onclick="toggleCategoryChip(this)"
+                        class="category-chip shrink-0 px-3 py-1.5 rounded-xl border transition-all duration-200 shadow-2xs flex items-center gap-1 font-bold text-[11px] cursor-pointer bg-slate-100 dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-700 dark:text-gray-300 hover:border-pink-500/50">
+                  <span>🔥</span> <span>Top Global</span>
                 </button>
-                <button onclick="applyQuickFilter('Best Party Dance EDM')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 hover:border-pink-500 text-slate-700 dark:text-gray-300 text-[11px] font-bold transition-all shadow-2xs">
-                  💃 Party EDM
+                <button type="button" data-keyword="Best Party Dance EDM" data-label="Party EDM" onclick="toggleCategoryChip(this)"
+                        class="category-chip shrink-0 px-3 py-1.5 rounded-xl border transition-all duration-200 shadow-2xs flex items-center gap-1 font-bold text-[11px] cursor-pointer bg-slate-100 dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-700 dark:text-gray-300 hover:border-pink-500/50">
+                  <span>💃</span> <span>Party EDM</span>
                 </button>
-                <button onclick="applyQuickFilter('Acoustic Chill Pop')" class="category-chip shrink-0 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 hover:border-pink-500 text-slate-700 dark:text-gray-300 text-[11px] font-bold transition-all shadow-2xs">
-                  ☕ Acoustic Chill
+                <button type="button" data-keyword="Acoustic Chill Pop" data-label="Acoustic Chill" onclick="toggleCategoryChip(this)"
+                        class="category-chip shrink-0 px-3 py-1.5 rounded-xl border transition-all duration-200 shadow-2xs flex items-center gap-1 font-bold text-[11px] cursor-pointer bg-slate-100 dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-700 dark:text-gray-300 hover:border-pink-500/50">
+                  <span>☕</span> <span>Acoustic Chill</span>
                 </button>
               </div>
             </div>
@@ -812,7 +827,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.2.0</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.3.0</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -823,17 +838,29 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.2.0 -->
+        <!-- v2.3.0 -->
         <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-800 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.2.0 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.3.0 (Latest)</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
-            <li><strong class="text-slate-800 dark:text-white">🎧 Dynamic DJ System:</strong> Removed hardcoded DJ profiles (Leo, Andrew, Cia, Sam). Any party guest can now enter their own custom DJ name.</li>
-            <li><strong class="text-slate-800 dark:text-white">🚀 Mandatory First-Time Onboarding:</strong> First-time visitors without local cache are required to set their DJ name via a welcoming onboarding modal before DJing.</li>
-            <li><strong class="text-slate-800 dark:text-white">🎨 Deterministic Dynamic Color Palette:</strong> Generates beautiful matching neon/pastel color pills, badges, and avatar dots for any DJ name.</li>
-            <li><strong class="text-slate-800 dark:text-white">🔄 Real-time DJ Sync & Switcher:</strong> Party guests can seamlessly switch between known active DJs or add new DJ profiles with instant network broadcasting.</li>
+            <li><strong class="text-slate-800 dark:text-white">👑 Auto-Vacant Host Architecture:</strong> Strict separation between Party Host (room master controller, read-only for guests) and Guest Requester Profiles. If the Host disconnects or is offline, the position automatically becomes Vacant so another attendee can claim Host.</li>
+            <li><strong class="text-slate-800 dark:text-white">✨ Reactive Interactive Category Chips:</strong> Tapping any category recommendation chip immediately displays active vibrant state, triggers instantaneous filtered search, displays a results counter banner, and allows 1-tap toggling.</li>
+            <li><strong class="text-slate-800 dark:text-white">🌐 Cloudflare Public Domain:</strong> Permanent public endpoint at <code>https://dj.wsnsam.my.id</code> bypassing DHCP resets and CGNAT completely.</li>
+          </ul>
+        </div>
+
+        <!-- v2.2.0 -->
+        <div class="p-3 rounded-xl bg-slate-50/60 dark:bg-gray-900/40 border border-slate-200/60 dark:border-gray-800/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-200 dark:bg-gray-800 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-700">v2.2.0</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">🎧 Dynamic DJ System:</strong> Removed hardcoded DJ profiles. Any party guest can enter their custom requester nickname.</li>
+            <li><strong class="text-slate-800 dark:text-white">🚀 Mandatory First-Time Onboarding:</strong> First-time visitors are welcomed and prompted to choose their requester profile.</li>
+            <li><strong class="text-slate-800 dark:text-white">🎨 Deterministic Dynamic Color Palette:</strong> Generates beautiful matching color pills, badges, and avatar dots.</li>
           </ul>
         </div>
 
@@ -904,7 +931,7 @@
   </div>
 
   <!-- ============================================================
-       MODAL: MANDATORY FIRST-TIME DJ ONBOARDING & PROFILE SWITCHER (v2.2.0)
+       MODAL: ONBOARDING, GUEST PROFILE & AUTO-VACANT HOST (v2.3.0)
        ============================================================ -->
   <div id="dj-modal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300 opacity-0 pointer-events-none">
     <div class="relative w-full max-w-sm sm:max-w-md rounded-2xl bg-white dark:bg-[#121520] border border-slate-200 dark:border-gray-800 shadow-2xl p-6 transition-all duration-300 transform scale-95" id="dj-modal-card">
@@ -914,41 +941,62 @@
         ✕
       </button>
 
-      <div class="text-center mb-5">
-        <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-tr from-pink-500 via-rose-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-pink-500/25 text-white text-2xl font-black">
-          🎧
+      <div class="text-center mb-4">
+        <div id="dj-modal-icon" class="w-13 h-13 mx-auto mb-2.5 rounded-2xl bg-gradient-to-tr from-pink-500 via-rose-500 to-amber-500 flex items-center justify-center shadow-lg shadow-pink-500/25 text-white text-2xl font-black">
+          🎉
         </div>
-        <h3 id="dj-modal-title" class="text-lg font-black text-slate-900 dark:text-white tracking-tight">Siapa Nama DJ Kamu?</h3>
+        <h3 id="dj-modal-title" class="text-lg font-black text-slate-900 dark:text-white tracking-tight">Selamat Datang di Party Jukebox!</h3>
         <p id="dj-modal-subtitle" class="text-xs text-slate-500 dark:text-gray-400 mt-1 max-w-xs mx-auto">
-          Masukkan nama kamu untuk mulai request lagu, upvote antrean, dan karaokean bareng di pesta!
+          Masukkan nama kamu untuk mulai request lagu, upvote antrean, dan karaokean bareng!
         </p>
       </div>
 
+      <!-- Host State Banner inside Modal -->
+      <div id="modal-host-banner" class="mb-3.5 space-y-2">
+        <!-- Vacant Host Option Card -->
+        <div id="vacant-host-box" class="hidden p-3 rounded-xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/30 flex items-start gap-2.5 text-left">
+          <input type="checkbox" id="claim-host-checkbox" class="mt-0.5 rounded border-amber-400 text-amber-500 focus:ring-amber-500" checked>
+          <label for="claim-host-checkbox" class="text-xs text-amber-900 dark:text-amber-200 cursor-pointer">
+            <span class="font-extrabold flex items-center gap-1">👑 Jadikan Saya Host Party</span>
+            <span class="text-[11px] text-amber-700 dark:text-amber-300 block mt-0.5">Kursi Host saat ini kosong (Auto-Vacant). Centang ini untuk memegang kontrol Host utama malam ini.</span>
+          </label>
+        </div>
+
+        <!-- Occupied Host Notice -->
+        <div id="active-host-box" class="hidden p-2.5 rounded-xl bg-slate-100 dark:bg-gray-800/80 border border-slate-200 dark:border-gray-700/60 flex items-center justify-between text-xs text-slate-700 dark:text-gray-300">
+          <div class="flex items-center gap-1.5 font-bold">
+            <span>👑 Host Party:</span>
+            <span id="active-host-box-name" class="text-pink-600 dark:text-pink-400 font-extrabold">DJ Sam</span>
+          </div>
+          <span class="text-[10px] text-slate-400 dark:text-gray-500 font-semibold px-2 py-0.5 rounded-full bg-slate-200 dark:bg-gray-700">Read-Only</span>
+        </div>
+      </div>
+
       <!-- Form to input name -->
-      <form id="dj-form" onsubmit="event.preventDefault(); submitDJName();" class="space-y-4">
+      <form id="dj-form" onsubmit="event.preventDefault(); submitDJName();" class="space-y-3.5">
         <div>
-          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-gray-400 mb-1.5">Nama DJ / Panggilan</label>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-gray-400 mb-1.5">Nama Panggilan / Requester Kamu</label>
           <div class="relative">
-            <input type="text" id="dj-name-input" maxlength="20" placeholder="Ketik nama kamu (misal: Sam, Alex, DJ Kevin...)"
+            <input type="text" id="dj-name-input" maxlength="25" placeholder="Ketik nama kamu (misal: Sam, Kevin, Sarah...)"
                    class="w-full px-4 py-2.5 rounded-xl text-sm font-semibold bg-slate-50 dark:bg-gray-900/80 border border-slate-300 dark:border-gray-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
                    autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault(); submitDJName();}">
-            <span class="absolute right-3 top-2.5 text-base pointer-events-none">✨</span>
+            <span class="absolute right-3 top-2.5 text-base pointer-events-none">👤</span>
           </div>
         </div>
 
-        <!-- Known DJs List (if any exist on the party server / local storage) -->
+        <!-- Known Profiles / Quick Pick -->
         <div id="known-djs-container" class="hidden">
-          <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-gray-500 mb-2">Atau gabung sebagai profil pesta:</div>
-          <div id="known-djs-pills" class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto no-scrollbar"></div>
+          <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-gray-500 mb-1.5">Atau pilih profil yang tersimpan:</div>
+          <div id="known-djs-pills" class="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto no-scrollbar"></div>
         </div>
 
-        <button type="button" id="dj-submit-btn" onclick="submitDJName()" class="w-full py-2.5 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white shadow-lg shadow-pink-500/25 active:scale-95 transition-all cursor-pointer">
-          Mulai DJing 🎵
+        <button type="button" id="dj-submit-btn" onclick="submitDJName()" class="w-full py-2.5 px-4 rounded-xl font-extrabold text-sm bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 hover:opacity-95 text-white shadow-lg shadow-pink-500/25 active:scale-95 transition-all cursor-pointer">
+          Masuk ke Party 🎵
         </button>
 
-        <div class="text-center pt-1">
-          <button type="button" onclick="submitDJName('DJ Guest')" class="text-[11px] text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 transition-colors cursor-pointer active:scale-95">
-            Atau masuk cepat sebagai <span class="font-bold underline">DJ Guest</span> →
+        <div class="text-center pt-0.5">
+          <button type="button" onclick="submitDJName('Tamu')" class="text-[11px] text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 transition-colors cursor-pointer active:scale-95">
+            Atau masuk cepat sebagai <span class="font-bold underline">Tamu</span> →
           </button>
         </div>
       </form>
@@ -1221,9 +1269,77 @@
     }
 
     // ============================================================
-    // DYNAMIC DJ MANAGEMENT & ONBOARDING (v2.2.0)
+    // AUTO-VACANT HOST & GUEST ROLE SEPARATION (v2.3.0)
     // ============================================================
+    let currentPartyHost = null;
+    let hostHeartbeatTimer = null;
+
+    function isMeHost() {
+      if (!currentPartyHost || currentPartyHost.isVacant || !currentPartyHost.name) return false;
+      const myToken = localStorage.getItem('jukebox_host_token');
+      if (myToken) return true;
+      if (currentUser && currentPartyHost.name.toLowerCase() === currentUser.toLowerCase()) return true;
+      return false;
+    }
+
+    function updateHostUI(partyHost) {
+      currentPartyHost = partyHost;
+      const container = document.getElementById('host-status-container');
+      if (!container) return;
+
+      if (!partyHost || partyHost.isVacant || !partyHost.name) {
+        // Status: VACANT (Kosong)
+        container.innerHTML = `
+          <div class="flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/25 animate-pulse">
+            <span>⚠️</span>
+            <span>Host Vacant</span>
+          </div>
+          <button onclick="claimHostPrompt()" title="Klaim kontrol Host pesta malam ini"
+                  class="flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 via-pink-500 to-rose-500 text-white shadow-sm hover:opacity-90 active:scale-95 transition-all cursor-pointer">
+            <span>👑</span>
+            <span>Klaim Jadi Host</span>
+          </button>
+        `;
+        if (hostHeartbeatTimer) {
+          clearInterval(hostHeartbeatTimer);
+          hostHeartbeatTimer = null;
+          localStorage.removeItem('jukebox_host_token');
+        }
+      } else {
+        // Status: OCCUPIED (Ada Host)
+        const me = isMeHost();
+        container.innerHTML = `
+          <div class="flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 shadow-2xs">
+            <span>👑</span>
+            <span class="truncate max-w-[140px]">${partyHost.name}</span>
+            ${me ? '<span class="text-[9px] bg-amber-500 text-white font-extrabold px-1.5 py-0.2 rounded-full uppercase tracking-wider ml-0.5">Kamu</span>' : ''}
+          </div>
+          ${me ? `
+            <button onclick="releaseHost()" title="Lepas posisi Host agar jadi Vacant"
+                    class="px-2 py-1 rounded-lg text-[10px] font-bold bg-slate-100 hover:bg-rose-50 dark:bg-gray-800 dark:hover:bg-rose-950/40 text-slate-500 hover:text-rose-600 dark:text-gray-400 dark:hover:text-rose-400 border border-slate-200 dark:border-gray-700 transition-all cursor-pointer">
+              🔓 Lepas Host
+            </button>
+          ` : ''}
+        `;
+
+        if (me && !hostHeartbeatTimer) {
+          startHostHeartbeat();
+        }
+      }
+    }
+
+    function renderGuestBadge() {
+      const badgeText = document.getElementById('guest-name-text');
+      if (badgeText) {
+        badgeText.textContent = currentUser || 'Pilih Nama';
+      }
+    }
+
     function openDJModal(mandatory = false) {
+      openGuestModal(mandatory);
+    }
+
+    function openGuestModal(mandatory = false) {
       isDJModalMandatory = mandatory;
       const modal = document.getElementById('dj-modal');
       const card = document.getElementById('dj-modal-card');
@@ -1231,28 +1347,42 @@
       const input = document.getElementById('dj-name-input');
       const title = document.getElementById('dj-modal-title');
       const subtitle = document.getElementById('dj-modal-subtitle');
+      const vacantBox = document.getElementById('vacant-host-box');
+      const activeBox = document.getElementById('active-host-box');
+      const activeBoxName = document.getElementById('active-host-box-name');
       const knownContainer = document.getElementById('known-djs-container');
       const knownPills = document.getElementById('known-djs-pills');
 
       if (!modal) return;
 
+      const isVacant = !currentPartyHost || currentPartyHost.isVacant || !currentPartyHost.name;
+
+      if (isVacant) {
+        if (vacantBox) vacantBox.classList.remove('hidden');
+        if (activeBox) activeBox.classList.add('hidden');
+      } else {
+        if (vacantBox) vacantBox.classList.add('hidden');
+        if (activeBox) {
+          activeBox.classList.remove('hidden');
+          if (activeBoxName) activeBoxName.textContent = currentPartyHost.name;
+        }
+      }
+
       if (mandatory) {
         if (closeBtn) closeBtn.classList.add('hidden');
-        if (title) title.innerText = 'Siapa Nama DJ Kamu?';
-        if (subtitle) subtitle.innerText = 'Masukkan nama kamu untuk mulai request lagu, upvote antrean, dan karaokean bareng di pesta!';
+        if (title) title.innerText = 'Selamat Datang di Party Jukebox!';
+        if (subtitle) subtitle.innerText = isVacant
+          ? 'Belum ada Host untuk sesi ini. Masukkan nama kamu dan ambil alih kursi Host, atau masuk sebagai tamu!'
+          : `Host room saat ini: ${currentPartyHost.name}. Masukkan nama kamu untuk mulai request lagu!`;
         if (input) input.value = '';
       } else {
         if (closeBtn) closeBtn.classList.remove('hidden');
-        if (title) title.innerText = 'Ganti Profil DJ';
-        if (subtitle) {
-          subtitle.innerText = currentUser
-            ? `Saat ini kamu sedang DJing sebagai "${currentUser}". Kamu bisa mengganti nama atau memilih profil DJ lain.`
-            : 'Pilih nama atau buat profil DJ baru untuk pesta ini.';
-        }
+        if (title) title.innerText = 'Edit Nama Panggilan Kamu';
+        if (subtitle) subtitle.innerText = 'Ubah nama yang muncul pada request lagu dan upvote kamu.';
         if (input) input.value = currentUser || '';
       }
 
-      // Render Known DJs in modal
+      // Render Known Profiles
       if (knownDJs && knownDJs.length > 0 && knownContainer && knownPills) {
         knownContainer.classList.remove('hidden');
         knownPills.innerHTML = knownDJs.map(dj => {
@@ -1302,45 +1432,51 @@
       }
     }
 
-    function submitDJName(customName) {
+    async function submitDJName(customName) {
       const input = document.getElementById('dj-name-input');
       let val = (customName && typeof customName === 'string') ? customName.trim() : (input ? input.value.trim() : '');
       if (!val) {
-        // Fallback default DJ name so user is NEVER blocked
-        val = 'DJ ' + (['Guest', 'Friend', 'VIP', 'Party'][Math.floor(Math.random() * 4)]);
+        val = 'Tamu ' + Math.floor(100 + Math.random() * 900);
       }
+
+      const claimCheckbox = document.getElementById('claim-host-checkbox');
+      const isVacant = !currentPartyHost || currentPartyHost.isVacant || !currentPartyHost.name;
+      const shouldClaimHost = claimCheckbox && claimCheckbox.checked && isVacant;
+
       selectUser(val, true);
+
+      if (shouldClaimHost) {
+        await claimHost(val);
+      }
     }
 
     async function selectUser(user, shouldNotifyServer = false) {
       if (!user || !user.trim()) return;
-      const cleanUser = user.trim().slice(0, 20);
+      const cleanUser = user.trim().slice(0, 25);
       currentUser = cleanUser;
       localStorage.setItem('jukebox_user', cleanUser);
 
-      // Add to local known DJs
+      // Add to local known profiles
       if (!Array.isArray(knownDJs)) knownDJs = [];
       if (!knownDJs.includes(cleanUser)) {
         knownDJs.unshift(cleanUser);
       }
       localStorage.setItem('jukebox_known_djs', JSON.stringify(knownDJs));
 
-      // Close modal if open
       isDJModalMandatory = false;
       closeDJModal();
 
-      // Render updated DJ Bar
-      renderDJPills();
+      renderGuestBadge();
+      showToast(`👤 Nama disetel ke: ${cleanUser}`);
 
-      showToast(`🎧 DJ disetel ke: ${cleanUser}`);
-
-      // Notify server if requested
       if (shouldNotifyServer) {
         try {
           fetch('/api/dj/join', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name: cleanUser })
+          }).then(r => r.json()).then(data => {
+            if (data && data.partyHost) updateHostUI(data.partyHost);
           }).catch(() => {});
         } catch (e) {}
       }
@@ -1348,48 +1484,93 @@
       fetchStatus();
     }
 
-    function renderDJPills() {
-      const activeBadge = document.getElementById('active-dj-badge');
-      const pillsContainer = document.getElementById('user-pills');
+    async function claimHostPrompt() {
+      const defaultName = currentUser || 'DJ Sam';
+      const name = prompt('👑 Kursi Host sedang kosong! Masukkan nama kamu untuk klaim status Host:', defaultName);
+      if (name && name.trim()) {
+        const cleanName = name.trim();
+        currentUser = cleanName;
+        localStorage.setItem('jukebox_user', cleanName);
+        renderGuestBadge();
+        await claimHost(cleanName);
+      }
+    }
 
-      if (!currentUser) {
-        if (activeBadge) {
-          activeBadge.innerHTML = `
-            <span class="w-2 h-2 rounded-full bg-pink-500 animate-ping"></span>
-            <span class="text-pink-600 dark:text-pink-400 font-bold">Pilih DJ</span>
-            <span class="text-xs">👉</span>
-          `;
-          activeBadge.className = 'flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold border border-pink-500/50 bg-pink-500/10 text-pink-600 dark:text-pink-400 transition-all duration-200 cursor-pointer shadow-xs active:scale-95';
+    async function claimHost(name) {
+      try {
+        let token = localStorage.getItem('jukebox_host_token');
+        if (!token) {
+          token = Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+          localStorage.setItem('jukebox_host_token', token);
         }
-        if (pillsContainer) pillsContainer.innerHTML = '';
-        return;
-      }
 
-      const col = getUserColor(currentUser);
-      const djDisplayName = currentUser.toLowerCase().startsWith('dj ') ? currentUser : `DJ ${currentUser}`;
-      if (activeBadge) {
-        activeBadge.innerHTML = `
-          <span class="w-2 h-2 rounded-full ${col.dot}"></span>
-          <span class="truncate max-w-[120px] sm:max-w-none">${djDisplayName}</span>
-          <span class="text-[10px] text-pink-500 dark:text-pink-400 font-normal">✏️</span>
-        `;
-        activeBadge.className = `flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold border transition-all duration-200 cursor-pointer shadow-2xs active:scale-95 ${col.pill}`;
+        const res = await fetch('/api/host/claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, token, force: true })
+        });
+        const data = await res.json();
+        if (data.success) {
+          if (data.token) localStorage.setItem('jukebox_host_token', data.token);
+          currentPartyHost = data.partyHost;
+          updateHostUI(data.partyHost);
+          startHostHeartbeat();
+          showToast(`👑 Selamat, kamu sekarang adalah Host Party!`);
+        } else {
+          showToast(`⚠️ ${data.error || 'Gagal klaim Host'}`);
+        }
+      } catch (err) {
+        console.error('Claim host error:', err);
       }
+    }
 
-      if (pillsContainer) {
-        // Show other known DJs (up to 4 pills)
-        const others = knownDJs.filter(d => d !== currentUser).slice(0, 4);
-        pillsContainer.innerHTML = others.map(dj => {
-          const c = getUserColor(dj);
-          return `
-            <button onclick="selectUser('${dj.replace(/'/g, "\\'")}', false)" data-user="${dj}"
-                    class="user-pill flex items-center justify-center gap-1.5 py-1 px-2.5 rounded-xl text-xs font-semibold border transition-all duration-200 border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900/60 text-slate-600 dark:text-gray-400 hover:border-pink-500/50 cursor-pointer active:scale-95 shrink-0">
-              <span class="w-1.5 h-1.5 rounded-full ${c.dot}"></span>
-              <span class="truncate max-w-[90px]">${dj}</span>
-            </button>
-          `;
-        }).join('');
+    async function releaseHost() {
+      if (!confirm('Lepas status Host sekarang? Kursi Host akan menjadi Vacant dan bisa diambil alih teman lain.')) return;
+      try {
+        const token = localStorage.getItem('jukebox_host_token');
+        const res = await fetch('/api/host/release', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        });
+        const data = await res.json();
+        localStorage.removeItem('jukebox_host_token');
+        if (hostHeartbeatTimer) {
+          clearInterval(hostHeartbeatTimer);
+          hostHeartbeatTimer = null;
+        }
+        currentPartyHost = data.partyHost;
+        updateHostUI(data.partyHost);
+        showToast('Kursi Host telah dilepas (Status: Vacant ⚠️).');
+      } catch (err) {
+        console.error('Release host error:', err);
       }
+    }
+
+    function startHostHeartbeat() {
+      if (hostHeartbeatTimer) clearInterval(hostHeartbeatTimer);
+      hostHeartbeatTimer = setInterval(async () => {
+        const token = localStorage.getItem('jukebox_host_token');
+        if (!token) {
+          clearInterval(hostHeartbeatTimer);
+          hostHeartbeatTimer = null;
+          return;
+        }
+        try {
+          const res = await fetch('/api/host/heartbeat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token })
+          });
+          const data = await res.json();
+          if (!data.success) {
+            clearInterval(hostHeartbeatTimer);
+            hostHeartbeatTimer = null;
+            localStorage.removeItem('jukebox_host_token');
+            if (data.partyHost) updateHostUI(data.partyHost);
+          }
+        } catch (e) {}
+      }, 15000);
     }
 
     // Tab Switching (Search vs Paste)
@@ -1514,7 +1695,13 @@
         }
       }
 
-      // Sync Dynamic DJs from server
+      // Sync Party Host (Auto-Vacant System v2.3.0)
+      if (status.partyHost) {
+        updateHostUI(status.partyHost);
+      }
+      renderGuestBadge();
+
+      // Sync Known Profiles from server
       if (status.djs && Array.isArray(status.djs)) {
         let changed = false;
         status.djs.forEach(dj => {
@@ -1526,7 +1713,6 @@
         if (changed) {
           localStorage.setItem('jukebox_known_djs', JSON.stringify(knownDJs));
         }
-        renderDJPills();
       }
 
       // Sync Host URL & QR Code with the permanent Cloudflare Domain (https://dj.wsnsam.my.id)
@@ -1847,19 +2033,80 @@
       `;
     }
 
-    // Quick Mood / Category Chip Click
-    function applyQuickFilter(keyword) {
+    // ============================================================
+    // REACTIVE CATEGORY CHIPS SYSTEM (v2.3.0)
+    // ============================================================
+    let currentActiveCategoryKeyword = null;
+
+    function toggleCategoryChip(btn) {
+      if (!btn) return;
+      const keyword = btn.getAttribute('data-keyword');
+      const label = btn.getAttribute('data-label') || keyword;
+
+      if (currentActiveCategoryKeyword === keyword) {
+        // Toggle OFF!
+        clearSearch();
+        return;
+      }
+
+      currentActiveCategoryKeyword = keyword;
       const input = document.getElementById('search-input');
-      input.value = keyword;
+      input.value = label;
       document.getElementById('search-clear-btn').classList.remove('hidden');
-      executeSearch(keyword);
+
+      // Update chip styling immediately
+      updateCategoryChipsUI();
+
+      // Trigger search
+      executeSearch(keyword, label);
+    }
+
+    function updateCategoryChipsUI() {
+      const chips = document.querySelectorAll('.category-chip');
+      const activeLabel = document.getElementById('category-active-label');
+      const activeName = document.getElementById('category-active-name');
+      const hintLabel = document.getElementById('category-hint-label');
+
+      chips.forEach(chip => {
+        const kw = chip.getAttribute('data-keyword');
+        const isAct = kw === currentActiveCategoryKeyword;
+        if (isAct) {
+          chip.className = 'category-chip shrink-0 px-3 py-1.5 rounded-xl border transition-all duration-200 shadow-md flex items-center gap-1.5 font-extrabold text-[11px] cursor-pointer bg-gradient-to-r from-pink-500 to-rose-500 text-white border-pink-400 shadow-pink-500/25 ring-2 ring-pink-500/30 scale-[1.03]';
+        } else {
+          chip.className = 'category-chip shrink-0 px-3 py-1.5 rounded-xl border transition-all duration-200 shadow-2xs flex items-center gap-1 font-bold text-[11px] cursor-pointer bg-slate-100 dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-700 dark:text-gray-300 hover:border-pink-500/50 hover:bg-slate-200/60 dark:hover:bg-gray-800';
+        }
+      });
+
+      if (currentActiveCategoryKeyword) {
+        if (activeLabel) activeLabel.classList.remove('hidden');
+        const matched = Array.from(chips).find(c => c.getAttribute('data-keyword') === currentActiveCategoryKeyword);
+        if (activeName) activeName.textContent = matched ? matched.getAttribute('data-label') : currentActiveCategoryKeyword;
+        if (hintLabel) hintLabel.classList.add('hidden');
+      } else {
+        if (activeLabel) activeLabel.classList.add('hidden');
+        if (hintLabel) hintLabel.classList.remove('hidden');
+      }
+    }
+
+    function applyQuickFilter(keyword) {
+      const btn = Array.from(document.querySelectorAll('.category-chip')).find(b => b.getAttribute('data-keyword') === keyword);
+      if (btn) {
+        toggleCategoryChip(btn);
+      } else {
+        const input = document.getElementById('search-input');
+        input.value = keyword;
+        document.getElementById('search-clear-btn').classList.remove('hidden');
+        executeSearch(keyword);
+      }
     }
 
     // Clear Search Input
     function clearSearch() {
+      currentActiveCategoryKeyword = null;
       const input = document.getElementById('search-input');
       input.value = '';
       document.getElementById('search-clear-btn').classList.add('hidden');
+      updateCategoryChipsUI();
       input.focus();
       triggerSearchFilter();
     }
@@ -1918,6 +2165,8 @@
         clearBtn.classList.remove('hidden');
       } else {
         clearBtn.classList.add('hidden');
+        currentActiveCategoryKeyword = null;
+        updateCategoryChipsUI();
       }
 
       clearTimeout(searchDebounceTimeout);
@@ -1932,7 +2181,7 @@
       }, 350);
     });
 
-    async function executeSearch(query) {
+    async function executeSearch(query, label = '') {
       let finalQuery = query;
       if (currentFilterCountry && !finalQuery.includes(currentFilterCountry)) finalQuery += ` ${currentFilterCountry}`;
       if (currentFilterGenre && !finalQuery.includes(currentFilterGenre)) finalQuery += ` ${currentFilterGenre}`;
@@ -1945,7 +2194,7 @@
           body: JSON.stringify({ query: finalQuery })
         });
         const data = await res.json();
-        renderSearchResults(data.results || []);
+        renderSearchResults(data.results || [], label || (currentActiveCategoryKeyword ? query : ''));
       } catch (err) {
         console.error(err);
       } finally {
@@ -1953,14 +2202,21 @@
       }
     }
 
-    function renderSearchResults(results) {
+    function renderSearchResults(results, label = '') {
       const container = document.getElementById('search-results');
       if (results.length === 0) {
-        container.innerHTML = `<div class="p-4 text-center text-xs text-slate-400 dark:text-gray-500">Tidak ada lagu yang ditemukan. Coba kata kunci lain atau pilih rekomendasi.</div>`;
+        container.innerHTML = `<div class="p-4 text-center text-xs text-slate-400 dark:text-gray-500">Tidak ada lagu yang ditemukan. Coba pilih rekomendasi kategori lain atau ketik judul.</div>`;
         return;
       }
 
-      container.innerHTML = results.map(item => `
+      const activeHeader = label ? `
+        <div class="flex items-center justify-between px-3 py-1.5 rounded-xl bg-pink-500/10 dark:bg-pink-500/20 border border-pink-500/25 text-xs font-bold text-pink-600 dark:text-pink-300 mb-2">
+          <span>✨ Kategori: <strong>${label}</strong> (${results.length} lagu)</span>
+          <button onclick="clearSearch()" class="text-[11px] hover:underline font-semibold text-slate-500 dark:text-gray-400 hover:text-pink-500 cursor-pointer">✕ Reset</button>
+        </div>
+      ` : '';
+
+      container.innerHTML = activeHeader + results.map(item => `
         <div class="flex items-center gap-3 p-2 rounded-xl bg-slate-50 dark:bg-gray-900/80 border border-slate-200 dark:border-gray-800 hover:border-pink-500/50 shadow-2xs transition-colors">
           <img src="${item.thumbnail || 'https://via.placeholder.com/60'}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-slate-200 dark:border-gray-800">
           <div class="flex-1 min-w-0">
@@ -2418,7 +2674,7 @@
     // ============================================================
     initTheme();
     initView();
-    renderDJPills();
+    renderGuestBadge();
 
     // First time entry check (no cached DJ name)
     if (!currentUser) {
