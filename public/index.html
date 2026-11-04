@@ -153,6 +153,19 @@
       }
       .view-auto .col-left {
         grid-column: span 5 / span 5;
+        position: sticky;
+        top: 1.25rem;
+        max-height: calc(100vh - 6.5rem);
+        overflow-y: auto;
+        scrollbar-width: thin;
+        padding-right: 0.35rem;
+      }
+      .view-auto .col-left::-webkit-scrollbar {
+        width: 4px;
+      }
+      .view-auto .col-left::-webkit-scrollbar-thumb {
+        background: rgba(156, 163, 175, 0.4);
+        border-radius: 4px;
       }
       .view-auto .col-right {
         grid-column: span 7 / span 7;
@@ -179,6 +192,9 @@
     .view-mobile .col-left, .view-mobile .col-right {
       display: block !important;
       width: 100% !important;
+      position: static !important;
+      max-height: none !important;
+      overflow-y: visible !important;
     }
     .view-mobile .desktop-only {
       display: none !important;
@@ -203,6 +219,19 @@
     }
     .view-desktop .col-left {
       grid-column: span 5 / span 5 !important;
+      position: sticky !important;
+      top: 1.25rem !important;
+      max-height: calc(100vh - 6.5rem) !important;
+      overflow-y: auto !important;
+      scrollbar-width: thin !important;
+      padding-right: 0.35rem !important;
+    }
+    .view-desktop .col-left::-webkit-scrollbar {
+      width: 4px;
+    }
+    .view-desktop .col-left::-webkit-scrollbar-thumb {
+      background: rgba(156, 163, 175, 0.4);
+      border-radius: 4px;
     }
     .view-desktop .col-right {
       grid-column: span 7 / span 7 !important;
@@ -315,9 +344,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.10.3)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.0)"
                     class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-colors cursor-pointer active:scale-95">
-              v2.10.3
+              v2.11.0
             </button>
           </div>
           <div id="connection-btn" class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
@@ -329,6 +358,10 @@
 
       <!-- Mobile Right Actions (< md:) -->
       <div class="flex md:hidden items-center gap-1.5">
+        <!-- Shortcuts Modal Button (Mobile) -->
+        <button onclick="openShortcutsModal()" title="Keyboard Shortcuts (?)" class="p-2 rounded-xl bg-slate-100 dark:bg-gray-800/80 hover:bg-slate-200 dark:hover:bg-gray-800 text-slate-600 dark:text-gray-300 transition-colors active:scale-90 text-xs">
+          ⌨️
+        </button>
         <!-- Quick Refresh -->
         <button onclick="handleManualRefresh(this)" title="Refresh Status" class="p-2 rounded-xl bg-slate-100 dark:bg-gray-800/80 hover:bg-slate-200 dark:hover:bg-gray-800 text-slate-600 dark:text-gray-300 transition-colors active:scale-90">
           <svg class="refresh-icon w-4 h-4 transition-transform duration-300 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -383,6 +416,14 @@
             <span class="hidden sm:inline">Dark</span>
           </button>
         </div>
+
+        <!-- Shortcuts Help Button -->
+        <button onclick="openShortcutsModal()" title="Keyboard Shortcuts (?)"
+                class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-800/80 hover:bg-slate-200 dark:hover:bg-gray-800 text-slate-700 dark:text-gray-200 transition-all font-semibold active:scale-95 shadow-2xs border border-slate-200 dark:border-gray-700/60 cursor-pointer">
+          <span>⌨️</span>
+          <span class="text-[11px] font-bold hidden lg:inline">Shortcuts</span>
+          <kbd class="px-1 py-0.2 rounded bg-slate-200 dark:bg-gray-700 text-[9px] font-mono font-bold text-slate-500 dark:text-gray-400">?</kbd>
+        </button>
 
         <!-- Desktop Refresh Button (Enhanced with tactile spin & feedback) -->
         <button onclick="handleManualRefresh(this)" id="refresh-btn-desktop" title="Refresh Status & Reconnect"
@@ -501,39 +542,39 @@
           </div>
         </div>
 
-        <!-- DESKTOP-ONLY: HOST & ROOM WI-FI QR CODE CARD (With 1-click copy link) -->
-        <div class="desktop-only rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-4 shadow-md dark:shadow-xl space-y-3 transition-colors duration-200">
-          <div class="flex items-center justify-between text-xs font-bold text-slate-800 dark:text-gray-200">
-            <div class="flex items-center gap-1.5">
-              <span>📱</span>
-              <span>Scan untuk Request Lagu dari Smartphone</span>
+        <!-- DESKTOP-ONLY: QUEUE & PLAYED HISTORY TABS CARD (Sticky in Left Column) -->
+        <div id="desktop-queue-card" class="dashboard-card desktop-only rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-4 shadow-md dark:shadow-xl space-y-3 transition-colors duration-200">
+          <div class="flex items-center justify-between border-b border-slate-200 dark:border-gray-800 pb-2.5">
+            <div class="flex gap-2">
+              <button onclick="switchQueueTab('upcoming')" id="tab-btn-upcoming"
+                      class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-white dark:bg-gray-800 text-slate-900 dark:text-white flex items-center gap-1.5 border border-slate-300 dark:border-gray-700 shadow-xs">
+                <span>Antrean Mendatang</span>
+                <span id="queue-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-pink-500/20 text-pink-600 dark:text-pink-400 font-extrabold">0</span>
+              </button>
+              <button onclick="switchQueueTab('history')" id="tab-btn-history"
+                      class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 border border-transparent">
+                <span>Lagu yang Sudah Diputar</span>
+                <span id="history-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-400 font-bold">0</span>
+              </button>
             </div>
-            <button onclick="copyHostUrl()" id="copy-host-btn" class="px-2 py-0.5 rounded-lg bg-pink-500/10 hover:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30 text-[10px] font-bold flex items-center gap-1 transition-all active:scale-95">
-              <span id="copy-host-icon">📋</span>
-              <span id="copy-host-text">Salin Link</span>
-            </button>
+            <div id="queue-legend" class="text-[11px] text-slate-500 dark:text-gray-400 flex items-center gap-1.5 font-bold">
+              <span class="text-pink-500">⠿ Drag</span>
+              <span>•</span>
+              <span>🔥 Vote</span>
+            </div>
           </div>
-          <div class="flex items-center gap-4 bg-slate-100/80 dark:bg-gray-900/60 p-3 rounded-xl border border-slate-200/80 dark:border-gray-800">
-            <img id="host-qr-img" src="" alt="Scan QR" class="w-20 h-20 rounded-lg bg-white p-1 border border-slate-200 shrink-0">
-            <div class="min-w-0 text-xs space-y-1 flex-1">
-              <div class="flex items-center justify-between gap-1">
-                <p id="host-network-badge" class="font-bold text-slate-900 dark:text-white flex items-center gap-1">
-                  <span>📶</span>
-                  <span>Wi-Fi / Hotspot Room</span>
-                </p>
-                <span id="tunnel-status-badge" class="hidden text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-                  🌐 Internet Publik
-                </span>
-              </div>
-              <p class="text-[11px] text-slate-500 dark:text-gray-400">Buka kamera HP atau kunjungi:</p>
-              <p id="host-url-text" class="text-[11px] font-mono font-bold text-pink-600 dark:text-pink-400 truncate"></p>
-              <div class="pt-0.5 flex items-center gap-2">
-                <button onclick="toggleQuickTunnel()" id="tunnel-toggle-btn"
-                        class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-pink-500/10 hover:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30 active:scale-95 transition-all flex items-center gap-1 cursor-pointer">
-                  <span id="tunnel-toggle-icon">🌐</span>
-                  <span id="tunnel-toggle-label">Buka Link Publik (Kuota HP)</span>
-                </button>
-              </div>
+
+          <!-- Upcoming Queue View -->
+          <div id="queue-view" class="space-y-2">
+            <div id="queue-list" class="space-y-2">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Previously Played Songs View -->
+          <div id="history-view" class="space-y-2 hidden">
+            <div id="history-list" class="space-y-2">
+              <!-- Rendered via JS -->
             </div>
           </div>
         </div>
@@ -713,55 +754,6 @@
 
             </div>
 
-            <!-- CHINESE / MANDARIN + GLOBAL QUICK MOOD CHIPS (v2.3.0 Interactive Reactive) -->
-            <div>
-              <div class="text-[11px] font-bold text-slate-500 dark:text-gray-400 mb-1.5 flex items-center justify-between">
-                <span>✨ Rekomendasi Kategori:</span>
-                <span id="category-active-label" class="text-[10px] text-pink-600 dark:text-pink-400 font-extrabold hidden">
-                  Aktif: <span id="category-active-name"></span> <button type="button" onclick="clearSearch()" class="ml-1 text-slate-400 hover:text-pink-500 font-normal">✕</button>
-                </span>
-                <span id="category-hint-label" class="text-[10px] text-slate-400 dark:text-gray-500">Tap untuk filter</span>
-              </div>
-              <div id="category-chips-list" class="flex gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
-                <button type="button" data-keyword="Mandopop Hits 周杰伦 林俊杰" data-label="Mandopop Hits" onclick="toggleCategoryChip(this)"
-                        class="category-chip shrink-0 px-3 py-1.5 rounded-xl border transition-all duration-200 shadow-2xs flex items-center gap-1 font-bold text-[11px] cursor-pointer bg-slate-100 dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-700 dark:text-gray-300 hover:border-pink-500/50">
-                  <span>🇨🇳</span> <span>Mandopop Hits</span>
-                </button>
-                <button type="button" data-keyword="Chinese Karaoke KTV 抖音热歌" data-label="KTV Mandarin" onclick="toggleCategoryChip(this)"
-                        class="category-chip shrink-0 px-3 py-1.5 rounded-xl border transition-all duration-200 shadow-2xs flex items-center gap-1 font-bold text-[11px] cursor-pointer bg-slate-100 dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-700 dark:text-gray-300 hover:border-pink-500/50">
-                  <span>🎤</span> <span>KTV Mandarin</span>
-                </button>
-                <button type="button" data-keyword="Classic Mandarin Songs 邓丽君 张学友" data-label="Classic Mandarin" onclick="toggleCategoryChip(this)"
-                        class="category-chip shrink-0 px-3 py-1.5 rounded-xl border transition-all duration-200 shadow-2xs flex items-center gap-1 font-bold text-[11px] cursor-pointer bg-slate-100 dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-700 dark:text-gray-300 hover:border-pink-500/50">
-                  <span>🏮</span> <span>Classic Mandarin</span>
-                </button>
-                <button type="button" data-keyword="Top Indo Hits" data-label="Indo Hits" onclick="toggleCategoryChip(this)"
-                        class="category-chip shrink-0 px-3 py-1.5 rounded-xl border transition-all duration-200 shadow-2xs flex items-center gap-1 font-bold text-[11px] cursor-pointer bg-slate-100 dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-700 dark:text-gray-300 hover:border-pink-500/50">
-                  <span>🇮🇩</span> <span>Indo Hits</span>
-                </button>
-                <button type="button" data-keyword="Trending K-Pop" data-label="K-Pop" onclick="toggleCategoryChip(this)"
-                        class="category-chip shrink-0 px-3 py-1.5 rounded-xl border transition-all duration-200 shadow-2xs flex items-center gap-1 font-bold text-[11px] cursor-pointer bg-slate-100 dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-700 dark:text-gray-300 hover:border-pink-500/50">
-                  <span>🇰🇷</span> <span>K-Pop</span>
-                </button>
-                <button type="button" data-keyword="Anime OST Hits" data-label="Anime Hits" onclick="toggleCategoryChip(this)"
-                        class="category-chip shrink-0 px-3 py-1.5 rounded-xl border transition-all duration-200 shadow-2xs flex items-center gap-1 font-bold text-[11px] cursor-pointer bg-slate-100 dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-700 dark:text-gray-300 hover:border-pink-500/50">
-                  <span>🇯🇵</span> <span>Anime Hits</span>
-                </button>
-                <button type="button" data-keyword="Top 50 Global Hits" data-label="Top Global" onclick="toggleCategoryChip(this)"
-                        class="category-chip shrink-0 px-3 py-1.5 rounded-xl border transition-all duration-200 shadow-2xs flex items-center gap-1 font-bold text-[11px] cursor-pointer bg-slate-100 dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-700 dark:text-gray-300 hover:border-pink-500/50">
-                  <span>🔥</span> <span>Top Global</span>
-                </button>
-                <button type="button" data-keyword="Best Party Dance EDM" data-label="Party EDM" onclick="toggleCategoryChip(this)"
-                        class="category-chip shrink-0 px-3 py-1.5 rounded-xl border transition-all duration-200 shadow-2xs flex items-center gap-1 font-bold text-[11px] cursor-pointer bg-slate-100 dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-700 dark:text-gray-300 hover:border-pink-500/50">
-                  <span>💃</span> <span>Party EDM</span>
-                </button>
-                <button type="button" data-keyword="Acoustic Chill Pop" data-label="Acoustic Chill" onclick="toggleCategoryChip(this)"
-                        class="category-chip shrink-0 px-3 py-1.5 rounded-xl border transition-all duration-200 shadow-2xs flex items-center gap-1 font-bold text-[11px] cursor-pointer bg-slate-100 dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-700 dark:text-gray-300 hover:border-pink-500/50">
-                  <span>☕</span> <span>Acoustic Chill</span>
-                </button>
-              </div>
-            </div>
-
             <!-- Search Results / Curated Recommendations Container (Natural Height, Non-scrollable 3x3 Grid) -->
             <div id="search-results" class="space-y-2 w-full"></div>
           </div>
@@ -783,39 +775,39 @@
           </div>
         </div>
 
-        <!-- QUEUE & PLAYED HISTORY TABS CARD -->
+        <!-- HOST & ROOM WI-FI QR CODE CARD (With 1-click copy link) -->
         <div class="dashboard-card rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-4 shadow-md dark:shadow-xl space-y-3 transition-colors duration-200">
-          <div class="flex items-center justify-between border-b border-slate-200 dark:border-gray-800 pb-2.5">
-            <div class="flex gap-2">
-              <button onclick="switchQueueTab('upcoming')" id="tab-btn-upcoming"
-                      class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-white dark:bg-gray-800 text-slate-900 dark:text-white flex items-center gap-1.5 border border-slate-300 dark:border-gray-700 shadow-xs">
-                <span>Antrean Mendatang</span>
-                <span id="queue-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-pink-500/20 text-pink-600 dark:text-pink-400 font-extrabold">0</span>
-              </button>
-              <button onclick="switchQueueTab('history')" id="tab-btn-history"
-                      class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 border border-transparent">
-                <span>Lagu yang Sudah Diputar</span>
-                <span id="history-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-400 font-bold">0</span>
-              </button>
+          <div class="flex items-center justify-between text-xs font-bold text-slate-800 dark:text-gray-200">
+            <div class="flex items-center gap-1.5">
+              <span>📱</span>
+              <span>Scan untuk Request Lagu dari Smartphone</span>
             </div>
-            <div id="queue-legend" class="text-[11px] text-slate-500 dark:text-gray-400 flex items-center gap-1.5 font-bold">
-              <span class="text-pink-500">⠿ Drag</span>
-              <span>•</span>
-              <span>🔥 Vote</span>
-            </div>
+            <button onclick="copyHostUrl()" id="copy-host-btn" class="px-2 py-0.5 rounded-lg bg-pink-500/10 hover:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30 text-[10px] font-bold flex items-center gap-1 transition-all active:scale-95">
+              <span id="copy-host-icon">📋</span>
+              <span id="copy-host-text">Salin Link</span>
+            </button>
           </div>
-
-          <!-- Upcoming Queue View -->
-          <div id="queue-view" class="space-y-2">
-            <div id="queue-list" class="space-y-2">
-              <!-- Rendered via JS -->
-            </div>
-          </div>
-
-          <!-- Previously Played Songs View -->
-          <div id="history-view" class="space-y-2 hidden">
-            <div id="history-list" class="space-y-2">
-              <!-- Rendered via JS -->
+          <div class="flex items-center gap-4 bg-slate-100/80 dark:bg-gray-900/60 p-3 rounded-xl border border-slate-200/80 dark:border-gray-800">
+            <img id="host-qr-img" src="" alt="Scan QR" class="w-20 h-20 rounded-lg bg-white p-1 border border-slate-200 shrink-0">
+            <div class="min-w-0 text-xs space-y-1 flex-1">
+              <div class="flex items-center justify-between gap-1">
+                <p id="host-network-badge" class="font-bold text-slate-900 dark:text-white flex items-center gap-1">
+                  <span>📶</span>
+                  <span>Wi-Fi / Hotspot Room</span>
+                </p>
+                <span id="tunnel-status-badge" class="hidden text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                  🌐 Internet Publik
+                </span>
+              </div>
+              <p class="text-[11px] text-slate-500 dark:text-gray-400">Buka kamera HP atau kunjungi:</p>
+              <p id="host-url-text" class="text-[11px] font-mono font-bold text-pink-600 dark:text-pink-400 truncate"></p>
+              <div class="pt-0.5 flex items-center gap-2">
+                <button onclick="toggleQuickTunnel()" id="tunnel-toggle-btn"
+                        class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-pink-500/10 hover:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30 active:scale-95 transition-all flex items-center gap-1 cursor-pointer">
+                  <span id="tunnel-toggle-icon">🌐</span>
+                  <span id="tunnel-toggle-label">Buka Link Publik (Kuota HP)</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -894,7 +886,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.10.3</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.0</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -905,10 +897,26 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.10.3 -->
+        <!-- v2.11.0 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.10.3 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.11.0 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">⌨️ Keyboard Shortcuts & Panduan Lengkap:</strong> Tekan <kbd class="px-1 py-0.2 rounded bg-pink-500/20 text-pink-600 dark:text-pink-400 font-mono font-bold text-[10px]">Space</kbd> atau <kbd class="px-1 py-0.2 rounded bg-pink-500/20 text-pink-600 dark:text-pink-400 font-mono font-bold text-[10px]">K</kbd> untuk Play/Pause, <kbd class="px-1 py-0.2 rounded bg-slate-200 dark:bg-gray-700 font-mono font-bold text-[10px]">N</kbd> (Next), <kbd class="px-1 py-0.2 rounded bg-slate-200 dark:bg-gray-700 font-mono font-bold text-[10px]">J</kbd>/<kbd class="px-1 py-0.2 rounded bg-slate-200 dark:bg-gray-700 font-mono font-bold text-[10px]">L</kbd> (Mundur/Maju 5s), <kbd class="px-1 py-0.2 rounded bg-slate-200 dark:bg-gray-700 font-mono font-bold text-[10px]">↑/↓</kbd> (Volume), <kbd class="px-1 py-0.2 rounded bg-slate-200 dark:bg-gray-700 font-mono font-bold text-[10px]">M</kbd> (Mute), <kbd class="px-1 py-0.2 rounded bg-slate-200 dark:bg-gray-700 font-mono font-bold text-[10px]">/</kbd> (Cari Lagu), <kbd class="px-1 py-0.2 rounded bg-slate-200 dark:bg-gray-700 font-mono font-bold text-[10px]">F</kbd> (Layar Penuh Karaoke), <kbd class="px-1 py-0.2 rounded bg-slate-200 dark:bg-gray-700 font-mono font-bold text-[10px]">C</kbd> (Pinyin), dan <kbd class="px-1 py-0.2 rounded bg-slate-200 dark:bg-gray-700 font-mono font-bold text-[10px]">?</kbd> untuk dialog panduan pintasan.</li>
+            <li><strong class="text-slate-800 dark:text-white">📌 Sticky Left Column (Lirik & Antrean):</strong> Kolom antrean dipindahkan ke kiri di bawah panel lirik karaoke real-time. Kolom kiri kini sticky dan diam di tempat dengan scroll internal mandiri, sehingga hanya kolom kanan yang bergeser saat scrolling halaman.</li>
+            <li><strong class="text-slate-800 dark:text-white">🔲 Desain Rectangle 3x3 Hemat Ruang:</strong> Kartu lagu rekomendasi 3x3 diubah menjadi bentuk horizontal persegi panjang dengan foto album di sebelah kiri dan flex column (judul, artis, tombol +Queue) di kanan, menghemat ruang layar vertikal secara drastis.</li>
+            <li><strong class="text-slate-800 dark:text-white">♾️ Infinite Recommendations Engine:</strong> Rekomendasi lagu tidak lagi terbatas hanya pada 2 halaman, melainkan dapat dijelajahi tanpa batas (Halaman 1, 2, 3...) dengan rotasi seed YouTube Music dinamis dan tombol Acak pintar.</li>
+            <li><strong class="text-slate-800 dark:text-white">📱 Mobile Queue Bottom Sheet:</strong> Pada smartphone/mobile, antrean lagu disembunyikan dari layar utama dan dapat dibuka instan melalui tombol Queue di dock bawah berupa bottom sheet yang halus dan dapat digeser (expandable).</li>
+            <li><strong class="text-slate-800 dark:text-white">🎯 Filter Bersih & Minimalis:</strong> Kategori chip dihapus, menyisakan 2 filter dropdown utama (Negara & Genre) yang bersih dan presisi.</li>
+          </ul>
+        </div>
+
+        <!-- v2.10.3 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-800/40 border border-slate-200 dark:border-gray-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-600">v2.10.3</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -1447,7 +1455,7 @@
 
       <!-- Section 5: Version & Release Notes -->
       <div class="pt-1 flex items-center justify-between text-xs text-slate-400">
-        <span>Party Jukebox v2.10.3</span>
+        <span>Party Jukebox v2.11.0</span>
         <button onclick="openChangelogModal(); closeSettingsModal();" class="font-bold text-pink-600 dark:text-pink-400 hover:underline">
           Lihat Catatan Rilis 🚀
         </button>
@@ -1544,16 +1552,16 @@
         </div>
       </div>
 
-      <!-- ROW 2 ON MOBILE / CENTER ON DESKTOP: Controls (Back, Play/Pause, Skip, Karaoke, Volume) -->
-      <div class="flex items-center justify-center gap-3 sm:gap-4 shrink-0 w-full md:w-auto pt-1 md:pt-0 border-t border-slate-100 dark:border-gray-800/60 md:border-t-0">
+      <!-- ROW 2 ON MOBILE / CENTER ON DESKTOP: Controls (Back, Play/Pause, Skip, Karaoke, Volume, Queue) -->
+      <div class="flex items-center justify-center gap-2.5 sm:gap-4 shrink-0 w-full md:w-auto pt-1 md:pt-0 border-t border-slate-100 dark:border-gray-800/60 md:border-t-0">
         <!-- Restart Track Button (Back) -->
-        <button onclick="restartTrack()" title="Ulangi dari Awal"
+        <button onclick="restartTrack()" title="Ulangi dari Awal / Mundur 5d (J / ←)"
                 class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-slate-700 dark:text-gray-200 hover:text-slate-900 dark:hover:text-white flex items-center justify-center active:scale-95 transition-all cursor-pointer border border-slate-200 dark:border-gray-700">
           <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.2 3.16-1.98 5.12-1.98 3.65 0 6.69 2.45 7.6 5.8l2.36-.78C21.17 10.87 17.21 8 12.5 8z"/></svg>
         </button>
 
         <!-- Play / Pause Button -->
-        <button onclick="togglePlay()" title="Play / Pause"
+        <button onclick="togglePlay()" title="Play / Pause (Space / K)"
                 class="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 text-white flex items-center justify-center shadow-lg shadow-pink-500/30 hover:scale-105 active:scale-95 transition-all cursor-pointer">
           <svg id="play-icon" class="w-5 h-5 translate-x-0.5" fill="currentColor" viewBox="0 0 24 24">
             <path d="M8 5v14l11-7z"/>
@@ -1564,7 +1572,7 @@
         </button>
 
         <!-- Skip Button -->
-        <button onclick="skipNext()" title="Skip Lagu (Next)"
+        <button onclick="skipNext()" title="Skip Lagu (N)"
                 class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-slate-700 dark:text-gray-200 hover:text-slate-900 dark:hover:text-white flex items-center justify-center active:scale-95 transition-all cursor-pointer border border-slate-200 dark:border-gray-700">
           <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
             <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
@@ -1572,7 +1580,7 @@
         </button>
 
         <!-- Quick Lyrics Toggle Button -->
-        <button onclick="openLyrics()" title="Lihat Lirik Real-Time"
+        <button onclick="openLyrics()" title="Lihat Lirik Real-Time (F)"
                 class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-pink-500/10 hover:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30 text-xs font-bold active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer">
           <span class="text-sm">🎤</span>
           <span>Lirik</span>
@@ -1583,11 +1591,19 @@
                 class="md:hidden w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-slate-700 dark:text-gray-200 flex items-center justify-center border border-slate-200 dark:border-gray-700 active:scale-95 transition-all cursor-pointer">
           <span class="text-xs">🔊</span>
         </button>
+
+        <!-- Mobile Queue Bottom Sheet Trigger Button -->
+        <button onclick="openMobileQueueSheet()" title="Buka Antrean & Riwayat Lagu"
+                class="md:hidden relative px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-slate-700 dark:text-gray-200 flex items-center gap-1 border border-slate-200 dark:border-gray-700 active:scale-95 transition-all cursor-pointer">
+          <span class="text-xs">📑</span>
+          <span class="text-[11px] font-bold">Queue</span>
+          <span id="mobile-bottombar-queue-badge" class="px-1.5 py-0.2 rounded-full text-[9px] bg-pink-500 text-white font-extrabold ml-0.5">0</span>
+        </button>
       </div>
 
       <!-- RIGHT (DESKTOP ONLY): Inline Volume Controls & Snapping -->
       <div class="hidden md:flex items-center gap-2.5 min-w-[200px] max-w-[280px]">
-        <button onclick="toggleMuteQuick()" id="vol-mute-btn" title="Toggle Mute"
+        <button onclick="toggleMuteQuick()" id="vol-mute-btn" title="Toggle Mute (M)"
                 class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-gray-800 hover:bg-slate-200 dark:hover:bg-gray-700 text-slate-700 dark:text-gray-200 flex items-center justify-center shrink-0 transition-all active:scale-90">
           <span id="vol-icon" class="text-xs">🔊</span>
         </button>
@@ -1595,6 +1611,7 @@
         <div class="flex-1 flex items-center gap-2">
           <input type="range" id="volume-slider" min="0" max="100" value="70"
                  oninput="handleVolumeInput(this.value)"
+                 title="Volume (↑ / ↓)"
                  class="w-full h-1.5 bg-slate-200 dark:bg-gray-800 rounded-full appearance-none cursor-pointer accent-pink-500">
           <span id="volume-label" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-pink-600 dark:text-pink-400 w-10 text-center shrink-0 border border-slate-200 dark:border-gray-700">
             70%
@@ -1655,6 +1672,165 @@
     </div>
   </div>
 
+  <!-- ============================================================
+       BOTTOM SHEET: MOBILE QUEUE & PLAYED HISTORY (EXPANDABLE)
+       ============================================================ -->
+  <div id="mobile-queue-sheet" class="fixed inset-0 z-50 pointer-events-none transition-all duration-300 opacity-0">
+    <!-- Backdrop -->
+    <div id="mobile-queue-sheet-backdrop" onclick="closeMobileQueueSheet()"
+         class="absolute inset-0 bg-black/60 backdrop-blur-xs transition-opacity duration-300 opacity-0 cursor-pointer"></div>
+    
+    <!-- Sheet Panel -->
+    <div id="mobile-queue-sheet-panel"
+         class="absolute bottom-0 left-0 right-0 bg-white dark:bg-[#121520] border-t border-slate-200 dark:border-gray-800 rounded-t-3xl shadow-2xl max-h-[82vh] flex flex-col transform translate-y-full transition-transform duration-300 ease-out">
+      
+      <!-- Drag handle -->
+      <div onclick="closeMobileQueueSheet()" class="pt-3 pb-1 cursor-pointer flex justify-center">
+        <div class="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-gray-700"></div>
+      </div>
+      
+      <!-- Sheet Header -->
+      <div class="px-4 py-2 flex items-center justify-between border-b border-slate-100 dark:border-gray-800">
+        <div class="flex gap-2">
+          <button onclick="switchMobileQueueSheetTab('upcoming')" id="sheet-tab-btn-upcoming"
+                  class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-pink-500 text-white shadow-xs flex items-center gap-1.5">
+            <span>Antrean Mendatang</span>
+            <span id="mobile-sheet-queue-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20 text-white font-extrabold">0</span>
+          </button>
+          <button onclick="switchMobileQueueSheetTab('history')" id="sheet-tab-btn-history"
+                  class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5">
+            <span>Sudah Diputar</span>
+            <span id="mobile-sheet-history-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-400 font-bold">0</span>
+          </button>
+        </div>
+        <button onclick="closeMobileQueueSheet()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center active:scale-95 transition-all text-xs">
+          ✕
+        </button>
+      </div>
+      
+      <!-- Sheet Content (Scrollable list) -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-2">
+        <div id="mobile-sheet-queue-view" class="space-y-2">
+          <div id="mobile-sheet-queue-list" class="space-y-2"></div>
+        </div>
+        <div id="mobile-sheet-history-view" class="space-y-2 hidden">
+          <div id="mobile-sheet-history-list" class="space-y-2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: KEYBOARD SHORTCUTS REFERENCE & GUIDE
+       ============================================================ -->
+  <div id="shortcuts-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 transition-all duration-200 opacity-0 pointer-events-none">
+    <div class="bg-white dark:bg-[#121520] border border-slate-200 dark:border-gray-800 rounded-3xl p-5 sm:p-6 w-full max-w-lg shadow-2xl space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-gray-800">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-pink-500/15 text-pink-600 dark:text-pink-400 flex items-center justify-center text-base font-bold">
+            ⌨️
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Keyboard Shortcuts</h3>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Pintasan cepat untuk mengontrol Party Jukebox</p>
+          </div>
+        </div>
+        <button onclick="closeShortcutsModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
+          ✕
+        </button>
+      </div>
+
+      <div class="space-y-3.5 text-xs max-h-[65vh] overflow-y-auto pr-1">
+        <!-- 1. Playback -->
+        <div>
+          <h4 class="text-[11px] font-extrabold uppercase tracking-wider text-pink-600 dark:text-pink-400 mb-2">🎵 Pemutaran Musik</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-800">
+              <span class="text-slate-700 dark:text-gray-300 font-medium">Play / Pause</span>
+              <div class="flex items-center gap-1">
+                <kbd class="px-2 py-0.5 rounded bg-white dark:bg-gray-800 border border-slate-300 dark:border-gray-700 font-mono text-[11px] font-bold shadow-2xs">Space</kbd>
+                <span class="text-slate-400">/</span>
+                <kbd class="px-1.5 py-0.5 rounded bg-white dark:bg-gray-800 border border-slate-300 dark:border-gray-700 font-mono text-[11px] font-bold shadow-2xs">K</kbd>
+              </div>
+            </div>
+            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-800">
+              <span class="text-slate-700 dark:text-gray-300 font-medium">Lagu Berikutnya (Next)</span>
+              <kbd class="px-2 py-0.5 rounded bg-white dark:bg-gray-800 border border-slate-300 dark:border-gray-700 font-mono text-[11px] font-bold shadow-2xs">N</kbd>
+            </div>
+            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-800">
+              <span class="text-slate-700 dark:text-gray-300 font-medium">Mundur 5 Detik</span>
+              <div class="flex items-center gap-1">
+                <kbd class="px-1.5 py-0.5 rounded bg-white dark:bg-gray-800 border border-slate-300 dark:border-gray-700 font-mono text-[11px] font-bold shadow-2xs">J</kbd>
+                <span class="text-slate-400">/</span>
+                <kbd class="px-1.5 py-0.5 rounded bg-white dark:bg-gray-800 border border-slate-300 dark:border-gray-700 font-mono text-[11px] font-bold shadow-2xs">←</kbd>
+              </div>
+            </div>
+            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-800">
+              <span class="text-slate-700 dark:text-gray-300 font-medium">Maju 5 Detik</span>
+              <div class="flex items-center gap-1">
+                <kbd class="px-1.5 py-0.5 rounded bg-white dark:bg-gray-800 border border-slate-300 dark:border-gray-700 font-mono text-[11px] font-bold shadow-2xs">L</kbd>
+                <span class="text-slate-400">/</span>
+                <kbd class="px-1.5 py-0.5 rounded bg-white dark:bg-gray-800 border border-slate-300 dark:border-gray-700 font-mono text-[11px] font-bold shadow-2xs">→</kbd>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Volume -->
+        <div>
+          <h4 class="text-[11px] font-extrabold uppercase tracking-wider text-pink-600 dark:text-pink-400 mb-2">🔊 Audio & Volume</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-800">
+              <span class="text-slate-700 dark:text-gray-300 font-medium">Naikkan Volume (+10%)</span>
+              <kbd class="px-2 py-0.5 rounded bg-white dark:bg-gray-800 border border-slate-300 dark:border-gray-700 font-mono text-[11px] font-bold shadow-2xs">↑</kbd>
+            </div>
+            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-800">
+              <span class="text-slate-700 dark:text-gray-300 font-medium">Turunkan Volume (-10%)</span>
+              <kbd class="px-2 py-0.5 rounded bg-white dark:bg-gray-800 border border-slate-300 dark:border-gray-700 font-mono text-[11px] font-bold shadow-2xs">↓</kbd>
+            </div>
+            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-800">
+              <span class="text-slate-700 dark:text-gray-300 font-medium">Mute / Unmute</span>
+              <kbd class="px-2 py-0.5 rounded bg-white dark:bg-gray-800 border border-slate-300 dark:border-gray-700 font-mono text-[11px] font-bold shadow-2xs">M</kbd>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Lyrics & Search -->
+        <div>
+          <h4 class="text-[11px] font-extrabold uppercase tracking-wider text-pink-600 dark:text-pink-400 mb-2">🎤 Lirik & Navigasi</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-800">
+              <span class="text-slate-700 dark:text-gray-300 font-medium">Fullscreen Lirik Karaoke</span>
+              <kbd class="px-2 py-0.5 rounded bg-white dark:bg-gray-800 border border-slate-300 dark:border-gray-700 font-mono text-[11px] font-bold shadow-2xs">F</kbd>
+            </div>
+            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-800">
+              <span class="text-slate-700 dark:text-gray-300 font-medium">Toggle Pinyin / Romaji</span>
+              <kbd class="px-2 py-0.5 rounded bg-white dark:bg-gray-800 border border-slate-300 dark:border-gray-700 font-mono text-[11px] font-bold shadow-2xs">C</kbd>
+            </div>
+            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-800">
+              <span class="text-slate-700 dark:text-gray-300 font-medium">Fokus Kolom Cari Lagu</span>
+              <kbd class="px-2 py-0.5 rounded bg-white dark:bg-gray-800 border border-slate-300 dark:border-gray-700 font-mono text-[11px] font-bold shadow-2xs">/</kbd>
+            </div>
+            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-800">
+              <span class="text-slate-700 dark:text-gray-300 font-medium">Buka Dialog Shortcut Ini</span>
+              <kbd class="px-2 py-0.5 rounded bg-white dark:bg-gray-800 border border-slate-300 dark:border-gray-700 font-mono text-[11px] font-bold shadow-2xs">?</kbd>
+            </div>
+            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-800">
+              <span class="text-slate-700 dark:text-gray-300 font-medium">Tutup Modal / Batal Fokus</span>
+              <kbd class="px-2 py-0.5 rounded bg-white dark:bg-gray-800 border border-slate-300 dark:border-gray-700 font-mono text-[11px] font-bold shadow-2xs">Esc</kbd>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-2">
+        <button onclick="closeShortcutsModal()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-indigo-600 text-white text-xs font-bold shadow-md hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer">
+          Mengerti, Siap Nge-DJ! 🎧
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Notification Toast -->
   <div id="toast" class="fixed bottom-24 sm:bottom-28 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-slate-900/95 dark:bg-gray-900/95 border border-slate-700 dark:border-gray-700 text-white text-xs font-semibold shadow-2xl transition-all duration-300 opacity-0 pointer-events-none translate-y-4 flex items-center gap-2">
     <span>Notification</span>
@@ -1690,7 +1866,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.10.3';
+    const CLIENT_VERSION = '2.11.0';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
 
@@ -4037,10 +4213,13 @@
       handleVolumeInput(newVol);
     }
 
-    // Render Queue
+    // Render Queue (Synchronized for Desktop & Mobile Bottom Sheet)
     function renderQueue(queue, selectedIndex) {
       const queueList = document.getElementById('queue-list');
+      const mobileSheetQueueList = document.getElementById('mobile-sheet-queue-list');
       const countEl = document.getElementById('queue-count');
+      const mobileSheetCountEl = document.getElementById('mobile-sheet-queue-count');
+      const mobileBarBadge = document.getElementById('mobile-bottombar-queue-badge');
 
       const activeVideoId = currentSongData?.videoId || '';
       let upcoming = [];
@@ -4051,7 +4230,9 @@
       }
 
       currentUpcomingList = upcoming;
-      countEl.textContent = upcoming.length;
+      if (countEl) countEl.textContent = upcoming.length;
+      if (mobileSheetCountEl) mobileSheetCountEl.textContent = upcoming.length;
+      if (mobileBarBadge) mobileBarBadge.textContent = upcoming.length;
 
       // Up Next Preview Banner
       const upNextBanner = document.getElementById('up-next-banner');
@@ -4059,23 +4240,26 @@
       const upNextBadge = document.getElementById('up-next-badge');
 
       if (upcoming.length > 0) {
-        upNextBanner.classList.remove('hidden');
-        upNextTitle.textContent = upcoming[0].title;
-        upNextBadge.textContent = upcoming[0].addedBy ? `(by ${upcoming[0].addedBy})` : '✨ Autoplay YouTube';
+        if (upNextBanner) upNextBanner.classList.remove('hidden');
+        if (upNextTitle) upNextTitle.textContent = upcoming[0].title;
+        if (upNextBadge) upNextBadge.textContent = upcoming[0].addedBy ? `(by ${upcoming[0].addedBy})` : '✨ Autoplay YouTube';
       } else {
-        upNextBanner.classList.add('hidden');
+        if (upNextBanner) upNextBanner.classList.add('hidden');
       }
 
+      const emptyHtml = `
+        <div class="p-6 rounded-xl bg-slate-100/60 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-800/60 text-center">
+          <p class="text-xs text-slate-500 dark:text-gray-400">Antrean kosong. Jadilah yang pertama request lagu!</p>
+        </div>
+      `;
+
       if (upcoming.length === 0) {
-        queueList.innerHTML = `
-          <div class="p-6 rounded-xl bg-slate-100/60 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-800/60 text-center">
-            <p class="text-xs text-slate-500 dark:text-gray-400">Antrean kosong. Jadilah yang pertama request lagu!</p>
-          </div>
-        `;
+        if (queueList) queueList.innerHTML = emptyHtml;
+        if (mobileSheetQueueList) mobileSheetQueueList.innerHTML = emptyHtml;
         return;
       }
 
-      queueList.innerHTML = upcoming.map((item, idx) => {
+      const queueHtml = upcoming.map((item, idx) => {
         const userStyle = getUserColor(item.addedBy);
         const hasVoted = item.votedUsers && item.votedUsers.includes(currentUser);
         const voteBtnClass = hasVoted
@@ -4137,47 +4321,63 @@
         `;
       }).join('');
 
-      // Initialize SortableJS
+      if (queueList) queueList.innerHTML = queueHtml;
+      if (mobileSheetQueueList) mobileSheetQueueList.innerHTML = queueHtml;
+
+      // Initialize SortableJS for Desktop and Mobile
       if (sortableInstance) {
         sortableInstance.destroy();
       }
 
-      sortableInstance = new Sortable(queueList, {
-        animation: 180,
-        handle: '.drag-handle',
-        ghostClass: 'sortable-ghost',
-        chosenClass: 'sortable-chosen',
-        onEnd: async function (evt) {
-          const oldIndex = evt.oldIndex;
-          const newIndex = evt.newIndex;
-          if (oldIndex === newIndex) return;
+      if (queueList) {
+        sortableInstance = new Sortable(queueList, {
+          animation: 180,
+          handle: '.drag-handle',
+          ghostClass: 'sortable-ghost',
+          chosenClass: 'sortable-chosen',
+          onEnd: handleQueueSortEnd
+        });
+      }
+      if (mobileSheetQueueList) {
+        new Sortable(mobileSheetQueueList, {
+          animation: 180,
+          handle: '.drag-handle',
+          ghostClass: 'sortable-ghost',
+          chosenClass: 'sortable-chosen',
+          onEnd: handleQueueSortEnd
+        });
+      }
+    }
 
-          const movedItem = currentUpcomingList[oldIndex];
-          const targetItem = currentUpcomingList[newIndex];
-          if (!movedItem || !targetItem) return;
+    async function handleQueueSortEnd(evt) {
+      const oldIndex = evt.oldIndex;
+      const newIndex = evt.newIndex;
+      if (oldIndex === newIndex) return;
 
-          showToast(`Moving "${movedItem.title}" to #${newIndex + 1}...`);
+      const movedItem = currentUpcomingList[oldIndex];
+      const targetItem = currentUpcomingList[newIndex];
+      if (!movedItem || !targetItem) return;
 
-          try {
-            await fetch('/api/queue/move', {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                fromIndex: movedItem.rawIndex,
-                toIndex: targetItem.rawIndex,
-                user: currentUser,
-                title: movedItem.title,
-                targetPosition: newIndex + 1
-              })
-            });
-            showToast(`✓ Moved "${movedItem.title}"`);
-          } catch (err) {
-            console.error('Drag move error:', err);
-            showToast('Failed to move song');
-            fetchStatus();
-          }
-        }
-      });
+      showToast(`Moving "${movedItem.title}" to #${newIndex + 1}...`);
+
+      try {
+        await fetch('/api/queue/move', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromIndex: movedItem.rawIndex,
+            toIndex: targetItem.rawIndex,
+            user: currentUser,
+            title: movedItem.title,
+            targetPosition: newIndex + 1
+          })
+        });
+        showToast(`✓ Moved "${movedItem.title}"`);
+      } catch (err) {
+        console.error('Drag move error:', err);
+        showToast('Failed to move song');
+        fetchStatus();
+      }
     }
 
     function renderActivity(logs) {
@@ -4223,7 +4423,7 @@
     }
 
     // ============================================================
-    // CURATED MANDARIN & GLOBAL RECOMMENDATIONS
+    // CURATED MANDARIN & GLOBAL RECOMMENDATIONS (45+ SEEDS & INFINITE YOUTUBE ENGINE)
     // ============================================================
     const partyRecommendations = [
       // Top Mandarin / C-Pop Hits
@@ -4236,24 +4436,99 @@
       { videoId: 'DYptgVvkVLQ', title: '晴天 (Sunny Day)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/DYptgVvkVLQ/hqdefault.jpg', songDuration: 319 },
       { videoId: 'kvEeCLf16zM', title: '简单爱 (Simple Love)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/kvEeCLf16zM/hqdefault.jpg', songDuration: 271 },
       { videoId: 'KqjgLbKZ1h0', title: '那些年 (Those Bygone Years)', artist: '胡夏 Hu Xia', thumbnail: 'https://i.ytimg.com/vi/KqjgLbKZ1h0/hqdefault.jpg', songDuration: 369 },
-      // Global Party & Anime Classics
+      { videoId: 'h73MMxvg878', title: '年少有为 (If I Were Young)', artist: '李荣浩 Li Ronghao', thumbnail: 'https://i.ytimg.com/vi/h73MMxvg878/hqdefault.jpg', songDuration: 279 },
+      { videoId: 'e-ORhEE9VVg', title: 'Blank Space', artist: 'Taylor Swift', thumbnail: 'https://i.ytimg.com/vi/e-ORhEE9VVg/hqdefault.jpg', songDuration: 231 },
+      { videoId: 'k2qgadSvNyU', title: 'New Rules', artist: 'Dua Lipa', thumbnail: 'https://i.ytimg.com/vi/k2qgadSvNyU/hqdefault.jpg', songDuration: 225 },
+      // Top Indo Hits
+      { videoId: 'QSWYyoF79oE', title: 'Sial', artist: 'Mahalini', thumbnail: 'https://i.ytimg.com/vi/QSWYyoF79oE/hqdefault.jpg', songDuration: 244 },
+      { videoId: 'fKRtnMYMW08', title: 'Komang', artist: 'Raim Laode', thumbnail: 'https://i.ytimg.com/vi/fKRtnMYMW08/hqdefault.jpg', songDuration: 223 },
+      { videoId: 'F_g1r60o_2s', title: 'Satu Bulan', artist: 'Bernadya', thumbnail: 'https://i.ytimg.com/vi/F_g1r60o_2s/hqdefault.jpg', songDuration: 201 },
+      { videoId: 'a7fzkqLozwA', title: 'Gala Bunga Matahari', artist: 'Sal Priadi', thumbnail: 'https://i.ytimg.com/vi/a7fzkqLozwA/hqdefault.jpg', songDuration: 238 },
+      { videoId: 'xWggXeX0Z9Y', title: 'Sialan', artist: 'Juicy Luicy ft. Adrian Khalif', thumbnail: 'https://i.ytimg.com/vi/xWggXeX0Z9Y/hqdefault.jpg', songDuration: 234 },
+      { videoId: '8S0D4v66N0Q', title: 'Dan...', artist: 'Sheila on 7', thumbnail: 'https://i.ytimg.com/vi/8S0D4v66N0Q/hqdefault.jpg', songDuration: 286 },
+      // Global Party & Pop Hits
       { videoId: 'dvgZkm1xWPE', title: 'Viva La Vida', artist: 'Coldplay', thumbnail: 'https://i.ytimg.com/vi/dvgZkm1xWPE/hqdefault.jpg', songDuration: 242 },
       { videoId: '34Na4j8AVgA', title: 'Starboy', artist: 'The Weeknd ft. Daft Punk', thumbnail: 'https://i.ytimg.com/vi/34Na4j8AVgA/hqdefault.jpg', songDuration: 230 },
       { videoId: 'JGwWNGJdvx8', title: 'Shape of You', artist: 'Ed Sheeran', thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg', songDuration: 233 },
+      { videoId: '4NRXx6U8ABQ', title: 'Blinding Lights', artist: 'The Weeknd', thumbnail: 'https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg', songDuration: 200 },
+      { videoId: 'H5v3kku4y6Q', title: 'As It Was', artist: 'Harry Styles', thumbnail: 'https://i.ytimg.com/vi/H5v3kku4y6Q/hqdefault.jpg', songDuration: 167 },
+      { videoId: 'V1Pl8CzNzCw', title: 'BIRDS OF A FEATHER', artist: 'Billie Eilish', thumbnail: 'https://i.ytimg.com/vi/V1Pl8CzNzCw/hqdefault.jpg', songDuration: 190 },
+      { videoId: 'kPa7bsKwL-c', title: 'Die With A Smile', artist: 'Lady Gaga & Bruno Mars', thumbnail: 'https://i.ytimg.com/vi/kPa7bsKwL-c/hqdefault.jpg', songDuration: 251 },
+      // K-Pop & J-Pop Anime
       { videoId: 'ArmDp-zijuc', title: 'Super Shy', artist: 'NewJeans', thumbnail: 'https://i.ytimg.com/vi/ArmDp-zijuc/hqdefault.jpg', songDuration: 154 },
+      { videoId: 'QU9c0053UAU', title: 'Seven', artist: 'Jung Kook ft. Latto', thumbnail: 'https://i.ytimg.com/vi/QU9c0053UAU/hqdefault.jpg', songDuration: 184 },
+      { videoId: 'hLvWy2b857I', title: 'Perfect Night', artist: 'LE SSERAFIM', thumbnail: 'https://i.ytimg.com/vi/hLvWy2b857I/hqdefault.jpg', songDuration: 159 },
+      { videoId: 'phuiAIQAxZ4', title: 'Supernova', artist: 'aespa', thumbnail: 'https://i.ytimg.com/vi/phuiAIQAxZ4/hqdefault.jpg', songDuration: 178 },
       { videoId: 'x8VYWazR5mE', title: '夜に駆ける (Racing into the Night)', artist: 'YOASOBI', thumbnail: 'https://i.ytimg.com/vi/x8VYWazR5mE/hqdefault.jpg', songDuration: 261 },
       { videoId: 'a5uQMwRMHcs', title: 'Sparkle (スパークル)', artist: 'RADWIMPS', thumbnail: 'https://i.ytimg.com/vi/a5uQMwRMHcs/hqdefault.jpg', songDuration: 410 },
-      { videoId: 'QSWYyoF79oE', title: 'Sial', artist: 'Mahalini', thumbnail: 'https://i.ytimg.com/vi/QSWYyoF79oE/hqdefault.jpg', songDuration: 244 },
-      { videoId: 'fKRtnMYMW08', title: 'Komang', artist: 'Raim Laode', thumbnail: 'https://i.ytimg.com/vi/fKRtnMYMW08/hqdefault.jpg', songDuration: 223 },
-      { videoId: 'QU9c0053UAU', title: 'Seven', artist: 'Jung Kook ft. Latto', thumbnail: 'https://i.ytimg.com/vi/QU9c0053UAU/hqdefault.jpg', songDuration: 184 }
+      { videoId: 'ZRtdQ81jPUQ', title: 'Idol (アイドル)', artist: 'YOASOBI', thumbnail: 'https://i.ytimg.com/vi/ZRtdQ81jPUQ/hqdefault.jpg', songDuration: 213 }
     ];
 
+    let dynamicRecommendationsPool = [...partyRecommendations];
     let currentRecommendationPage = 1;
-    let isRecommendationShuffled = false;
+    let isFetchingRecommendations = false;
+    let recommendationSearchRotation = 0;
+
+    const DYNAMIC_ROTATING_SEEDS = [
+      'Top 50 Pop Hits',
+      '周杰伦 经典金曲',
+      'Bernadya Mahalini Pop Indo',
+      'Trending C-Pop 抖音热歌',
+      'Billie Eilish Bruno Mars Pop',
+      'NewJeans aespa K-Pop Hits',
+      'YOASOBI Anime OST Classics',
+      'JJ Lin 林俊杰 经典',
+      'Top Acoustic Chill Hits'
+    ];
+
+    async function ensureRecommendationsForPage(page, pageSize = 9) {
+      const needed = page * pageSize;
+      if (dynamicRecommendationsPool.length >= needed) return;
+      if (isFetchingRecommendations) return;
+
+      isFetchingRecommendations = true;
+      const seed = DYNAMIC_ROTATING_SEEDS[recommendationSearchRotation % DYNAMIC_ROTATING_SEEDS.length];
+      recommendationSearchRotation++;
+
+      try {
+        const res = await fetch('/api/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: seed })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const newItems = (data.results || []).filter(item =>
+            item.videoId && !dynamicRecommendationsPool.some(existing => existing.videoId === item.videoId)
+          );
+          if (newItems.length > 0) {
+            dynamicRecommendationsPool.push(...newItems);
+          }
+        }
+      } catch (e) {
+        console.error('Dynamic recommendation fetch error:', e);
+      } finally {
+        isFetchingRecommendations = false;
+      }
+    }
+
+    async function changeRecommendationPage(targetPage) {
+      if (targetPage < 1) targetPage = 1;
+      currentRecommendationPage = targetPage;
+      await ensureRecommendationsForPage(targetPage);
+      renderDefaultRecommendations(targetPage);
+      // Preload next page in background for instant responsiveness
+      ensureRecommendationsForPage(targetPage + 1);
+    }
 
     function shuffleRecommendations() {
-      isRecommendationShuffled = !isRecommendationShuffled;
-      renderDefaultRecommendations(currentRecommendationPage);
+      // Fisher-Yates Shuffle
+      for (let i = dynamicRecommendationsPool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [dynamicRecommendationsPool[i], dynamicRecommendationsPool[j]] = [dynamicRecommendationsPool[j], dynamicRecommendationsPool[i]];
+      }
+      currentRecommendationPage = 1;
+      renderDefaultRecommendations(1);
       showToast('🎲 Rekomendasi diacak!');
     }
 
@@ -4263,61 +4538,79 @@
       if (!container) return;
 
       const pageSize = 9;
-      let list = [...partyRecommendations];
-      if (isRecommendationShuffled) {
-        list = list.slice().reverse();
-      }
-      const totalPages = Math.ceil(list.length / pageSize);
+      const totalPages = Math.max(page, Math.ceil(dynamicRecommendationsPool.length / pageSize));
       const startIdx = (page - 1) * pageSize;
-      const pageItems = list.slice(startIdx, startIdx + pageSize);
+      const pageItems = dynamicRecommendationsPool.slice(startIdx, startIdx + pageSize);
+
+      // Dynamic pagination window
+      const pageNumbers = [];
+      const windowStart = Math.max(1, page - 1);
+      const windowEnd = Math.max(windowStart + 2, page + 1);
+      for (let p = windowStart; p <= windowEnd; p++) {
+        pageNumbers.push(p);
+      }
 
       container.innerHTML = `
         <div class="pt-1 pb-2">
           <!-- Header with Pagination & Shuffle -->
           <div class="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-gray-300 mb-2.5 px-1">
             <span class="flex items-center gap-1.5 text-pink-600 dark:text-pink-400">
-              <span>🔥</span> Rekomendasi Pilihan (${page}/${totalPages})
+              <span>🔥</span> Rekomendasi Pilihan (Halaman ${page})
             </span>
             <div class="flex items-center gap-1.5">
               <button onclick="shuffleRecommendations()" title="Acak Lagu" class="px-2 py-0.5 rounded-md text-[10px] bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-300 border border-slate-200 dark:border-gray-700 transition-all active:scale-95 cursor-pointer">
                 🎲 Acak
               </button>
-              <button onclick="renderDefaultRecommendations(${page > 1 ? page - 1 : totalPages})" title="Halaman Sebelumnya" class="px-2 py-0.5 rounded-md text-[10px] bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-300 border border-slate-200 dark:border-gray-700 transition-all active:scale-95 cursor-pointer">
+              <button onclick="changeRecommendationPage(${page > 1 ? page - 1 : 1})" ${page <= 1 ? 'disabled class="opacity-40 cursor-not-allowed px-2 py-0.5 rounded-md text-[10px] bg-slate-100 dark:bg-gray-800 text-slate-400 border border-slate-200 dark:border-gray-700"' : 'class="px-2 py-0.5 rounded-md text-[10px] bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-300 border border-slate-200 dark:border-gray-700 transition-all active:scale-95 cursor-pointer"'} title="Halaman Sebelumnya">
                 ◀
               </button>
-              <button onclick="renderDefaultRecommendations(${page < totalPages ? page + 1 : 1})" title="Halaman Berikutnya" class="px-2 py-0.5 rounded-md text-[10px] bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-300 border border-slate-200 dark:border-gray-700 transition-all active:scale-95 cursor-pointer">
+              <button onclick="changeRecommendationPage(${page + 1})" title="Halaman Berikutnya" class="px-2 py-0.5 rounded-md text-[10px] bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-300 border border-slate-200 dark:border-gray-700 transition-all active:scale-95 cursor-pointer">
                 ▶
               </button>
             </div>
           </div>
 
-          <!-- 3x3 SQUARE GRID -->
-          <div class="grid grid-cols-3 gap-2 sm:gap-3">
+          <!-- 3x3 RECTANGULAR HORIZONTAL GRID (Space-Efficient Compact Layout) -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-2.5">
             ${pageItems.map(item => `
-              <div class="group relative flex flex-col p-2 rounded-2xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800/80 hover:border-pink-500/50 shadow-2xs hover:shadow-md transition-all active:scale-[0.98]">
-                <div class="relative aspect-square w-full rounded-xl overflow-hidden mb-1.5 bg-slate-200 dark:bg-gray-800">
+              <div class="group relative flex items-center gap-2.5 p-2 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800/80 hover:border-pink-500/50 shadow-2xs hover:shadow-md transition-all active:scale-[0.99]">
+                <!-- Left: Thumbnail (Rectangle / Compact, Not huge 1:1) -->
+                <div class="relative w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden shrink-0 bg-slate-200 dark:bg-gray-800">
                   <img src="${item.thumbnail}" onerror="this.onerror=null;this.src='https://placehold.co/150x150/1e293b/white?text=🎵';" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                  <span class="absolute bottom-1 right-1 px-1.5 py-0.5 rounded-md bg-black/75 text-[9px] font-mono font-bold text-white shadow-xs">${formatTime(item.songDuration)}</span>
+                  <span class="absolute bottom-0.5 right-0.5 px-1 py-0.2 rounded bg-black/80 text-[8px] font-mono font-bold text-white shadow-xs">${formatTime(item.songDuration || 210)}</span>
                 </div>
-                <div class="min-w-0 flex-1 mb-1.5">
-                  <h5 class="text-xs font-bold text-slate-900 dark:text-white truncate" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</h5>
-                  <p class="text-[10px] font-medium text-slate-500 dark:text-gray-400 truncate">${escapeHtml(item.artist)}</p>
+                <!-- Right: Flex Col (Title, Artist, +Queue button) -->
+                <div class="flex flex-col justify-between flex-1 min-w-0 h-14 sm:h-16 py-0.5">
+                  <div class="min-w-0">
+                    <h5 class="text-xs font-bold text-slate-900 dark:text-white truncate" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</h5>
+                    <p class="text-[10px] font-medium text-slate-500 dark:text-gray-400 truncate">${escapeHtml(item.artist)}</p>
+                  </div>
+                  <div class="flex items-center justify-between gap-1 pt-0.5">
+                    <button onclick="queueTrackEncoded('${encodeURIComponent(JSON.stringify(item))}')"
+                            class="py-0.5 px-2 rounded-md bg-pink-500/15 group-hover:bg-pink-500 text-pink-600 dark:text-pink-400 group-hover:text-white border border-pink-500/30 text-[10px] font-bold transition-all flex items-center gap-1 active:scale-95 cursor-pointer">
+                      <span>+ Queue</span>
+                    </button>
+                  </div>
                 </div>
-                <button onclick="queueTrackEncoded('${encodeURIComponent(JSON.stringify(item))}')"
-                        class="w-full py-1 px-1 rounded-lg bg-pink-500/15 group-hover:bg-pink-500 text-pink-600 dark:text-pink-400 group-hover:text-white border border-pink-500/30 text-[11px] font-bold transition-all text-center truncate flex items-center justify-center gap-1 active:scale-95 cursor-pointer">
-                  <span>+ Queue</span>
-                </button>
               </div>
             `).join('')}
           </div>
 
-          <!-- Bottom Pagination Controls -->
-          <div class="flex items-center justify-center gap-2 pt-3">
-            <button onclick="renderDefaultRecommendations(1)" class="px-3 py-1 rounded-lg text-xs font-bold transition-all border cursor-pointer ${page === 1 ? 'bg-pink-500 text-white border-pink-500 shadow-sm' : 'bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-400 border-slate-200 dark:border-gray-700'}">
-              1
+          <!-- Bottom Infinite Pagination Window -->
+          <div class="flex items-center justify-center gap-1.5 pt-3">
+            <button onclick="changeRecommendationPage(${page > 1 ? page - 1 : 1})"
+                    ${page <= 1 ? 'disabled class="opacity-40 cursor-not-allowed px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 dark:bg-gray-800 text-slate-400 border border-slate-200 dark:border-gray-700"' : 'class="cursor-pointer active:scale-95 px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 text-slate-700 dark:text-gray-300 border border-slate-200 dark:border-gray-700"'} title="Sebelumnya">
+              ◀ Prev
             </button>
-            <button onclick="renderDefaultRecommendations(2)" class="px-3 py-1 rounded-lg text-xs font-bold transition-all border cursor-pointer ${page === 2 ? 'bg-pink-500 text-white border-pink-500 shadow-sm' : 'bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-400 border-slate-200 dark:border-gray-700'}">
-              2
+            ${pageNumbers.map(p => `
+              <button onclick="changeRecommendationPage(${p})"
+                      class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all border cursor-pointer ${p === page ? 'bg-pink-500 text-white border-pink-500 shadow-sm' : 'bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-400 border-slate-200 dark:border-gray-700 hover:border-pink-500/50'}">
+                ${p}
+              </button>
+            `).join('')}
+            <button onclick="changeRecommendationPage(${page + 1})"
+                    class="cursor-pointer active:scale-95 px-2.5 py-1 rounded-lg text-xs font-bold bg-pink-500/10 hover:bg-pink-500 text-pink-600 dark:text-pink-400 hover:text-white border border-pink-500/30 transition-all" title="Halaman Berikutnya">
+              Next ▶
             </button>
           </div>
         </div>
@@ -4813,19 +5106,26 @@
 
     function renderHistory(history) {
       const container = document.getElementById('history-list');
+      const mobileContainer = document.getElementById('mobile-sheet-history-list');
       const countEl = document.getElementById('history-count');
-      countEl.textContent = (history || []).length;
+      const mobileCountEl = document.getElementById('mobile-sheet-history-count');
+      const len = (history || []).length;
+      if (countEl) countEl.textContent = len;
+      if (mobileCountEl) mobileCountEl.textContent = len;
+
+      const emptyHtml = `
+        <div class="p-6 rounded-xl bg-slate-100/60 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-800/60 text-center">
+          <p class="text-xs text-slate-500 dark:text-gray-400">Belum ada riwayat lagu yang selesai diputar.</p>
+        </div>
+      `;
 
       if (!history || history.length === 0) {
-        container.innerHTML = `
-          <div class="p-6 rounded-xl bg-slate-100/60 dark:bg-gray-900/40 border border-slate-200 dark:border-gray-800/60 text-center">
-            <p class="text-xs text-slate-500 dark:text-gray-400">Belum ada riwayat lagu yang selesai diputar.</p>
-          </div>
-        `;
+        if (container) container.innerHTML = emptyHtml;
+        if (mobileContainer) mobileContainer.innerHTML = emptyHtml;
         return;
       }
 
-      container.innerHTML = history.map(item => `
+      const historyHtml = history.map(item => `
         <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-50/80 dark:bg-[#121520]/80 border border-slate-200 dark:border-gray-800/60 hover:border-slate-300 dark:hover:border-gray-700 shadow-2xs transition-colors">
           <img src="${item.thumbnail || 'https://via.placeholder.com/60'}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-slate-200 dark:border-gray-800 opacity-80 pointer-events-none">
           <div class="flex-1 min-w-0">
@@ -4842,6 +5142,9 @@
           </button>
         </div>
       `).join('');
+
+      if (container) container.innerHTML = historyHtml;
+      if (mobileContainer) mobileContainer.innerHTML = historyHtml;
     }
 
     // ============================================================
@@ -5051,6 +5354,100 @@
     }
 
     // ============================================================
+    // KEYBOARD SHORTCUTS & MODAL CONTROLLERS
+    // ============================================================
+    function openShortcutsModal() {
+      const modal = document.getElementById('shortcuts-modal');
+      if (!modal) return;
+      modal.classList.remove('pointer-events-none', 'opacity-0');
+      modal.classList.add('pointer-events-auto', 'opacity-100');
+    }
+
+    function closeShortcutsModal() {
+      const modal = document.getElementById('shortcuts-modal');
+      if (!modal) return;
+      modal.classList.remove('pointer-events-auto', 'opacity-100');
+      modal.classList.add('pointer-events-none', 'opacity-0');
+    }
+
+    function openMobileQueueSheet() {
+      const sheet = document.getElementById('mobile-queue-sheet');
+      const backdrop = document.getElementById('mobile-queue-sheet-backdrop');
+      const panel = document.getElementById('mobile-queue-sheet-panel');
+      if (!sheet || !panel) return;
+
+      sheet.classList.remove('pointer-events-none', 'opacity-0');
+      sheet.classList.add('pointer-events-auto', 'opacity-100');
+      backdrop?.classList.remove('opacity-0');
+      backdrop?.classList.add('opacity-100');
+      panel.classList.remove('translate-y-full');
+      panel.classList.add('translate-y-0');
+    }
+
+    function closeMobileQueueSheet() {
+      const sheet = document.getElementById('mobile-queue-sheet');
+      const backdrop = document.getElementById('mobile-queue-sheet-backdrop');
+      const panel = document.getElementById('mobile-queue-sheet-panel');
+      if (!sheet || !panel) return;
+
+      panel.classList.remove('translate-y-0');
+      panel.classList.add('translate-y-full');
+      backdrop?.classList.remove('opacity-100');
+      backdrop?.classList.add('opacity-0');
+      setTimeout(() => {
+        sheet.classList.remove('pointer-events-auto', 'opacity-100');
+        sheet.classList.add('pointer-events-none', 'opacity-0');
+      }, 300);
+    }
+
+    function switchMobileQueueSheetTab(tab) {
+      const upcomingView = document.getElementById('mobile-sheet-queue-view');
+      const historyView = document.getElementById('mobile-sheet-history-view');
+      const btnUpcoming = document.getElementById('sheet-tab-btn-upcoming');
+      const btnHistory = document.getElementById('sheet-tab-btn-history');
+
+      if (tab === 'upcoming') {
+        upcomingView?.classList.remove('hidden');
+        historyView?.classList.add('hidden');
+        if (btnUpcoming) btnUpcoming.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-pink-500 text-white shadow-xs flex items-center gap-1.5';
+        if (btnHistory) btnHistory.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5';
+      } else {
+        upcomingView?.classList.add('hidden');
+        historyView?.classList.remove('hidden');
+        if (btnHistory) btnHistory.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-pink-500 text-white shadow-xs flex items-center gap-1.5';
+        if (btnUpcoming) btnUpcoming.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5';
+      }
+    }
+
+    function toggleLyricsModal() {
+      const modal = document.getElementById('lyrics-modal');
+      if (!modal) return;
+      if (modal.classList.contains('pointer-events-none')) {
+        openLyrics();
+      } else {
+        closeLyrics();
+      }
+    }
+
+    function seekRelative(seconds) {
+      if (isMobileMode && hostAudio) {
+        const cur = hostAudio.currentTime || 0;
+        const dur = hostAudio.duration || currentSongData?.songDuration || 0;
+        const target = Math.max(0, Math.min(dur, cur + seconds));
+        hostAudio.currentTime = target;
+        showToast(seconds > 0 ? `⏩ +${seconds}d` : `⏪ ${Math.abs(seconds)}d`);
+      } else if (ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
+        const cur = ytPlayer.getCurrentTime() || 0;
+        const dur = ytPlayer.getDuration() || currentSongData?.songDuration || 0;
+        const target = Math.max(0, Math.min(dur, cur + seconds));
+        ytPlayer.seekTo(target, true);
+        showToast(seconds > 0 ? `⏩ +${seconds}d` : `⏪ ${Math.abs(seconds)}d`);
+      } else {
+        if (seconds < 0) restartTrack();
+      }
+    }
+
+    // ============================================================
     // INITIALIZATION & EVENT LISTENERS
     // ============================================================
     initTheme();
@@ -5069,13 +5466,139 @@
     setupSSE();
     renderDefaultRecommendations();
 
-    // Global Key Listener for Modals
+    // Global Keyboard Shortcuts Engine
     document.addEventListener('keydown', (e) => {
+      const tag = (e.target.tagName || '').toLowerCase();
+      const isInput = tag === 'input' || tag === 'textarea' || e.target.isContentEditable;
+
+      // ESCAPE: Close active modals or blur input
       if (e.key === 'Escape') {
+        if (isInput) {
+          e.target.blur();
+          return;
+        }
+        const shortcutsModal = document.getElementById('shortcuts-modal');
+        if (shortcutsModal && !shortcutsModal.classList.contains('pointer-events-none')) {
+          closeShortcutsModal();
+          return;
+        }
+        const lyricsModal = document.getElementById('lyrics-modal');
+        if (lyricsModal && !lyricsModal.classList.contains('pointer-events-none')) {
+          closeLyrics();
+          return;
+        }
+        const mobileQueueSheet = document.getElementById('mobile-queue-sheet');
+        if (mobileQueueSheet && !mobileQueueSheet.classList.contains('pointer-events-none')) {
+          closeMobileQueueSheet();
+          return;
+        }
+        const mobileVolModal = document.getElementById('mobile-volume-modal');
+        if (mobileVolModal && !mobileVolModal.classList.contains('hidden')) {
+          closeMobileVolumeModal();
+          return;
+        }
+        const changelogModal = document.getElementById('changelog-modal');
+        if (changelogModal && !changelogModal.classList.contains('hidden')) {
+          closeChangelogModal();
+          return;
+        }
+        const settingsModal = document.getElementById('settings-modal');
+        if (settingsModal && !settingsModal.classList.contains('hidden')) {
+          closeSettingsModal();
+          return;
+        }
         if (!isDJModalMandatory) closeDJModal();
-        closeChangelogModal();
-        closeLyrics();
         closeAllCustomSelects();
+        return;
+      }
+
+      // If user is actively typing in a form input, do not trigger playback shortcuts
+      if (isInput) return;
+
+      // 1. SPACE or K: Play / Pause toggle
+      if (e.code === 'Space' || e.key === ' ' || e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        togglePlay();
+        return;
+      }
+
+      // 2. N: Skip track / Next
+      if (e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        skipNext();
+        return;
+      }
+
+      // 3. J / Left: Seek -5s
+      if (e.key.toLowerCase() === 'j' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        seekRelative(-5);
+        return;
+      }
+
+      // 4. L / Right: Seek +5s
+      if (e.key.toLowerCase() === 'l' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        seekRelative(5);
+        return;
+      }
+
+      // 5. M: Mute / Unmute
+      if (e.key.toLowerCase() === 'm') {
+        e.preventDefault();
+        toggleMuteQuick();
+        return;
+      }
+
+      // 6. ArrowUp: Volume +10%
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const newVol = Math.min(100, Math.round((currentVolume + 10) / 10) * 10);
+        handleVolumeInput(newVol);
+        showToast(`🔊 Volume: ${newVol}%`);
+        return;
+      }
+
+      // 7. ArrowDown: Volume -10%
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const newVol = Math.max(0, Math.round((currentVolume - 10) / 10) * 10);
+        handleVolumeInput(newVol);
+        showToast(`🔉 Volume: ${newVol}%`);
+        return;
+      }
+
+      // 8. /: Focus Search input
+      if (e.key === '/') {
+        e.preventDefault();
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+          switchTab('search');
+          searchInput.focus();
+          searchInput.select();
+        }
+        return;
+      }
+
+      // 9. F: Fullscreen Karaoke
+      if (e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        toggleLyricsModal();
+        return;
+      }
+
+      // 10. C: Toggle Romaji / Pinyin
+      if (e.key.toLowerCase() === 'c') {
+        e.preventDefault();
+        togglePinyinDisplay();
+        return;
+      }
+
+      // 11. ?: Open Shortcuts Modal
+      if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+        e.preventDefault();
+        openShortcutsModal();
+        return;
       }
     });
 
