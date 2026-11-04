@@ -315,9 +315,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.10.0)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.10.1)"
                     class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-colors cursor-pointer active:scale-95">
-              v2.10.0
+              v2.10.1
             </button>
           </div>
           <div id="connection-btn" class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
@@ -894,7 +894,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.10.0</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.10.1</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -905,10 +905,21 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.10.0 -->
+        <!-- v2.10.1 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.10.0 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.10.1 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">⏳ Circular Countdown Loading Modal saat Ambil Alih Host:</strong> Tampilan indikator melingkar (progress ring) dengan hitungan mundur detik (30 detik) di bagian tengah secara realtime pada perangkat pemohon ambil alih host. Dilengkapi tombol batalkan permintaan sewaktu-waktu.</li>
+          </ul>
+        </div>
+
+        <!-- v2.10.0 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-800/40 border border-slate-200 dark:border-gray-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-600">v2.10.0</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -1227,6 +1238,90 @@
   </div>
 
   <!-- ============================================================
+       MODAL: TAKEOVER REQUESTER WAITING (Countdown Progress Ring v2.10.1)
+       ============================================================ -->
+  <div id="takeover-requester-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300">
+    <div class="relative w-full max-w-sm sm:max-w-md rounded-3xl bg-white dark:bg-[#121520] border-2 border-pink-500/50 shadow-2xl p-6 flex flex-col items-center text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
+      
+      <!-- Crown Badge -->
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/10 text-pink-600 dark:text-pink-400 text-xs font-black border border-pink-500/20 uppercase tracking-wider">
+        <span>👑</span>
+        <span>Permintaan Ambil Alih Host</span>
+      </div>
+
+      <!-- Circular Countdown Loading Indicator -->
+      <div class="relative w-36 h-36 flex items-center justify-center my-1">
+        <!-- Glowing ambient backlight -->
+        <div class="absolute inset-2 rounded-full bg-gradient-to-tr from-pink-500/25 to-amber-500/20 blur-xl pointer-events-none"></div>
+
+        <svg class="w-36 h-36 -rotate-90 transform" viewBox="0 0 100 100">
+          <!-- Background track circle -->
+          <circle
+            cx="50"
+            cy="50"
+            r="42"
+            stroke="currentColor"
+            stroke-width="7"
+            fill="none"
+            class="text-slate-100 dark:text-gray-800"
+          />
+          <!-- Animated decreasing progress ring -->
+          <circle
+            id="takeover-requester-ring"
+            cx="50"
+            cy="50"
+            r="42"
+            stroke="url(#takeover-ring-gradient)"
+            stroke-width="7"
+            fill="none"
+            stroke-linecap="round"
+            stroke-dasharray="263.89"
+            stroke-dashoffset="0"
+            style="transition: stroke-dashoffset 0.25s linear;"
+          />
+          <defs>
+            <linearGradient id="takeover-ring-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#ec4899" />
+              <stop offset="100%" stop-color="#f59e0b" />
+            </linearGradient>
+          </defs>
+        </svg>
+
+        <!-- Center Countdown Number -->
+        <div class="absolute flex flex-col items-center justify-center text-center select-none pointer-events-none">
+          <span id="takeover-requester-countdown-num" class="text-4xl font-black font-mono tracking-tight text-slate-800 dark:text-white drop-shadow-xs">30</span>
+          <span class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-gray-400 -mt-1">Detik</span>
+        </div>
+      </div>
+
+      <!-- Title & Details -->
+      <div class="space-y-1.5">
+        <h3 class="text-base font-extrabold text-slate-900 dark:text-white">
+          Menunggu Persetujuan Host
+        </h3>
+        <p class="text-xs text-slate-600 dark:text-gray-300 leading-relaxed">
+          Meminta izin dari <strong id="takeover-requester-target-host" class="text-amber-600 dark:text-amber-400 font-bold">Host</strong> untuk mengambil alih kendali speaker pesta.
+        </p>
+      </div>
+
+      <!-- Auto-approval notice banner -->
+      <div class="w-full bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/25 rounded-2xl p-2.5 text-[11px] text-amber-800 dark:text-amber-300 font-medium leading-snug flex items-center gap-2 text-left">
+        <span class="text-base shrink-0">⚡</span>
+        <span>Jika Host tidak merespon dalam hitungan mundur di atas, speaker akan <b>otomatis berpindah</b> ke kamu.</span>
+      </div>
+
+      <!-- Cancel Button -->
+      <div class="w-full pt-1">
+        <button type="button" onclick="cancelTakeoverRequest()" class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-rose-50 dark:bg-gray-800 dark:hover:bg-rose-950/40 text-slate-600 hover:text-rose-600 dark:text-gray-300 dark:hover:text-rose-400 text-xs font-bold border border-slate-200 dark:border-gray-700 transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-1.5">
+          <span>✕</span>
+          <span>Batalkan Permintaan</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================
        MODAL: SETTINGS & ROOM MANAGEMENT (Mobile Drawer / Config Page)
        ============================================================ -->
   <div id="settings-modal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300">
@@ -1328,7 +1423,7 @@
 
       <!-- Section 5: Version & Release Notes -->
       <div class="pt-1 flex items-center justify-between text-xs text-slate-400">
-        <span>Party Jukebox v2.8.0</span>
+        <span>Party Jukebox v2.10.1</span>
         <button onclick="openChangelogModal(); closeSettingsModal();" class="font-bold text-pink-600 dark:text-pink-400 hover:underline">
           Lihat Catatan Rilis 🚀
         </button>
@@ -1571,7 +1666,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.10.0';
+    const CLIENT_VERSION = '2.10.1';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
 
@@ -2658,7 +2753,9 @@
     // ============================================================
     let currentPartyHost = null;
     let hostHeartbeatTimer = null;
-    let takeoverCountdownTimer = null;
+    let takeoverApprovalTimer = null;
+    let takeoverRequesterTimer = null;
+    let wasWaitingForTakeover = false;
 
     function isMeHost() {
       if (!currentPartyHost || currentPartyHost.isVacant || !currentPartyHost.name) return false;
@@ -2670,41 +2767,135 @@
       return false;
     }
 
-    function renderTakeoverModal(pendingTakeover) {
-      const modal = document.getElementById('takeover-approval-modal');
-      if (!modal) return;
+    function isMeTakeoverRequester(pendingTakeover) {
+      if (!pendingTakeover) return false;
+      const myToken = localStorage.getItem('jukebox_host_token');
+      if (pendingTakeover.requestedToken && myToken && pendingTakeover.requestedToken === myToken) {
+        return true;
+      }
+      if (currentUser && pendingTakeover.requestedBy && currentUser.trim().toLowerCase() === pendingTakeover.requestedBy.trim().toLowerCase()) {
+        return true;
+      }
+      return false;
+    }
 
-      if (!pendingTakeover || !isMeHost()) {
-        modal.classList.add('hidden');
-        if (takeoverCountdownTimer) {
-          clearInterval(takeoverCountdownTimer);
-          takeoverCountdownTimer = null;
+    function renderTakeoverModal(pendingTakeover) {
+      const approvalModal = document.getElementById('takeover-approval-modal');
+      const requesterModal = document.getElementById('takeover-requester-modal');
+
+      const meHost = isMeHost();
+      const meRequester = isMeTakeoverRequester(pendingTakeover);
+
+      if (!pendingTakeover) {
+        if (approvalModal) approvalModal.classList.add('hidden');
+        if (requesterModal) requesterModal.classList.add('hidden');
+        if (takeoverApprovalTimer) {
+          clearInterval(takeoverApprovalTimer);
+          takeoverApprovalTimer = null;
+        }
+        if (takeoverRequesterTimer) {
+          clearInterval(takeoverRequesterTimer);
+          takeoverRequesterTimer = null;
+        }
+        if (wasWaitingForTakeover) {
+          wasWaitingForTakeover = false;
+          if (meHost) {
+            showToast('👑 Permintaan disetujui! Kamu sekarang adalah Host Party & Audio Speaker aktif!');
+          } else {
+            showToast('Permintaan ambil alih Host telah selesai.');
+          }
         }
         return;
       }
 
-      // I am currently host and someone requested to take over!
-      const reqNameEl = document.getElementById('takeover-requester-name');
-      if (reqNameEl) reqNameEl.textContent = pendingTakeover.requestedBy;
-      modal.classList.remove('hidden');
-
-      let remaining = pendingTakeover.remainingSeconds || 30;
-      const countText = document.getElementById('takeover-countdown-text');
-      const bar = document.getElementById('takeover-countdown-bar');
-
-      if (countText) countText.textContent = remaining + 's';
-      if (bar) bar.style.width = Math.max(0, (remaining / 30) * 100) + '%';
-
-      if (takeoverCountdownTimer) clearInterval(takeoverCountdownTimer);
-      takeoverCountdownTimer = setInterval(() => {
-        remaining--;
-        if (countText) countText.textContent = Math.max(0, remaining) + 's';
-        if (bar) bar.style.width = Math.max(0, (remaining / 30) * 100) + '%';
-        if (remaining <= 0) {
-          clearInterval(takeoverCountdownTimer);
-          takeoverCountdownTimer = null;
+      // 1. I am currently Host -> Show Approval Modal (Accept / Reject)
+      if (meHost) {
+        if (requesterModal) requesterModal.classList.add('hidden');
+        if (takeoverRequesterTimer) {
+          clearInterval(takeoverRequesterTimer);
+          takeoverRequesterTimer = null;
         }
-      }, 1000);
+
+        if (approvalModal) {
+          const reqNameEl = document.getElementById('takeover-requester-name');
+          if (reqNameEl) reqNameEl.textContent = pendingTakeover.requestedBy || 'Tamu';
+          approvalModal.classList.remove('hidden');
+
+          const countText = document.getElementById('takeover-countdown-text');
+          const bar = document.getElementById('takeover-countdown-bar');
+
+          const updateApprovalBar = () => {
+            const remainingMs = Math.max(0, (pendingTakeover.expiresAt || 0) - Date.now());
+            const remainingSec = Math.ceil(remainingMs / 1000);
+            if (countText) countText.textContent = remainingSec + 's';
+            if (bar) bar.style.width = Math.max(0, (remainingMs / 30000) * 100) + '%';
+          };
+          updateApprovalBar();
+
+          if (takeoverApprovalTimer) clearInterval(takeoverApprovalTimer);
+          takeoverApprovalTimer = setInterval(() => {
+            updateApprovalBar();
+            if (Date.now() >= (pendingTakeover.expiresAt || 0)) {
+              clearInterval(takeoverApprovalTimer);
+              takeoverApprovalTimer = null;
+            }
+          }, 300);
+        }
+        return;
+      }
+
+      // 2. I am the Requester -> Show Waiting Countdown Modal with Circular Progress Ring (v2.10.1)
+      if (meRequester) {
+        wasWaitingForTakeover = true;
+        if (approvalModal) approvalModal.classList.add('hidden');
+        if (takeoverApprovalTimer) {
+          clearInterval(takeoverApprovalTimer);
+          takeoverApprovalTimer = null;
+        }
+
+        if (requesterModal) {
+          const targetHostEl = document.getElementById('takeover-requester-target-host');
+          if (targetHostEl) targetHostEl.textContent = pendingTakeover.currentHost || 'Host';
+          requesterModal.classList.remove('hidden');
+
+          const numEl = document.getElementById('takeover-requester-countdown-num');
+          const ring = document.getElementById('takeover-requester-ring');
+          const TOTAL_CIRCUMFERENCE = 263.89;
+
+          const updateRequesterRing = () => {
+            const remainingMs = Math.max(0, (pendingTakeover.expiresAt || 0) - Date.now());
+            const remainingSec = Math.ceil(remainingMs / 1000);
+            const fraction = Math.max(0, Math.min(1, remainingMs / 30000));
+            const offset = TOTAL_CIRCUMFERENCE * (1 - fraction);
+
+            if (numEl) numEl.textContent = remainingSec;
+            if (ring) ring.style.strokeDashoffset = offset.toFixed(2);
+          };
+          updateRequesterRing();
+
+          if (takeoverRequesterTimer) clearInterval(takeoverRequesterTimer);
+          takeoverRequesterTimer = setInterval(() => {
+            updateRequesterRing();
+            if (Date.now() >= (pendingTakeover.expiresAt || 0)) {
+              clearInterval(takeoverRequesterTimer);
+              takeoverRequesterTimer = null;
+            }
+          }, 200);
+        }
+        return;
+      }
+
+      // 3. Unrelated Guest -> Hide both modals
+      if (approvalModal) approvalModal.classList.add('hidden');
+      if (requesterModal) requesterModal.classList.add('hidden');
+      if (takeoverApprovalTimer) {
+        clearInterval(takeoverApprovalTimer);
+        takeoverApprovalTimer = null;
+      }
+      if (takeoverRequesterTimer) {
+        clearInterval(takeoverRequesterTimer);
+        takeoverRequesterTimer = null;
+      }
     }
 
     async function respondTakeover(approve) {
@@ -2718,9 +2909,9 @@
         const data = await res.json();
         const modal = document.getElementById('takeover-approval-modal');
         if (modal) modal.classList.add('hidden');
-        if (takeoverCountdownTimer) {
-          clearInterval(takeoverCountdownTimer);
-          takeoverCountdownTimer = null;
+        if (takeoverApprovalTimer) {
+          clearInterval(takeoverApprovalTimer);
+          takeoverApprovalTimer = null;
         }
 
         if (approve) {
@@ -2749,12 +2940,36 @@
       }
     }
 
+    async function cancelTakeoverRequest() {
+      const requesterModal = document.getElementById('takeover-requester-modal');
+      if (requesterModal) requesterModal.classList.add('hidden');
+      if (takeoverRequesterTimer) {
+        clearInterval(takeoverRequesterTimer);
+        takeoverRequesterTimer = null;
+      }
+      wasWaitingForTakeover = false;
+
+      try {
+        const token = localStorage.getItem('jukebox_host_token');
+        const res = await fetch('/api/host/takeover/cancel', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: currentUser, token })
+        });
+        const data = await res.json();
+        if (data.partyHost) updateHostUI(data.partyHost);
+        showToast('Permintaan ambil alih Host dibatalkan.');
+      } catch (e) {
+        console.error('Cancel takeover error:', e);
+      }
+    }
+
     function updateHostUI(partyHost) {
       currentPartyHost = partyHost;
 
-      // Check if previous host lost the host token
+      // Check if previous active host lost the host token
       const myToken = localStorage.getItem('jukebox_host_token');
-      if (myToken && partyHost.token && myToken !== partyHost.token) {
+      if (isHostSpeakerActive && myToken && partyHost.token && myToken !== partyHost.token) {
         console.log('⚠️ Kursi Host diambil alih oleh:', partyHost.name);
         localStorage.removeItem('jukebox_host_token');
         if (hostHeartbeatTimer) {
@@ -3230,13 +3445,8 @@
 
         if (data.pendingApproval) {
           if (data.token) localStorage.setItem('jukebox_host_token', data.token);
-          await showCustomDialog({
-            title: 'Menunggu Persetujuan Host',
-            message: `Permintaan pengalihan Host telah dikirim ke ${currentPartyHost?.name || 'Host'}. Menunggu persetujuan (akan otomatis dialihkan dalam 30 detik jika tidak ada respon)...`,
-            icon: '⏳',
-            type: 'alert',
-            confirmText: 'Mengerti'
-          });
+          wasWaitingForTakeover = true;
+          if (data.partyHost) updateHostUI(data.partyHost);
           return;
         }
 

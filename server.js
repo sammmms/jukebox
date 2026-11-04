@@ -9,7 +9,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.10.0';
+const APP_VERSION = '2.10.1';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -277,6 +277,7 @@ function getPartyHostInfo() {
       takeoverInfo = {
         id: pendingTakeover.id,
         requestedBy: pendingTakeover.requestedBy,
+        requestedToken: pendingTakeover.requestedToken,
         currentHost: pendingTakeover.currentHost,
         expiresAt: pendingTakeover.expiresAt,
         remainingSeconds: Math.max(0, Math.ceil(remainingMs / 1000))
@@ -1094,6 +1095,19 @@ app.post('/api/host/takeover/respond', (req, res) => {
     broadcastUpdate();
     return res.json({ success: true, approved: false, partyHost: getPartyHostInfo() });
   }
+});
+
+app.post('/api/host/takeover/cancel', (req, res) => {
+  const { name } = req.body || {};
+  if (!pendingTakeover) {
+    return res.json({ success: true, partyHost: getPartyHostInfo() });
+  }
+
+  const reqUser = pendingTakeover.requestedBy;
+  clearPendingTakeover();
+  addActivity(name || reqUser, 'takeover_cancelled', `membatalkan permintaan ambil alih Host`);
+  broadcastUpdate();
+  return res.json({ success: true, partyHost: getPartyHostInfo() });
 });
 
 app.post('/api/host/heartbeat', (req, res) => {
