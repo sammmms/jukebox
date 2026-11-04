@@ -315,9 +315,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.9.0)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.9.1)"
                     class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-colors cursor-pointer active:scale-95">
-              v2.9.0
+              v2.9.1
             </button>
           </div>
           <div id="connection-btn" class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
@@ -880,7 +880,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.9.0</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.9.1</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -891,10 +891,10 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.9.0 -->
+        <!-- v2.9.1 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.9.0 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.9.1 (Latest)</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -1482,7 +1482,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.9.0';
+    const CLIENT_VERSION = '2.9.1';
     let isUpdateTriggered = false;
 
     // Embedded YouTube Host Audio Player Engine (Pure Standalone Web)
@@ -1794,6 +1794,35 @@
       const hostAudio = document.getElementById('host-native-audio');
       if (!hostAudio) return;
 
+      function updateNativeAudioDuration() {
+        const dur = hostAudio.duration;
+        if (typeof dur === 'number' && !isNaN(dur) && dur > 0) {
+          const roundedDur = Math.round(dur);
+          if (roundedDur !== songDuration) {
+            songDuration = roundedDur;
+            const durationEl = document.getElementById('time-duration');
+            if (durationEl) durationEl.textContent = formatTime(songDuration);
+            renderTimeline(currentElapsed);
+            if (isMeHost()) {
+              fetch('/api/player/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  videoId: currentNativeAudioVideoId || (currentSongData && currentSongData.videoId),
+                  elapsed: hostAudio.currentTime || 0,
+                  duration: songDuration,
+                  isPaused: hostAudio.paused
+                })
+              }).catch(() => {});
+            }
+          }
+        }
+      }
+
+      hostAudio.addEventListener('loadedmetadata', updateNativeAudioDuration);
+      hostAudio.addEventListener('durationchange', updateNativeAudioDuration);
+      hostAudio.addEventListener('canplay', updateNativeAudioDuration);
+
       hostAudio.addEventListener('play', () => {
         isHostSpeakerActive = true;
         try { localStorage.setItem('jukebox_speaker_unlocked', 'true'); } catch (e) {}
@@ -1801,6 +1830,7 @@
         if (banner) banner.classList.add('hidden');
         startSilentAudioAnchor();
         requestScreenWakeLock();
+        updateNativeAudioDuration();
       });
 
       hostAudio.addEventListener('pause', () => {
@@ -1822,6 +1852,12 @@
       hostAudio.addEventListener('timeupdate', () => {
         if (isMeHost() && !hostAudio.paused) {
           currentElapsed = hostAudio.currentTime;
+          const dur = hostAudio.duration;
+          if (typeof dur === 'number' && !isNaN(dur) && dur > 0 && Math.round(dur) !== songDuration) {
+            songDuration = Math.round(dur);
+            const durationEl = document.getElementById('time-duration');
+            if (durationEl) durationEl.textContent = formatTime(songDuration);
+          }
           renderTimeline(currentElapsed);
           if (currentLyrics && currentLyrics.isSynced && currentLyrics.lines && currentLyrics.lines.length > 0) {
             updateLyricsHighlight();
@@ -3173,7 +3209,14 @@
         }
 
         isPlaying = !song.isPaused;
-        songDuration = song.songDuration || 0;
+        if (song.songDuration && song.songDuration > 0) {
+          songDuration = song.songDuration;
+        } else if (!songDuration || songDuration === 0) {
+          const hostAudio = document.getElementById('host-native-audio');
+          if (hostAudio && hostAudio.duration > 0 && !isNaN(hostAudio.duration)) {
+            songDuration = Math.round(hostAudio.duration);
+          }
+        }
 
         // Play/Pause State
         const vinyl = document.getElementById('vinyl-disc');
@@ -3264,7 +3307,42 @@
 
     // Client Ticker (with 0ms frame-perfect Host Audio Engine sync)
     setInterval(() => {
-      // If THIS device is Host and playing via embedded YouTube player:
+      // 1. If THIS device is Host and playing via Native HTML5 Audio (Mobile iOS Safari & Android):
+      const hostAudio = document.getElementById('host-native-audio');
+      if (isMeHost() && isUseNativeAudioEngine() && hostAudio && hostAudio.src) {
+        const audioTime = hostAudio.currentTime;
+        if (typeof audioTime === 'number' && !isNaN(audioTime) && audioTime >= 0) {
+          currentElapsed = audioTime;
+          const dur = hostAudio.duration;
+          if (typeof dur === 'number' && !isNaN(dur) && dur > 0 && Math.round(dur) !== songDuration) {
+            songDuration = Math.round(dur);
+            const timeDur = document.getElementById('time-duration');
+            if (timeDur) timeDur.textContent = formatTime(songDuration);
+          }
+          renderTimeline(currentElapsed);
+          if (currentLyrics && currentLyrics.isSynced && currentLyrics.lines && currentLyrics.lines.length > 0) {
+            updateLyricsHighlight();
+          }
+
+          // Broadcast sync heartbeat to server every 2 seconds
+          if (Date.now() - lastHostSyncTime > 2000) {
+            lastHostSyncTime = Date.now();
+            fetch('/api/player/sync', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                videoId: currentNativeAudioVideoId || (currentSongData && currentSongData.videoId),
+                elapsed: audioTime,
+                duration: songDuration,
+                isPaused: hostAudio.paused
+              })
+            }).catch(() => {});
+          }
+          return;
+        }
+      }
+
+      // 2. If THIS device is Host and playing via embedded YouTube player (Desktop):
       if (isMeHost() && isHostSpeakerActive && ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
         const playerTime = ytPlayer.getCurrentTime();
         if (typeof playerTime === 'number' && !isNaN(playerTime) && playerTime >= 0) {
@@ -3589,19 +3667,19 @@
     // ============================================================
     const partyRecommendations = [
       // Top Mandarin / C-Pop Hits
-      { videoId: 'bu7nU9Mhpyo', title: '告白气球 (Love Confession)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/bu7nU9Mhpyo/hqdefault.jpg' },
-      { videoId: '6ZXzn1jwtM4', title: '爱人错过 (Somewhere in time)', artist: '告五人 Accusefive', thumbnail: 'https://i.ytimg.com/vi/6ZXzn1jwtM4/hqdefault.jpg' },
-      { videoId: 'LWV-f6dMN3Q', title: '修炼爱情 (Practice Love)', artist: '林俊杰 JJ Lin', thumbnail: 'https://i.ytimg.com/vi/LWV-f6dMN3Q/hqdefault.jpg' },
-      { videoId: 'T4SimnaiktU', title: '光年之外 (Light Years Away)', artist: '邓紫棋 G.E.M.', thumbnail: 'https://i.ytimg.com/vi/T4SimnaiktU/hqdefault.jpg' },
-      { videoId: 'Y2ge3KrdeWs', title: '怎么了 (What\'s Wrong)', artist: '周兴哲 Eric Chou', thumbnail: 'https://i.ytimg.com/vi/Y2ge3KrdeWs/hqdefault.jpg' },
-      { videoId: '_MQVmPpMQEc', title: '阿拉斯加海湾 (Gulf of Alaska)', artist: '菲道尔 Firdhaus', thumbnail: 'https://i.ytimg.com/vi/_MQVmPpMQEc/hqdefault.jpg' },
+      { videoId: 'bu7nU9Mhpyo', title: '告白气球 (Love Confession)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/bu7nU9Mhpyo/hqdefault.jpg', songDuration: 215 },
+      { videoId: '6ZXzn1jwtM4', title: '爱人错过 (Somewhere in time)', artist: '告五人 Accusefive', thumbnail: 'https://i.ytimg.com/vi/6ZXzn1jwtM4/hqdefault.jpg', songDuration: 290 },
+      { videoId: 'LWV-f6dMN3Q', title: '修炼爱情 (Practice Love)', artist: '林俊杰 JJ Lin', thumbnail: 'https://i.ytimg.com/vi/LWV-f6dMN3Q/hqdefault.jpg', songDuration: 280 },
+      { videoId: 'T4SimnaiktU', title: '光年之外 (Light Years Away)', artist: '邓紫棋 G.E.M.', thumbnail: 'https://i.ytimg.com/vi/T4SimnaiktU/hqdefault.jpg', songDuration: 235 },
+      { videoId: 'Y2ge3KrdeWs', title: '怎么了 (What\'s Wrong)', artist: '周兴哲 Eric Chou', thumbnail: 'https://i.ytimg.com/vi/Y2ge3KrdeWs/hqdefault.jpg', songDuration: 320 },
+      { videoId: '_MQVmPpMQEc', title: '阿拉斯加海湾 (Gulf of Alaska)', artist: '菲道尔 Firdhaus', thumbnail: 'https://i.ytimg.com/vi/_MQVmPpMQEc/hqdefault.jpg', songDuration: 247 },
       // Global Party & Anime Classics
-      { videoId: 'dvgZkm1xWPE', title: 'Viva La Vida', artist: 'Coldplay', thumbnail: 'https://i.ytimg.com/vi/dvgZkm1xWPE/hqdefault.jpg' },
-      { videoId: '34Na4j8AVgA', title: 'Starboy', artist: 'The Weeknd ft. Daft Punk', thumbnail: 'https://i.ytimg.com/vi/34Na4j8AVgA/hqdefault.jpg' },
-      { videoId: 'JGwWNGJdvx8', title: 'Shape of You', artist: 'Ed Sheeran', thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg' },
-      { videoId: 'ArmDp-zijuc', title: 'Super Shy', artist: 'NewJeans', thumbnail: 'https://i.ytimg.com/vi/ArmDp-zijuc/hqdefault.jpg' },
-      { videoId: 'x8VYWazR5mE', title: '夜に駆ける (Racing into the Night)', artist: 'YOASOBI', thumbnail: 'https://i.ytimg.com/vi/x8VYWazR5mE/hqdefault.jpg' },
-      { videoId: 'a5uQMwRMHcs', title: 'Sparkle (スパークル)', artist: 'RADWIMPS', thumbnail: 'https://i.ytimg.com/vi/a5uQMwRMHcs/hqdefault.jpg' }
+      { videoId: 'dvgZkm1xWPE', title: 'Viva La Vida', artist: 'Coldplay', thumbnail: 'https://i.ytimg.com/vi/dvgZkm1xWPE/hqdefault.jpg', songDuration: 242 },
+      { videoId: '34Na4j8AVgA', title: 'Starboy', artist: 'The Weeknd ft. Daft Punk', thumbnail: 'https://i.ytimg.com/vi/34Na4j8AVgA/hqdefault.jpg', songDuration: 230 },
+      { videoId: 'JGwWNGJdvx8', title: 'Shape of You', artist: 'Ed Sheeran', thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg', songDuration: 233 },
+      { videoId: 'ArmDp-zijuc', title: 'Super Shy', artist: 'NewJeans', thumbnail: 'https://i.ytimg.com/vi/ArmDp-zijuc/hqdefault.jpg', songDuration: 154 },
+      { videoId: 'x8VYWazR5mE', title: '夜に駆ける (Racing into the Night)', artist: 'YOASOBI', thumbnail: 'https://i.ytimg.com/vi/x8VYWazR5mE/hqdefault.jpg', songDuration: 261 },
+      { videoId: 'a5uQMwRMHcs', title: 'Sparkle (スパークル)', artist: 'RADWIMPS', thumbnail: 'https://i.ytimg.com/vi/a5uQMwRMHcs/hqdefault.jpg', songDuration: 410 }
     ];
 
     function renderDefaultRecommendations() {
@@ -3852,7 +3930,8 @@
             user: currentUser,
             title: track.title,
             artist: track.artist,
-            thumbnail: track.thumbnail
+            thumbnail: track.thumbnail,
+            songDuration: track.songDuration || 0
           })
         });
         const data = await res.json();

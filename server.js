@@ -9,7 +9,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.9.0';
+const APP_VERSION = '2.9.1';
 
 const YTM_API = 'http://localhost:26538';
 let isYtmConnected = false;
@@ -1151,7 +1151,7 @@ app.post('/api/search', async (req, res) => {
 
 // 3. Add to Queue / Transfer Song to YouTube Music
 app.post('/api/queue', async (req, res) => {
-  const { input, user, title, artist, thumbnail } = req.body;
+  const { input, user, title, artist, thumbnail, songDuration } = req.body;
   const videoId = extractVideoId(input);
 
   if (!videoId) {
@@ -1167,6 +1167,11 @@ app.post('/api/queue', async (req, res) => {
   const songArtist = artist || validation.artist || '';
   const songThumb = thumbnail || validation.thumbnail || '';
   const songUser = user || 'Anonymous';
+  let duration = (typeof songDuration === 'number' && songDuration > 0) ? Math.round(songDuration) : 0;
+  if (!duration) {
+    const known = AUTOPLAY_FALLBACK_TRACKS.find(t => t.videoId === videoId);
+    if (known && known.songDuration) duration = known.songDuration;
+  }
 
   // 1. If YouTube Music Desktop mode is active: Transfer song directly into YouTube Music app!
   if (isUsingYtmDesktop()) {
@@ -1209,7 +1214,7 @@ app.post('/api/queue', async (req, res) => {
       artist: songArtist,
       thumbnail: songThumb,
       imageSrc: songThumb,
-      songDuration: 0,
+      songDuration: duration,
       elapsedSeconds: 0,
       isPaused: false,
       addedBy: songUser,
@@ -1219,6 +1224,7 @@ app.post('/api/queue', async (req, res) => {
     playbackTracker.elapsed = 0;
     playbackTracker.lastReportedElapsed = -1;
     playbackTracker.isPaused = false;
+    playbackTracker.songDuration = duration;
     playbackTracker.lastUpdated = Date.now();
 
     addActivity(songUser, 'add', `memutar "${songTitle}"`);
@@ -1240,7 +1246,7 @@ app.post('/api/queue', async (req, res) => {
     title: songTitle,
     artist: songArtist,
     thumbnail: songThumb,
-    songDuration: 0,
+    songDuration: duration,
     addedBy: songUser,
     addedAt: Date.now(),
     upvotes: 0,
@@ -1513,6 +1519,17 @@ app.get('/api/audio/stream/:videoId', async (req, res) => {
   try {
     const audioUrl = await fetchDirectAudioUrl(videoId);
     const parsedUrl = new URL(audioUrl);
+
+    // Extract exact duration from Google CDN URL if available (dur query param)
+    const durParam = parsedUrl.searchParams.get('dur');
+    if (durParam) {
+      const durSec = Math.round(parseFloat(durParam));
+      if (durSec > 0 && currentSong && currentSong.videoId === videoId && (!currentSong.songDuration || currentSong.songDuration === 0)) {
+        currentSong.songDuration = durSec;
+        playbackTracker.songDuration = durSec;
+        setTimeout(broadcastUpdate, 50);
+      }
+    }
 
     const rangeHeader = req.headers.range;
     const reqHeaders = {};
