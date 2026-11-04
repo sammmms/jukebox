@@ -1989,7 +1989,14 @@
         if (currentSongData.videoId !== currentNativeAudioVideoId) {
           currentNativeAudioVideoId = currentSongData.videoId;
           hostAudio.src = `/api/audio/stream/${currentSongData.videoId}`;
-          hostAudio.currentTime = targetSec;
+          try { hostAudio.currentTime = targetSec; } catch (e) {}
+          if (targetSec > 0) {
+            const seekInitial = () => {
+              try { hostAudio.currentTime = targetSec; } catch (e) {}
+              hostAudio.removeEventListener('loadedmetadata', seekInitial);
+            };
+            hostAudio.addEventListener('loadedmetadata', seekInitial);
+          }
           if (!currentSongData.isPaused) {
             hostAudio.play().catch(e => {
               console.warn('Native audio play error (touch required):', e);
@@ -3193,6 +3200,7 @@
         if (song.videoId !== currentVideoId) {
           currentVideoId = song.videoId;
           currentElapsed = song.currentElapsed || 0;
+          songDuration = song.songDuration || 0;
           lastTickTimestamp = Date.now();
           loadLyricsForSong(song);
         } else {

@@ -184,6 +184,11 @@ try {
 
 if (!currentSong.videoId) {
   currentSong = { ...DEFAULT_STARTER_TRACK };
+} else if (!currentSong.songDuration || currentSong.songDuration <= 0) {
+  const fallback = AUTOPLAY_FALLBACK_TRACKS.find(t => t.videoId === currentSong.videoId);
+  if (fallback && fallback.songDuration) {
+    currentSong.songDuration = fallback.songDuration;
+  }
 }
 
 try {
@@ -379,13 +384,18 @@ async function advanceNextTrack(skippedByUser = null) {
 
   if (partyQueue.length > 0) {
     const nextItem = partyQueue.shift();
+    let dur = nextItem.songDuration || 0;
+    if (!dur) {
+      const fallback = AUTOPLAY_FALLBACK_TRACKS.find(t => t.videoId === nextItem.videoId);
+      if (fallback && fallback.songDuration) dur = fallback.songDuration;
+    }
     currentSong = {
       videoId: nextItem.videoId,
       title: nextItem.title,
       artist: nextItem.artist || '',
       thumbnail: nextItem.thumbnail || '',
       imageSrc: nextItem.thumbnail || '',
-      songDuration: nextItem.songDuration || 0,
+      songDuration: dur,
       elapsedSeconds: 0,
       isPaused: false,
       addedBy: nextItem.addedBy || 'Host',
@@ -421,6 +431,18 @@ async function advanceNextTrack(skippedByUser = null) {
     addActivity(skippedByUser, 'skip', currentSong.title || 'song');
   }
   broadcastUpdate();
+
+  // Asynchronously resolve song duration if still missing
+  if ((!currentSong.songDuration || currentSong.songDuration <= 0) && currentSong.videoId) {
+    fetchDirectAudioUrl(currentSong.videoId).then(info => {
+      if (info && info.duration > 0 && currentSong.videoId === info.videoId) {
+        currentSong.songDuration = info.duration;
+        playbackTracker.songDuration = info.duration;
+        persistPartyQueue();
+        broadcastUpdate();
+      }
+    }).catch(() => {});
+  }
   return currentSong;
 }
 
@@ -1231,6 +1253,18 @@ app.post('/api/queue', async (req, res) => {
     persistPartyQueue();
     broadcastUpdate();
 
+    if (!currentSong.songDuration || currentSong.songDuration <= 0) {
+      fetchDirectAudioUrl(currentSong.videoId).then(info => {
+        const dur = typeof info === 'object' ? info.duration : 0;
+        if (dur > 0 && currentSong.videoId === videoId) {
+          currentSong.songDuration = dur;
+          playbackTracker.songDuration = dur;
+          persistPartyQueue();
+          broadcastUpdate();
+        }
+      }).catch(() => {});
+    }
+
     return res.json({
       success: true,
       videoId,
@@ -1257,6 +1291,17 @@ app.post('/api/queue', async (req, res) => {
   addActivity(songUser, 'add', songTitle);
   persistPartyQueue();
   broadcastUpdate();
+
+  if (!queueItem.songDuration || queueItem.songDuration <= 0) {
+    fetchDirectAudioUrl(queueItem.videoId).then(info => {
+      const dur = typeof info === 'object' ? info.duration : 0;
+      if (dur > 0 && (!queueItem.songDuration || queueItem.songDuration <= 0)) {
+        queueItem.songDuration = dur;
+        persistPartyQueue();
+        broadcastUpdate();
+      }
+    }).catch(() => {});
+  }
 
   res.json({
     success: true,
@@ -1478,11 +1523,23 @@ function findYtDlpBinary() {
   return 'yt-dlp';
 }
 
+function extractDurationFromGoogleUrl(url) {
+  try {
+    const parsed = new URL(url);
+    const durParam = parsed.searchParams.get('dur');
+    if (durParam) {
+      const durSec = Math.round(parseFloat(durParam));
+      if (durSec > 0) return durSec;
+    }
+  } catch (e) {}
+  return 0;
+}
+
 function fetchDirectAudioUrl(videoId) {
   return new Promise((resolve, reject) => {
     const cached = directAudioCache.get(videoId);
     if (cached && Date.now() < cached.expiresAt) {
-      return resolve(cached.url);
+      return resolve(cached);
     }
 
     const ytdlBin = findYtDlpBinary();
@@ -1501,11 +1558,15 @@ function fetchDirectAudioUrl(videoId) {
       if (!rawUrl || !rawUrl.startsWith('http')) {
         return reject(new Error('Invalid audio stream URL returned by yt-dlp'));
       }
-      directAudioCache.set(videoId, {
+      const duration = extractDurationFromGoogleUrl(rawUrl);
+      const entry = {
+        videoId,
         url: rawUrl,
+        duration,
         expiresAt: Date.now() + (2 * 60 * 60 * 1000)
-      });
-      resolve(rawUrl);
+      };
+      directAudioCache.set(videoId, entry);
+      resolve(entry);
     });
   });
 }
@@ -1517,19 +1578,18 @@ app.get('/api/audio/stream/:videoId', async (req, res) => {
   }
 
   try {
-    const audioUrl = await fetchDirectAudioUrl(videoId);
-    const parsedUrl = new URL(audioUrl);
+    const audioInfo = await fetchDirectAudioUrl(videoId);
+    const audioUrl = typeof audioInfo === 'object' && audioInfo.url ? audioInfo.url : audioInfo;
+    const durSec = typeof audioInfo === 'object' && audioInfo.duration ? audioInfo.duration : extractDurationFromGoogleUrl(audioUrl);
 
-    // Extract exact duration from Google CDN URL if available (dur query param)
-    const durParam = parsedUrl.searchParams.get('dur');
-    if (durParam) {
-      const durSec = Math.round(parseFloat(durParam));
-      if (durSec > 0 && currentSong && currentSong.videoId === videoId && (!currentSong.songDuration || currentSong.songDuration === 0)) {
-        currentSong.songDuration = durSec;
-        playbackTracker.songDuration = durSec;
-        setTimeout(broadcastUpdate, 50);
-      }
+    if (durSec > 0 && currentSong && currentSong.videoId === videoId && (!currentSong.songDuration || currentSong.songDuration === 0)) {
+      currentSong.songDuration = durSec;
+      playbackTracker.songDuration = durSec;
+      persistPartyQueue();
+      setTimeout(broadcastUpdate, 50);
     }
+
+    const parsedUrl = new URL(audioUrl);
 
     const rangeHeader = req.headers.range;
     const reqHeaders = {};
