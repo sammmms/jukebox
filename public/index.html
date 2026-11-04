@@ -213,9 +213,66 @@
     .view-desktop .mobile-only {
       display: none !important;
     }
+
+    /* Mobile Flat View - Remove card sectionizing so mobile dashboard is 1 unified seamless view */
+    @media (max-width: 767px) {
+      .dashboard-card {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+      }
+      #app-wrapper {
+        padding-left: 0.875rem !important;
+        padding-right: 0.875rem !important;
+        padding-top: 0.25rem !important;
+      }
+      .col-right {
+        gap: 1.5rem !important;
+        display: flex !important;
+        flex-direction: column !important;
+      }
+      .dashboard-card + .dashboard-card {
+        border-top: 1px solid rgba(226, 232, 240, 0.8) !important;
+        padding-top: 1.5rem !important;
+      }
+      .dark .dashboard-card + .dashboard-card {
+        border-top: 1px solid rgba(31, 41, 55, 0.8) !important;
+      }
+    }
+
+    .view-mobile .dashboard-card {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      border-radius: 0 !important;
+    }
+    .view-mobile #app-wrapper {
+      padding-left: 0.875rem !important;
+      padding-right: 0.875rem !important;
+      padding-top: 0.25rem !important;
+    }
+    .view-mobile .col-right {
+      gap: 1.5rem !important;
+      display: flex !important;
+      flex-direction: column !important;
+    }
+    .view-mobile .dashboard-card + .dashboard-card {
+      border-top: 1px solid rgba(226, 232, 240, 0.8) !important;
+      padding-top: 1.5rem !important;
+    }
+    .dark.view-mobile .dashboard-card + .dashboard-card,
+    .dark .view-mobile .dashboard-card + .dashboard-card {
+      border-top: 1px solid rgba(31, 41, 55, 0.8) !important;
+    }
   </style>
 </head>
 <body class="bg-slate-50 dark:bg-[#0a0c10] text-slate-800 dark:text-gray-100 min-h-screen pb-24 selection:bg-pink-500 selection:text-white transition-colors duration-200 view-auto">
+
+  <!-- Native HTML5 Audio Player for True 100% Background Playback on Mobile iOS & Android -->
+  <audio id="host-native-audio" preload="auto" playsinline></audio>
 
   <!-- Hidden HTML5 Silent Audio Shield Anchor for iOS/Android Background Audio Keep-Alive -->
   <audio id="silent-audio-anchor" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/w==" loop preload="auto" playsinline></audio>
@@ -258,9 +315,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.8.0)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.9.0)"
                     class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-colors cursor-pointer active:scale-95">
-              v2.8.0
+              v2.9.0
             </button>
           </div>
           <div id="connection-btn" class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
@@ -336,6 +393,20 @@
           <span class="text-[11px] font-bold">Refresh</span>
         </button>
 
+      </div>
+    </div>
+
+    <!-- Mobile Host Sub-Bar (< md: flex, hidden md:) -->
+    <div class="flex md:hidden items-center justify-between gap-2 pt-1.5 mt-1.5 border-t border-slate-100 dark:border-gray-800/60 text-xs">
+      <div class="flex items-center gap-1.5 min-w-0">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-gray-500">Host:</span>
+        <div id="mobile-host-badge" class="flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 truncate max-w-[140px]">
+          <span>👑</span>
+          <span id="mobile-host-name">Memuat Host...</span>
+        </div>
+      </div>
+      <div id="mobile-host-action-container" class="shrink-0 flex items-center gap-1.5">
+        <!-- Populated dynamically via updateHostUI() -->
       </div>
     </div>
 
@@ -469,7 +540,7 @@
       <div class="col-right space-y-5">
 
         <!-- SEARCH & PASTE SECTION -->
-        <div class="rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-4 shadow-md dark:shadow-xl transition-colors duration-200">
+        <div class="dashboard-card rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-4 shadow-md dark:shadow-xl transition-colors duration-200">
           
           <!-- Tabs: Search vs Paste -->
           <div class="flex rounded-xl bg-slate-100 dark:bg-gray-900/80 p-1 border border-slate-200 dark:border-gray-800">
@@ -707,7 +778,7 @@
         </div>
 
         <!-- QUEUE & PLAYED HISTORY TABS CARD -->
-        <div class="rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-4 shadow-md dark:shadow-xl space-y-3 transition-colors duration-200">
+        <div class="dashboard-card rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-4 shadow-md dark:shadow-xl space-y-3 transition-colors duration-200">
           <div class="flex items-center justify-between border-b border-slate-200 dark:border-gray-800 pb-2.5">
             <div class="flex gap-2">
               <button onclick="switchQueueTab('upcoming')" id="tab-btn-upcoming"
@@ -744,7 +815,7 @@
         </div>
 
         <!-- ROOM ACTIVITY FEED / HISTORY CARD -->
-        <div class="rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-4 shadow-md dark:shadow-xl space-y-3 transition-colors duration-200">
+        <div class="dashboard-card rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-4 shadow-md dark:shadow-xl space-y-3 transition-colors duration-200">
           <div class="flex items-center justify-between pb-1">
             <div class="flex items-center gap-2">
               <h3 class="text-sm font-bold text-slate-800 dark:text-gray-200 tracking-wide flex items-center gap-1.5">
@@ -809,7 +880,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.7.0</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.9.0</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -819,6 +890,21 @@
 
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
+        
+        <!-- v2.9.0 -->
+        <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.9.0 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">📱 True iPhone/Android Background Audio:</strong> Streaming native HTML5 audio via backend stream endpoint dengan dukungan header HTTP Range & WebKit CoreAudio hardware bypass, menjamin lagu terus berputar mulus saat Safari di-background atau layar HP dikunci.</li>
+            <li><strong class="text-slate-800 dark:text-white">⏱️ Accurate Timeline Persistence:</strong> Timeline posisi lagu terjaga akurat tanpa pernah meloncat atau rewind ke posisi lama saat kembali membuka web.</li>
+            <li><strong class="text-slate-800 dark:text-white">🎨 Flat Cardless Mobile Layout:</strong> Tampilan mobile dashboard bersih dan menyatu dalam satu halaman flat tanpa kotak-kotak card bertingkat atau border bayangan tebal.</li>
+            <li><strong class="text-slate-800 dark:text-white">👑 Seamless Host Takeover:</strong> Pengalihan Host dengan approval otomatis 30 detik, penghentian audio instan pada host lama, dan timeline yang bersambung akurat di host baru.</li>
+            <li><strong class="text-slate-800 dark:text-white">🎵 Continuous YouTube Music Autoplay:</strong> Jika antrean playlist habis, sistem otomatis mencari dan memutar rekomendasi lagu pesta dari YouTube Music tanpa henti.</li>
+          </ul>
+        </div>
         
         <!-- v2.7.0 -->
         <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-800 space-y-2">
@@ -1396,7 +1482,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.8.0';
+    const CLIENT_VERSION = '2.9.0';
     let isUpdateTriggered = false;
 
     // Embedded YouTube Host Audio Player Engine (Pure Standalone Web)
@@ -1620,7 +1706,12 @@
 
         navigator.mediaSession.setActionHandler('play', () => {
           if (isMeHost()) {
-            if (ytPlayer && typeof ytPlayer.playVideo === 'function') ytPlayer.playVideo();
+            if (isUseNativeAudioEngine()) {
+              const hostAudio = document.getElementById('host-native-audio');
+              if (hostAudio) hostAudio.play().catch(() => {});
+            } else if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
+              ytPlayer.playVideo();
+            }
             startSilentAudioAnchor();
             requestScreenWakeLock();
           }
@@ -1629,7 +1720,12 @@
 
         navigator.mediaSession.setActionHandler('pause', () => {
           if (isMeHost()) {
-            if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') ytPlayer.pauseVideo();
+            if (isUseNativeAudioEngine()) {
+              const hostAudio = document.getElementById('host-native-audio');
+              if (hostAudio) hostAudio.pause();
+            } else if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
+              ytPlayer.pauseVideo();
+            }
             stopSilentAudioAnchor();
             releaseScreenWakeLock();
           }
@@ -1641,14 +1737,24 @@
         });
 
         navigator.mediaSession.setActionHandler('previoustrack', () => {
-          if (isMeHost() && ytPlayer && typeof ytPlayer.seekTo === 'function') {
-            ytPlayer.seekTo(0, true);
+          if (isMeHost()) {
+            if (isUseNativeAudioEngine()) {
+              const hostAudio = document.getElementById('host-native-audio');
+              if (hostAudio) hostAudio.currentTime = 0;
+            } else if (ytPlayer && typeof ytPlayer.seekTo === 'function') {
+              ytPlayer.seekTo(0, true);
+            }
           }
         });
 
         navigator.mediaSession.setActionHandler('seekto', (details) => {
-          if (details.seekTime && isMeHost() && ytPlayer && typeof ytPlayer.seekTo === 'function') {
-            ytPlayer.seekTo(details.seekTime, true);
+          if (details.seekTime && isMeHost()) {
+            if (isUseNativeAudioEngine()) {
+              const hostAudio = document.getElementById('host-native-audio');
+              if (hostAudio) hostAudio.currentTime = details.seekTime;
+            } else if (ytPlayer && typeof ytPlayer.seekTo === 'function') {
+              ytPlayer.seekTo(details.seekTime, true);
+            }
           }
         });
 
@@ -1666,6 +1772,7 @@
 
     // Global touch/click interaction to unlock audio silently on mobile without needing the banner
     document.addEventListener('pointerdown', () => {
+      enableAudioSessionPlayback();
       if (!isHostSpeakerActive && isMeHost()) {
         isHostSpeakerActive = true;
         try { localStorage.setItem('jukebox_speaker_unlocked', 'true'); } catch (e) {}
@@ -1677,14 +1784,84 @@
       }
     }, { passive: true });
 
+    let currentNativeAudioVideoId = '';
+
+    function isUseNativeAudioEngine() {
+      return isMobileDevice || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    }
+
+    function initNativeAudioEngine() {
+      const hostAudio = document.getElementById('host-native-audio');
+      if (!hostAudio) return;
+
+      hostAudio.addEventListener('play', () => {
+        isHostSpeakerActive = true;
+        try { localStorage.setItem('jukebox_speaker_unlocked', 'true'); } catch (e) {}
+        const banner = document.getElementById('host-speaker-activation-banner');
+        if (banner) banner.classList.add('hidden');
+        startSilentAudioAnchor();
+        requestScreenWakeLock();
+      });
+
+      hostAudio.addEventListener('pause', () => {
+        releaseScreenWakeLock();
+      });
+
+      hostAudio.addEventListener('ended', () => {
+        releaseScreenWakeLock();
+        if (isMeHost() && isCurrentAudioMaster) {
+          console.log('🎵 Native audio track selesai di Mobile! Mengalihkan ke lagu berikutnya...');
+          fetch('/api/control/ended', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ videoId: currentNativeAudioVideoId, user: currentUser || 'Host' })
+          });
+        }
+      });
+
+      hostAudio.addEventListener('timeupdate', () => {
+        if (isMeHost() && !hostAudio.paused) {
+          currentElapsed = hostAudio.currentTime;
+          renderTimeline(currentElapsed);
+          if (currentLyrics && currentLyrics.isSynced && currentLyrics.lines && currentLyrics.lines.length > 0) {
+            updateLyricsHighlight();
+          }
+        }
+      });
+
+      hostAudio.addEventListener('error', (e) => {
+        console.warn('Native audio stream error:', hostAudio.error);
+      });
+    }
+
+    setTimeout(initNativeAudioEngine, 100);
+
     function activateHostSpeaker() {
       isHostSpeakerActive = true;
       try { localStorage.setItem('jukebox_speaker_unlocked', 'true'); } catch (e) {}
       claimAudioMaster();
+      enableAudioSessionPlayback();
       startSilentAudioAnchor();
       requestScreenWakeLock();
       const banner = document.getElementById('host-speaker-activation-banner');
       if (banner) banner.classList.add('hidden');
+
+      if (isUseNativeAudioEngine()) {
+        const hostAudio = document.getElementById('host-native-audio');
+        if (hostAudio && currentSongData && currentSongData.videoId) {
+          const targetSec = Math.max(0, Math.floor(currentSongData.currentElapsed || 0));
+          if (currentNativeAudioVideoId !== currentSongData.videoId) {
+            currentNativeAudioVideoId = currentSongData.videoId;
+            hostAudio.src = `/api/audio/stream/${currentSongData.videoId}`;
+            hostAudio.currentTime = targetSec;
+          }
+          if (!currentSongData.isPaused) {
+            hostAudio.play().catch(e => console.warn('Native audio play error:', e));
+          }
+        }
+        showToast('🔊 Speaker pesta aktif! Suara musik keluar dari perangkat ini.');
+        return;
+      }
 
       if (ytPlayer && currentSongData && currentSongData.videoId) {
         const targetSec = Math.max(0, Math.floor(currentSongData.currentElapsed || 0));
@@ -1720,46 +1897,99 @@
     function syncHostAudioEngine() {
       const me = isMeHost();
       const banner = document.getElementById('host-speaker-activation-banner');
+      const hostAudio = document.getElementById('host-native-audio');
 
       if (!me) {
         if (banner) banner.classList.add('hidden');
         if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
-          ytPlayer.pauseVideo();
+          try { ytPlayer.pauseVideo(); } catch (e) {}
         }
+        if (hostAudio) {
+          try { hostAudio.pause(); } catch (e) {}
+        }
+        stopSilentAudioAnchor();
+        releaseScreenWakeLock();
         return;
       }
 
       if (!currentSongData || !currentSongData.videoId || currentSongData.title === 'No song playing') {
         if (banner) banner.classList.add('hidden');
         if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
-          ytPlayer.stopVideo();
+          try { ytPlayer.stopVideo(); } catch (e) {}
+        }
+        if (hostAudio) {
+          try { hostAudio.pause(); } catch (e) {}
         }
         return;
       }
 
       // Check current YT player state
       const state = (ytPlayer && typeof ytPlayer.getPlayerState === 'function') ? ytPlayer.getPlayerState() : -1;
+      const isNativePlaying = hostAudio && !hostAudio.paused;
       
       // Auto-unlock & banner suppression:
-      // NEVER show banner on desktop! On mobile, hide if playing or already unlocked or paused
-      if (!isMobileDevice || state === 1 || isHostSpeakerActive || currentSongData.isPaused) {
+      if (!isMobileDevice || state === 1 || isNativePlaying || isHostSpeakerActive || currentSongData.isPaused) {
         if (banner) banner.classList.add('hidden');
-        if (state === 1) isHostSpeakerActive = true;
+        if (state === 1 || isNativePlaying) isHostSpeakerActive = true;
       } else {
-        // Mobile touch devices only: audio blocked by browser autoplay policy
         if (banner) banner.classList.remove('hidden');
       }
 
-      // Check if another tab holds the audio master lock while this tab is hidden
+      // Check multi-tab audio master
       const activeTab = localStorage.getItem('jukebox_active_audio_tab');
       if (activeTab && activeTab !== myTabId && document.visibilityState === 'hidden') {
-        return; // Yield audio to the active tab
+        return;
       }
       claimAudioMaster();
 
-      if (!ytPlayer || typeof ytPlayer.loadVideoById !== 'function') return;
-
       const targetSec = Math.max(0, Math.floor(currentSongData.currentElapsed || 0));
+
+      // --- MOBILE ENGINE: NATIVE HTML5 AUDIO (Plays in Background & Lock Screen on iPhone / Android) ---
+      if (isUseNativeAudioEngine() && hostAudio) {
+        if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
+          try { ytPlayer.pauseVideo(); } catch (e) {}
+        }
+
+        if (currentSongData.videoId !== currentNativeAudioVideoId) {
+          currentNativeAudioVideoId = currentSongData.videoId;
+          hostAudio.src = `/api/audio/stream/${currentSongData.videoId}`;
+          hostAudio.currentTime = targetSec;
+          if (!currentSongData.isPaused) {
+            hostAudio.play().catch(e => {
+              console.warn('Native audio play error (touch required):', e);
+              if (banner) banner.classList.remove('hidden');
+            });
+          } else {
+            hostAudio.pause();
+          }
+        } else {
+          // Song is already loaded and playing on this Host device.
+          // hostAudio is the ground truth physical playback! NEVER rewind it to stale server data!
+          if (currentSongData.isPaused && !hostAudio.paused) {
+            hostAudio.pause();
+          } else if (!currentSongData.isPaused && hostAudio.paused) {
+            hostAudio.play().catch(() => {});
+          }
+          // If local native audio is ahead (or server was behind), immediately inform server of real position
+          const curTime = hostAudio.currentTime || 0;
+          if (curTime > targetSec + 2) {
+            fetch('/api/player/sync', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                videoId: currentNativeAudioVideoId,
+                elapsed: curTime,
+                duration: songDuration,
+                isPaused: hostAudio.paused
+              })
+            }).catch(() => {});
+          }
+        }
+        return;
+      }
+
+      // --- DESKTOP ENGINE: YOUTUBE IFRAME ---
+      if (!ytPlayer || typeof ytPlayer.loadVideoById !== 'function') return;
 
       if (currentSongData.videoId !== currentLoadedVideoId) {
         currentLoadedVideoId = currentSongData.videoId;
@@ -1773,7 +2003,6 @@
           ytPlayer.playVideo();
         }
       } else {
-        // Same video already loaded: synchronize timeline precisely on host takeover & playback
         if (typeof ytPlayer.getCurrentTime === 'function') {
           const localTime = ytPlayer.getCurrentTime() || 0;
           if (Math.abs(localTime - targetSec) > 2) {
@@ -2223,6 +2452,12 @@
               if (typeof ytPlayer.stopVideo === 'function') ytPlayer.stopVideo();
             } catch (e) {}
           }
+          const hostAudio = document.getElementById('host-native-audio');
+          if (hostAudio) {
+            try { hostAudio.pause(); } catch (e) {}
+          }
+          stopSilentAudioAnchor();
+          releaseScreenWakeLock();
           showToast('✓ Kursi Host telah diserahkan. Audio speaker dimatikan di perangkat ini.');
         } else {
           showToast('Permintaan ambil alih Host telah ditolak.');
@@ -2252,11 +2487,44 @@
             if (typeof ytPlayer.stopVideo === 'function') ytPlayer.stopVideo();
           } catch (e) {}
         }
+        const hostAudio = document.getElementById('host-native-audio');
+        if (hostAudio) {
+          try { hostAudio.pause(); } catch (e) {}
+        }
+        stopSilentAudioAnchor();
+        releaseScreenWakeLock();
         showToast(`⚠️ Kursi Host telah diambil alih oleh ${partyHost.name}. Audio di perangkat ini dimatikan.`);
       }
 
       // Check takeover approval modal
       renderTakeoverModal(partyHost.pendingTakeover);
+
+      // Update Mobile Header Host Strip
+      const mobileName = document.getElementById('mobile-host-name');
+      const mobileAction = document.getElementById('mobile-host-action-container');
+      const meHost = isMeHost();
+      if (mobileName && mobileAction) {
+        if (!partyHost || partyHost.isVacant || !partyHost.name) {
+          mobileName.textContent = 'Vacant';
+          mobileAction.innerHTML = `
+            <button onclick="claimHostPrompt()" class="px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-gradient-to-r from-amber-500 to-pink-500 text-white active:scale-95 transition-all">
+              👑 Klaim Host
+            </button>
+          `;
+        } else {
+          mobileName.textContent = partyHost.name + (meHost ? ' (Kamu)' : '');
+          mobileAction.innerHTML = meHost ? `
+            <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Speaker Aktif</span>
+            </span>
+          ` : `
+            <button onclick="claimHostPrompt(true)" class="px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30 active:scale-95 transition-all">
+              👑 Ambil Alih
+            </button>
+          `;
+        }
+      }
 
       const container = document.getElementById('host-status-container');
       if (!container) return;

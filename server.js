@@ -3,12 +3,13 @@ const cors = require('cors');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
-const { exec, spawn } = require('child_process');
+const { exec, spawn, execFile } = require('child_process');
+const https = require('https');
 const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.8.0';
+const APP_VERSION = '2.9.0';
 
 const YTM_API = 'http://localhost:26538';
 let isYtmConnected = false;
@@ -1458,6 +1459,114 @@ app.post('/api/player/sync', (req, res) => {
     }
   }
   res.json({ success: true });
+});
+
+// --- NATIVE AUDIO STREAMING (FOR 100% BACKGROUND PLAYBACK ON IOS SAFARI & ANDROID) ---
+const directAudioCache = new Map();
+
+function findYtDlpBinary() {
+  const localBin = path.join(__dirname, 'bin', 'yt-dlp');
+  if (fs.existsSync(localBin)) return localBin;
+  const brewBin = '/opt/homebrew/bin/yt-dlp';
+  if (fs.existsSync(brewBin)) return brewBin;
+  return 'yt-dlp';
+}
+
+function fetchDirectAudioUrl(videoId) {
+  return new Promise((resolve, reject) => {
+    const cached = directAudioCache.get(videoId);
+    if (cached && Date.now() < cached.expiresAt) {
+      return resolve(cached.url);
+    }
+
+    const ytdlBin = findYtDlpBinary();
+    execFile(ytdlBin, [
+      '--extractor-args', 'youtube:player_client=visionos',
+      '-g',
+      '-f', 'ba[ext=m4a]/ba',
+      '--no-playlist',
+      `https://www.youtube.com/watch?v=${videoId}`
+    ], { timeout: 15000 }, (err, stdout, stderr) => {
+      if (err) {
+        console.error('yt-dlp error fetching audio URL:', err.message);
+        return reject(err);
+      }
+      const rawUrl = stdout.trim().split('\n')[0];
+      if (!rawUrl || !rawUrl.startsWith('http')) {
+        return reject(new Error('Invalid audio stream URL returned by yt-dlp'));
+      }
+      directAudioCache.set(videoId, {
+        url: rawUrl,
+        expiresAt: Date.now() + (2 * 60 * 60 * 1000)
+      });
+      resolve(rawUrl);
+    });
+  });
+}
+
+app.get('/api/audio/stream/:videoId', async (req, res) => {
+  const { videoId } = req.params;
+  if (!videoId || !/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+    return res.status(400).send('Invalid videoId');
+  }
+
+  try {
+    const audioUrl = await fetchDirectAudioUrl(videoId);
+    const parsedUrl = new URL(audioUrl);
+
+    const rangeHeader = req.headers.range;
+    const reqHeaders = {};
+    if (rangeHeader) {
+      reqHeaders['Range'] = rangeHeader;
+    }
+
+    const proxyReq = https.request({
+      hostname: parsedUrl.hostname,
+      port: 443,
+      path: parsedUrl.pathname + parsedUrl.search,
+      method: req.method === 'HEAD' ? 'HEAD' : 'GET',
+      headers: reqHeaders
+    }, (proxyRes) => {
+      const statusCode = proxyRes.statusCode || 200;
+      const resHeaders = {
+        'Content-Type': proxyRes.headers['content-type'] || 'audio/mp4',
+        'Accept-Ranges': 'bytes',
+        'Cache-Control': 'public, max-age=3600',
+        'Access-Control-Allow-Origin': '*'
+      };
+
+      if (proxyRes.headers['content-range']) {
+        resHeaders['Content-Range'] = proxyRes.headers['content-range'];
+      }
+      if (proxyRes.headers['content-length']) {
+        resHeaders['Content-Length'] = proxyRes.headers['content-length'];
+      }
+
+      res.writeHead(statusCode, resHeaders);
+      if (req.method === 'HEAD') {
+        return res.end();
+      }
+      proxyRes.pipe(res);
+    });
+
+    proxyReq.on('error', (err) => {
+      console.error('Audio stream proxy error:', err.message);
+      if (!res.headersSent) {
+        res.status(502).send('Audio stream proxy error');
+      }
+    });
+
+    req.on('close', () => {
+      proxyReq.destroy();
+    });
+
+    proxyReq.end();
+  } catch (err) {
+    console.error('Failed to resolve audio stream for', videoId, ':', err.message);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Could not resolve audio stream' });
+    }
+  }
 });
 
 // 8. Lyrics Endpoint
