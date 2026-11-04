@@ -344,9 +344,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.4)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.5)"
                     class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-colors cursor-pointer active:scale-95">
-              v2.11.4
+              v2.11.5
             </button>
           </div>
           <div id="connection-btn" class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
@@ -887,7 +887,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.4</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.5</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -898,10 +898,23 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.11.4 -->
+        <!-- v2.11.5 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.11.4 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.11.5 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">🎧 Universal Native Background Audio Engine:</strong> Mengatasi masalah lagu berhenti dan tidak auto-play saat tab berada di background / unfocused / terminimalkan di Desktop & Mobile. Menggunakan Native HTML5 Audio Stream yang kebal dari throttling browser.</li>
+            <li><strong class="text-slate-800 dark:text-white">⏱️ Background Web Worker Keep-Alive Ticker:</strong> Menggunakan Web Worker mandiri untuk menjalankan timeline dan watchdog pemutaran setiap 1 detik tanpa terkena penalti sleep 60 detik dari browser saat tab ditinggalkan.</li>
+            <li><strong class="text-slate-800 dark:text-white">🔄 Auto-Advance on Track Completion:</strong> Memastikan transisi lagu berikutnya berjalan otomatis di server dan klien bahkan saat browser dalam keadaan diminimalkan.</li>
+          </ul>
+        </div>
+
+        <!-- v2.11.4 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-800/40 border border-slate-200 dark:border-gray-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-600">v2.11.4</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -1464,6 +1477,37 @@
         </div>
       </div>
 
+      <!-- Section 2.5: Audio Engine Configuration -->
+      <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-700 dark:text-gray-200 flex items-center gap-1.5">
+            <span>⚡</span> Audio Playback Engine
+          </span>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+            Background Ready
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-500 dark:text-gray-400">Pilih mesin audio untuk pemutaran musik di perangkat Host.</p>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <button type="button" onclick="setAudioEngine('native')" id="btn-engine-native"
+                  class="p-2.5 rounded-xl border text-left transition-all flex flex-col gap-1 cursor-pointer">
+            <div class="flex items-center justify-between font-bold">
+              <span>⚡ Native Audio</span>
+              <span id="check-engine-native" class="text-pink-500 font-bold">✓</span>
+            </div>
+            <span class="text-[10px] text-slate-500 dark:text-gray-400">Autoplay lancar di background / tab lain tanpa jeda</span>
+          </button>
+          <button type="button" onclick="setAudioEngine('youtube')" id="btn-engine-youtube"
+                  class="p-2.5 rounded-xl border text-left transition-all flex flex-col gap-1 cursor-pointer">
+            <div class="flex items-center justify-between font-bold">
+              <span>📺 YouTube IFrame</span>
+              <span id="check-engine-youtube" class="text-pink-500 font-bold hidden">✓</span>
+            </div>
+            <span class="text-[10px] text-slate-500 dark:text-gray-400">Pemutar video embed YouTube resmi</span>
+          </button>
+        </div>
+      </div>
+
       <!-- Section 3: Room QR Code & Public Sharing Link -->
       <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800 space-y-2.5">
         <div class="flex items-center justify-between">
@@ -1510,7 +1554,7 @@
 
       <!-- Section 5: Version & Release Notes -->
       <div class="pt-1 flex items-center justify-between text-xs text-slate-400">
-        <span>Party Jukebox v2.11.3</span>
+        <span>Party Jukebox v2.11.5</span>
         <button onclick="openChangelogModal(); closeSettingsModal();" class="font-bold text-pink-600 dark:text-pink-400 hover:underline">
           Lihat Catatan Rilis 🚀
         </button>
@@ -1926,7 +1970,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.11.4';
+    const CLIENT_VERSION = '2.11.5';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -2398,7 +2442,40 @@
     let currentNativeAudioVideoId = '';
 
     function isUseNativeAudioEngine() {
-      return isMobileDevice || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      const pref = localStorage.getItem('jukebox_audio_engine');
+      if (pref === 'youtube') return false;
+      return true; // Default: Native Audio Engine for Desktop & Mobile (enables flawless background autoplay & no iframe throttling)
+    }
+
+    function setAudioEngine(engine) {
+      localStorage.setItem('jukebox_audio_engine', engine);
+      updateAudioEngineUI();
+      if (isMeHost()) {
+        syncHostAudioEngine();
+      }
+      showToast(`Audio Engine diubah ke: ${engine === 'native' ? 'Native Audio (Background Ready)' : 'YouTube Web Player'}`);
+    }
+
+    function updateAudioEngineUI() {
+      const isNative = isUseNativeAudioEngine();
+      const btnNative = document.getElementById('btn-engine-native');
+      const btnYt = document.getElementById('btn-engine-youtube');
+      const checkNative = document.getElementById('check-engine-native');
+      const checkYt = document.getElementById('check-engine-youtube');
+
+      if (btnNative && btnYt) {
+        if (isNative) {
+          btnNative.className = 'p-2.5 rounded-xl border-2 border-pink-500 bg-pink-500/10 text-slate-900 dark:text-white text-left transition-all flex flex-col gap-1 cursor-pointer shadow-xs';
+          btnYt.className = 'p-2.5 rounded-xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-800 text-slate-600 dark:text-gray-400 text-left transition-all flex flex-col gap-1 cursor-pointer hover:border-slate-300';
+          checkNative?.classList.remove('hidden');
+          checkYt?.classList.add('hidden');
+        } else {
+          btnYt.className = 'p-2.5 rounded-xl border-2 border-pink-500 bg-pink-500/10 text-slate-900 dark:text-white text-left transition-all flex flex-col gap-1 cursor-pointer shadow-xs';
+          btnNative.className = 'p-2.5 rounded-xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-800 text-slate-600 dark:text-gray-400 text-left transition-all flex flex-col gap-1 cursor-pointer hover:border-slate-300';
+          checkYt?.classList.remove('hidden');
+          checkNative?.classList.add('hidden');
+        }
+      }
     }
 
     function initNativeAudioEngine() {
@@ -2459,7 +2536,7 @@
       hostAudio.addEventListener('ended', async () => {
         releaseScreenWakeLock();
         if (isMeHost() && isCurrentAudioMaster) {
-          console.log('🎵 Native audio track selesai di Mobile! Mengalihkan ke lagu berikutnya...');
+          console.log('🎵 Native audio track selesai! Mengalihkan ke lagu berikutnya di background...');
           try {
             const res = await fetch('/api/control/ended', {
               method: 'POST',
@@ -2475,10 +2552,13 @@
               songDuration = nextSong.songDuration || 0;
               currentElapsed = 0;
               renderTimeline(0);
-              hostAudio.src = data.audioStreamUrl || `/api/audio/stream/${nextSong.videoId}`;
-              hostAudio.currentTime = 0;
-              ensureAudioContextGain();
-              hostAudio.play().catch(e => console.warn('Background auto play next error:', e));
+              const targetUrl = data.audioStreamUrl || `/api/audio/stream/${nextSong.videoId}`;
+              if (!hostAudio.src.includes(`/api/audio/stream/${nextSong.videoId}`)) {
+                hostAudio.src = targetUrl;
+                hostAudio.currentTime = 0;
+                ensureAudioContextGain();
+                hostAudio.play().catch(e => console.warn('Background auto play next error:', e));
+              }
               updateMediaSession(nextSong);
               loadLyricsForSong(nextSong);
             }
@@ -2490,7 +2570,8 @@
 
       hostAudio.addEventListener('timeupdate', () => {
         if (isMeHost() && !hostAudio.paused) {
-          currentElapsed = hostAudio.currentTime;
+          const cur = hostAudio.currentTime;
+          currentElapsed = cur;
           const dur = hostAudio.duration;
           if (typeof dur === 'number' && !isNaN(dur) && dur > 0 && Math.round(dur) !== songDuration) {
             songDuration = Math.round(dur);
@@ -2502,12 +2583,12 @@
             updateLyricsHighlight();
           }
 
-          // Mobile Host Watchdog: auto-trigger ended when near completion
-          if (dur > 5 && audioTime >= dur - 0.8 && isCurrentAudioMaster) {
+          // Host Watchdog: auto-trigger ended when near completion
+          if (dur > 5 && cur >= dur - 0.8 && isCurrentAudioMaster) {
             const vid = currentNativeAudioVideoId || (currentSongData && currentSongData.videoId);
             if (vid && (!window._lastEndedReportedVideoId || window._lastEndedReportedVideoId !== vid)) {
               window._lastEndedReportedVideoId = vid;
-              console.log('🎵 Mobile native audio reached end of track. Triggering auto-advance...');
+              console.log('🎵 Native audio reached end of track. Triggering auto-advance...');
               fetch('/api/control/ended', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -2520,6 +2601,16 @@
 
       hostAudio.addEventListener('error', (e) => {
         console.warn('Native audio stream error:', hostAudio.error);
+        if (isMeHost() && currentSongData && currentSongData.videoId) {
+          // Attempt retry with clean cache-buster or advance if unplayable
+          setTimeout(() => {
+            if (hostAudio.error && !currentSongData.isPaused) {
+              console.log('🔄 Retrying audio stream for', currentSongData.title);
+              hostAudio.src = `/api/audio/stream/${currentSongData.videoId}?retry=1&t=${Date.now()}`;
+              hostAudio.play().catch(() => {});
+            }
+          }, 1500);
+        }
       });
     }
 
@@ -2639,16 +2730,19 @@
           try { ytPlayer.pauseVideo(); } catch (e) {}
         }
 
-        if (currentSongData.videoId !== currentNativeAudioVideoId) {
+        if (currentSongData.videoId !== currentNativeAudioVideoId || !hostAudio.src.includes(`/api/audio/stream/${currentSongData.videoId}`)) {
           currentNativeAudioVideoId = currentSongData.videoId;
-          hostAudio.src = `/api/audio/stream/${currentSongData.videoId}`;
-          try { hostAudio.currentTime = targetSec; } catch (e) {}
-          if (targetSec > 0) {
-            const seekInitial = () => {
-              try { hostAudio.currentTime = targetSec; } catch (e) {}
-              hostAudio.removeEventListener('loadedmetadata', seekInitial);
-            };
-            hostAudio.addEventListener('loadedmetadata', seekInitial);
+          const targetUrl = `/api/audio/stream/${currentSongData.videoId}`;
+          if (!hostAudio.src.includes(targetUrl)) {
+            hostAudio.src = targetUrl;
+            try { hostAudio.currentTime = targetSec; } catch (e) {}
+            if (targetSec > 0) {
+              const seekInitial = () => {
+                try { hostAudio.currentTime = targetSec; } catch (e) {}
+                hostAudio.removeEventListener('loadedmetadata', seekInitial);
+              };
+              hostAudio.addEventListener('loadedmetadata', seekInitial);
+            }
           }
           if (!currentSongData.isPaused) {
             hostAudio.play().catch(e => {
@@ -3514,6 +3608,8 @@
       if (qrImg && originQr) qrImg.src = originQr.src;
       if (hostUrlText && originUrl) hostUrlText.textContent = originUrl.textContent;
 
+      updateAudioEngineUI();
+
       modal.classList.remove('hidden');
     }
 
@@ -4034,6 +4130,9 @@
           songDuration = song.songDuration || 0;
           lastTickTimestamp = Date.now();
           loadLyricsForSong(song);
+          if (isMeHost()) {
+            syncHostAudioEngine();
+          }
         } else {
           if (song.isPaused) {
             if (typeof song.currentElapsed === 'number' && song.currentElapsed > 0) {
@@ -4144,8 +4243,8 @@
     }
 
     // Client Ticker (with 0ms frame-perfect Host Audio Engine sync)
-    setInterval(() => {
-      // 1. If THIS device is Host and playing via Native HTML5 Audio (Mobile iOS Safari & Android):
+    function tickPlayback() {
+      // 1. If THIS device is Host and playing via Native HTML5 Audio:
       const hostAudio = document.getElementById('host-native-audio');
       if (isMeHost() && isUseNativeAudioEngine() && hostAudio && hostAudio.src) {
         const audioTime = hostAudio.currentTime;
@@ -4162,12 +4261,12 @@
             updateLyricsHighlight();
           }
 
-          // Mobile Host Watchdog: auto-trigger ended when near completion
+          // Host Watchdog: auto-trigger ended when near completion
           if (dur > 5 && audioTime >= dur - 0.8 && isCurrentAudioMaster) {
             const vid = currentNativeAudioVideoId || (currentSongData && currentSongData.videoId);
             if (vid && (!window._lastEndedReportedVideoId || window._lastEndedReportedVideoId !== vid)) {
               window._lastEndedReportedVideoId = vid;
-              console.log('🎵 Mobile native audio reached end of track. Triggering auto-advance...');
+              console.log('🎵 Native audio reached end of track. Triggering auto-advance...');
               fetch('/api/control/ended', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -4196,7 +4295,7 @@
         }
       }
 
-      // 2. If THIS device is Host and playing via embedded YouTube player (Desktop):
+      // 2. If THIS device is Host and playing via embedded YouTube player (Fallback / Opt-out):
       if (isMeHost() && isHostSpeakerActive && ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
         const playerTime = ytPlayer.getCurrentTime();
         if (typeof playerTime === 'number' && !isNaN(playerTime) && playerTime >= 0) {
@@ -4261,7 +4360,23 @@
       } else {
         lastTickTimestamp = Date.now();
       }
-    }, 200);
+    }
+
+    setInterval(tickPlayback, 200);
+
+    // Background Unthrottled Web Worker Ticker (Keeps ticking every 1000ms even when tab is backgrounded/minimized)
+    try {
+      const workerBlob = new Blob([
+        'let timer = null; self.onmessage = function(e) { if (e.data === "start") { if (!timer) timer = setInterval(function() { self.postMessage("tick"); }, 1000); } else if (e.data === "stop") { clearInterval(timer); timer = null; } };'
+      ], { type: 'application/javascript' });
+      const bgWorker = new Worker(URL.createObjectURL(workerBlob));
+      bgWorker.onmessage = function() {
+        tickPlayback();
+      };
+      bgWorker.postMessage('start');
+    } catch (e) {
+      console.warn('Web Worker ticker unsupported:', e);
+    }
 
     // Dynamic Volume UI & Handler
     function updateVolumeUI(val) {

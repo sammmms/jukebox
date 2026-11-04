@@ -9,7 +9,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.11.4';
+const APP_VERSION = '2.11.5';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -518,15 +518,16 @@ function checkServerPlaybackAutoplay() {
   if (isUsingYtmDesktop()) return;
   if (!currentSong || !currentSong.videoId || currentSong.title === 'No song playing') return;
   if (currentSong.isPaused) return;
-  if (!currentSong.songDuration || currentSong.songDuration <= 0) return;
+
+  const dur = (currentSong.songDuration && currentSong.songDuration > 0) ? currentSong.songDuration : 240;
 
   const now = Date.now();
   const delta = (now - playbackTracker.lastUpdated) / 1000;
   const rawElapsed = (playbackTracker.elapsed || 0) + delta;
 
   // If track has reached or exceeded its duration (+ 1s buffer)
-  if (rawElapsed >= currentSong.songDuration + 1) {
-    console.log(`[Autoplay Watchdog] Track "${currentSong.title}" reached end (${rawElapsed.toFixed(1)}s / ${currentSong.songDuration}s). Advancing track automatically...`);
+  if (rawElapsed >= dur + 1) {
+    console.log(`[Autoplay Watchdog] Track "${currentSong.title}" reached end (${rawElapsed.toFixed(1)}s / ${dur}s). Advancing track automatically...`);
     advanceNextTrack('Autoplay Watchdog / Server');
   }
 }
