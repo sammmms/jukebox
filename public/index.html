@@ -483,9 +483,15 @@
               <span class="text-base">🎤</span>
               <h3 class="text-xs font-bold uppercase tracking-wider text-pink-600 dark:text-pink-400" id="desktop-lyrics-badge">Karaoke Real-Time</h3>
             </div>
-            <button onclick="openLyrics()" class="text-[11px] font-bold text-pink-600 dark:text-pink-400 hover:underline flex items-center gap-1">
-              <span>⛶ Fullscreen</span>
-            </button>
+            <div class="flex items-center gap-2">
+              <button id="pinyin-toggle-desktop-btn" onclick="togglePinyinDisplay()" title="Toggle Pinyin / Romaji"
+                      class="text-[10px] font-bold px-2 py-0.5 rounded-lg border border-pink-500/30 bg-pink-500/10 text-pink-600 dark:text-pink-400 hover:bg-pink-500/20 active:scale-95 transition-all">
+                🀄 Pinyin
+              </button>
+              <button onclick="openLyrics()" class="text-[11px] font-bold text-pink-600 dark:text-pink-400 hover:underline flex items-center gap-1">
+                <span>⛶ Fullscreen</span>
+              </button>
+            </div>
           </div>
           <div id="desktop-lyrics-scroll" class="h-64 overflow-y-auto space-y-2.5 text-center pr-1 select-none py-2 lyrics-fade-mask">
             <div id="desktop-lyrics-spinner" class="py-12 text-center text-xs text-slate-400 dark:text-gray-500">
@@ -850,9 +856,17 @@
         <h3 id="lyrics-title" class="text-sm sm:text-base font-bold text-slate-900 dark:text-white truncate">Song Title</h3>
         <p id="lyrics-artist" class="text-xs text-slate-500 dark:text-gray-400 truncate">Artist</p>
       </div>
-      <button onclick="closeLyrics()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-700 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all">
-        ✕
-      </button>
+      <div class="flex items-center gap-2 shrink-0">
+        <!-- Pinyin / Romaji Toggle Button -->
+        <button id="pinyin-toggle-modal-btn" onclick="togglePinyinDisplay()" title="Toggle Pinyin / Romaji"
+                class="px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 active:scale-95 cursor-pointer bg-pink-500/15 text-pink-600 dark:text-pink-400 border-pink-500/30">
+          <span>🀄</span>
+          <span id="pinyin-toggle-modal-text">Pinyin</span>
+        </button>
+        <button onclick="closeLyrics()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-700 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all">
+          ✕
+        </button>
+      </div>
     </div>
 
     <!-- Lyrics Content (Karaoke Synced or Plain) -->
@@ -880,7 +894,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.9.1</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.10.0</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -890,6 +904,22 @@
 
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
+        
+        <!-- v2.10.0 -->
+        <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.10.0 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">🀄 Lirik Pinyin & Romaji (Toggleable):</strong> Menampilkan bacaan Pinyin (Mandarin) dan Romaji (Jepang) di atas baris lirik asli, lengkap dengan tombol toggle cepat pada panel karaoke & lirik desktop.</li>
+            <li><strong class="text-slate-800 dark:text-white">📱 2-Row Mobile Player Bar:</strong> Bar pemutar lagu di HP kini dibagi menjadi 2 baris (Baris 1: Judul lagu & durasi penuh, Baris 2: Kontrol Play/Pause, Next, Lirik, dan Dialog Volume).</li>
+            <li><strong class="text-slate-800 dark:text-white">🔊 Software Audio Gain & Mobile Volume Dialog:</strong> Pengaturan volume lagu langsung menggunakan Web Audio GainNode & YouTube Player volume. Bisa dikendalikan jarak jauh antar perangkat dan melalui tombol volume baru di mobile.</li>
+            <li><strong class="text-slate-800 dark:text-white">🔲 3x3 Card Grid Rekomendasi:</strong> Tampilan pemilihan lagu kini berbentuk grid kotak album 3x3 dengan pagination & acak rekomendasi.</li>
+            <li><strong class="text-slate-800 dark:text-white">⚡ Anti-Timeline Jump & Focus Fix:</strong> Memperbaiki bug jumping timeline saat ambil alih Host dan menghilangkan masalah lagu meloncat ke menit awal saat tab desktop kembali aktif.</li>
+            <li><strong class="text-slate-800 dark:text-white">🔄 Seamless Background Queue Transition:</strong> Lagu di background iPhone otomatis lanjut ke lagu berikutnya dari antrean tanpa perlu menyalakan layar HP.</li>
+          </ul>
+        </div>
         
         <!-- v2.9.1 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
@@ -1362,39 +1392,47 @@
       </div>
     </div>
 
-    <!-- Main Player Bar Content -->
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between gap-2 sm:gap-4">
+    <!-- Main Player Bar Content (Responsive: 2 rows on mobile, 1 row on desktop) -->
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2 sm:py-2.5 flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-4">
       
-      <!-- LEFT: Vinyl Cover & Track Metadata -->
-      <div class="flex items-center gap-2.5 sm:gap-3.5 min-w-0 max-w-[55%] sm:max-w-[42%]">
+      <!-- ROW 1 ON MOBILE / LEFT ON DESKTOP: Vinyl Cover & Track Metadata -->
+      <div class="flex items-center justify-between md:justify-start gap-2.5 sm:gap-3.5 min-w-0 w-full md:max-w-[42%]">
         <!-- Compact Vinyl Disc -->
-        <div class="relative w-11 h-11 sm:w-13 sm:h-13 shrink-0">
-          <img id="now-thumbnail" src="https://via.placeholder.com/150" alt="Cover"
-               class="w-full h-full object-cover rounded-xl shadow-md border border-slate-200 dark:border-gray-700/60 relative z-10">
-          <div id="vinyl-disc" class="absolute -right-2 top-0 w-11 h-11 sm:w-13 sm:h-13 rounded-full border border-slate-800 dark:border-gray-900 bg-black/90 z-0 vinyl-spin paused flex items-center justify-center shadow-xs">
-            <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-gradient-to-tr from-pink-500 to-rose-500 border border-white/20"></div>
+        <div class="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
+          <div class="relative w-11 h-11 sm:w-13 sm:h-13 shrink-0">
+            <img id="now-thumbnail" src="https://via.placeholder.com/150" alt="Cover"
+                 class="w-full h-full object-cover rounded-xl shadow-md border border-slate-200 dark:border-gray-700/60 relative z-10">
+            <div id="vinyl-disc" class="absolute -right-2 top-0 w-11 h-11 sm:w-13 sm:h-13 rounded-full border border-slate-800 dark:border-gray-900 bg-black/90 z-0 vinyl-spin paused flex items-center justify-center shadow-xs">
+              <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-gradient-to-tr from-pink-500 to-rose-500 border border-white/20"></div>
+            </div>
           </div>
-        </div>
 
-        <!-- Title, Artist, & Added By -->
-        <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-1.5 flex-wrap">
-            <span class="px-1.5 py-0.2 rounded text-[9px] font-black tracking-wide bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30 uppercase shrink-0">
-              Playing
-            </span>
-            <span id="now-added-by" class="text-[10px] text-slate-500 dark:text-gray-400 truncate font-semibold"></span>
-          </div>
-          <h3 id="now-title" class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white truncate mt-0.5 leading-snug">No song playing</h3>
-          <div class="flex items-center gap-2 text-[10px] sm:text-[11px] text-slate-500 dark:text-gray-400 truncate">
-            <p id="now-artist" class="truncate font-medium">Connect YouTube Music</p>
-            <span class="opacity-40 shrink-0">•</span>
-            <span class="font-mono shrink-0 text-slate-600 dark:text-gray-300 font-bold"><span id="time-elapsed">0:00</span> / <span id="time-duration">0:00</span></span>
+          <!-- Title, Artist, & Added By -->
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="px-1.5 py-0.2 rounded text-[9px] font-black tracking-wide bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30 uppercase shrink-0">
+                Playing
+              </span>
+              <span id="now-added-by" class="text-[10px] text-slate-500 dark:text-gray-400 truncate font-semibold"></span>
+            </div>
+            <h3 id="now-title" class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white truncate mt-0.5 leading-snug">No song playing</h3>
+            <div class="flex items-center gap-2 text-[10px] sm:text-[11px] text-slate-500 dark:text-gray-400 truncate">
+              <p id="now-artist" class="truncate font-medium">Connect YouTube Music</p>
+              <span class="opacity-40 shrink-0">•</span>
+              <span class="font-mono shrink-0 text-slate-600 dark:text-gray-300 font-bold"><span id="time-elapsed">0:00</span> / <span id="time-duration">0:00</span></span>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- CENTER: Controls (Play/Pause, Skip, Karaoke Trigger) -->
-      <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
+      <!-- ROW 2 ON MOBILE / CENTER ON DESKTOP: Controls (Back, Play/Pause, Skip, Karaoke, Volume) -->
+      <div class="flex items-center justify-center gap-3 sm:gap-4 shrink-0 w-full md:w-auto pt-1 md:pt-0 border-t border-slate-100 dark:border-gray-800/60 md:border-t-0">
+        <!-- Restart Track Button (Back) -->
+        <button onclick="restartTrack()" title="Ulangi dari Awal"
+                class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-slate-700 dark:text-gray-200 hover:text-slate-900 dark:hover:text-white flex items-center justify-center active:scale-95 transition-all cursor-pointer border border-slate-200 dark:border-gray-700">
+          <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.2 3.16-1.98 5.12-1.98 3.65 0 6.69 2.45 7.6 5.8l2.36-.78C21.17 10.87 17.21 8 12.5 8z"/></svg>
+        </button>
+
         <!-- Play / Pause Button -->
         <button onclick="togglePlay()" title="Play / Pause"
                 class="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 text-white flex items-center justify-center shadow-lg shadow-pink-500/30 hover:scale-105 active:scale-95 transition-all cursor-pointer">
@@ -1408,8 +1446,8 @@
 
         <!-- Skip Button -->
         <button onclick="skipNext()" title="Skip Lagu (Next)"
-                class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-slate-700 dark:text-gray-200 hover:text-slate-900 dark:hover:text-white flex items-center justify-center active:scale-95 transition-all cursor-pointer border border-slate-200 dark:border-gray-700">
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-slate-700 dark:text-gray-200 hover:text-slate-900 dark:hover:text-white flex items-center justify-center active:scale-95 transition-all cursor-pointer border border-slate-200 dark:border-gray-700">
+          <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
             <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
           </svg>
         </button>
@@ -1418,11 +1456,17 @@
         <button onclick="openLyrics()" title="Lihat Lirik Real-Time"
                 class="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-pink-500/10 hover:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30 text-xs font-bold active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer">
           <span class="text-sm">🎤</span>
-          <span class="hidden sm:inline">Lirik</span>
+          <span>Lirik</span>
+        </button>
+
+        <!-- Mobile Volume Button (Opens Dedicated Dialog) -->
+        <button onclick="openMobileVolumeModal()" title="Atur Volume Lagu"
+                class="md:hidden w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-slate-700 dark:text-gray-200 flex items-center justify-center border border-slate-200 dark:border-gray-700 active:scale-95 transition-all cursor-pointer">
+          <span class="text-xs">🔊</span>
         </button>
       </div>
 
-      <!-- RIGHT: Volume Controls & Snapping -->
+      <!-- RIGHT (DESKTOP ONLY): Inline Volume Controls & Snapping -->
       <div class="hidden md:flex items-center gap-2.5 min-w-[200px] max-w-[280px]">
         <button onclick="toggleMuteQuick()" id="vol-mute-btn" title="Toggle Mute"
                 class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-gray-800 hover:bg-slate-200 dark:hover:bg-gray-700 text-slate-700 dark:text-gray-200 flex items-center justify-center shrink-0 transition-all active:scale-90">
@@ -1444,6 +1488,51 @@
         </div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- Mobile Volume Modal Dialog -->
+  <div id="mobile-volume-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-3 sm:p-4 transition-opacity">
+    <div class="bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-3xl p-5 w-full max-w-sm shadow-2xl space-y-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-full bg-pink-500/15 text-pink-600 dark:text-pink-400 flex items-center justify-center text-sm font-bold">
+            🔊
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-slate-900 dark:text-white">Volume Musik Speaker</h4>
+            <p class="text-[10px] text-slate-400 dark:text-gray-500">Atur suara audio langsung di perangkat pemutar</p>
+          </div>
+        </div>
+        <button onclick="closeMobileVolumeModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-500 hover:text-slate-900 dark:hover:text-white flex items-center justify-center text-sm active:scale-95 transition-all">✕</button>
+      </div>
+
+      <div class="pt-2">
+        <div class="flex items-center justify-between text-xs font-bold mb-2">
+          <span class="text-slate-600 dark:text-gray-300">Level Kekuatan Suara</span>
+          <span id="mobile-volume-display" class="px-2 py-0.5 rounded-lg bg-pink-500/15 text-pink-600 dark:text-pink-400 font-mono text-xs font-bold">70%</span>
+        </div>
+        <input type="range" id="mobile-volume-slider" min="0" max="100" value="70"
+               oninput="handleVolumeInput(this.value)"
+               class="w-full h-2.5 bg-slate-200 dark:bg-gray-800 rounded-full appearance-none cursor-pointer accent-pink-500">
+      </div>
+
+      <!-- Quick Preset Buttons -->
+      <div class="grid grid-cols-4 gap-2 pt-1">
+        <button onclick="handleVolumeInput(25)" class="py-1.5 rounded-xl bg-slate-100 dark:bg-gray-800 hover:bg-pink-500/15 text-xs font-bold text-slate-700 dark:text-gray-300 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-all active:scale-95">25%</button>
+        <button onclick="handleVolumeInput(50)" class="py-1.5 rounded-xl bg-slate-100 dark:bg-gray-800 hover:bg-pink-500/15 text-xs font-bold text-slate-700 dark:text-gray-300 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-all active:scale-95">50%</button>
+        <button onclick="handleVolumeInput(75)" class="py-1.5 rounded-xl bg-slate-100 dark:bg-gray-800 hover:bg-pink-500/15 text-xs font-bold text-slate-700 dark:text-gray-300 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-all active:scale-95">75%</button>
+        <button onclick="handleVolumeInput(100)" class="py-1.5 rounded-xl bg-slate-100 dark:bg-gray-800 hover:bg-pink-500/15 text-xs font-bold text-slate-700 dark:text-gray-300 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-all active:scale-95">100%</button>
+      </div>
+
+      <div class="flex items-center gap-2 pt-1">
+        <button onclick="toggleMuteQuick()" id="mobile-mute-btn" class="flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-gray-800 hover:bg-slate-200 text-slate-800 dark:text-gray-200 text-xs font-bold border border-slate-200 dark:border-gray-700 transition-all flex items-center justify-center gap-1.5 active:scale-95">
+          <span>🔇</span> Mute / Unmute
+        </button>
+        <button onclick="closeMobileVolumeModal()" class="flex-1 py-2.5 rounded-xl bg-pink-500 text-white text-xs font-bold shadow-md shadow-pink-500/30 hover:bg-pink-600 transition-all active:scale-95">
+          Tutup
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1482,8 +1571,123 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.9.1';
+    const CLIENT_VERSION = '2.10.0';
     let isUpdateTriggered = false;
+    let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
+
+    // Web Audio GainNode for universal iOS Safari & Android software volume control
+    let audioCtx = null;
+    let gainNode = null;
+    let audioSourceNode = null;
+
+    function ensureAudioContextGain() {
+      const hostAudio = document.getElementById('host-native-audio');
+      if (!hostAudio) return;
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          try { audioCtx = new AudioContextClass(); } catch (e) {}
+        }
+      }
+      if (audioCtx && !audioSourceNode) {
+        try {
+          audioSourceNode = audioCtx.createMediaElementSource(hostAudio);
+          gainNode = audioCtx.createGain();
+          audioSourceNode.connect(gainNode);
+          gainNode.connect(audioCtx.destination);
+        } catch (e) {
+          console.warn('AudioContext source setup:', e);
+        }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
+      }
+    }
+
+    function applyAppVolume(val) {
+      const num = Math.max(0, Math.min(100, Number(val) || 0));
+      const gainVal = num / 100;
+      
+      const hostAudio = document.getElementById('host-native-audio');
+      if (hostAudio) {
+        try { hostAudio.volume = gainVal; } catch (e) {}
+        ensureAudioContextGain();
+        if (gainNode) {
+          try { gainNode.gain.value = gainVal; } catch (e) {}
+        }
+      }
+
+      if (ytPlayer && typeof ytPlayer.setVolume === 'function') {
+        try { ytPlayer.setVolume(num); } catch (e) {}
+      }
+    }
+
+    function openMobileVolumeModal() {
+      const modal = document.getElementById('mobile-volume-modal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeMobileVolumeModal() {
+      const modal = document.getElementById('mobile-volume-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function restartTrack() {
+      if (isMeHost()) {
+        if (isUseNativeAudioEngine()) {
+          const hostAudio = document.getElementById('host-native-audio');
+          if (hostAudio) hostAudio.currentTime = 0;
+        } else if (ytPlayer && typeof ytPlayer.seekTo === 'function') {
+          ytPlayer.seekTo(0, true);
+        }
+      }
+      const hostTok = localStorage.getItem('jukebox_host_token');
+      fetch('/api/player/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          videoId: currentSongData ? currentSongData.videoId : '',
+          elapsed: 0,
+          duration: songDuration,
+          isPaused: !isPlaying,
+          token: hostTok
+        })
+      }).catch(() => {});
+      currentElapsed = 0;
+      renderTimeline(0);
+      showToast('⏮️ Memutar lagu dari awal');
+    }
+
+    function togglePinyinDisplay() {
+      isPinyinVisible = !isPinyinVisible;
+      try { localStorage.setItem('jukebox_pinyin_enabled', String(isPinyinVisible)); } catch (e) {}
+      document.querySelectorAll('.pinyin-line').forEach(el => {
+        if (isPinyinVisible) el.classList.remove('hidden');
+        else el.classList.add('hidden');
+      });
+      updatePinyinButtonsUI();
+    }
+
+    function updatePinyinButtonsUI() {
+      const modalBtn = document.getElementById('pinyin-toggle-modal-btn');
+      const modalText = document.getElementById('pinyin-toggle-modal-text');
+      const deskBtn = document.getElementById('pinyin-toggle-desktop-btn');
+
+      const text = isPinyinVisible ? 'Pinyin' : 'Pinyin Off';
+      if (modalText) modalText.textContent = text;
+      if (deskBtn) deskBtn.textContent = isPinyinVisible ? '🀄 Pinyin' : '🀄 Off';
+
+      [modalBtn, deskBtn].forEach(btn => {
+        if (!btn) return;
+        if (isPinyinVisible) {
+          btn.classList.add('bg-pink-500/15', 'text-pink-600', 'dark:text-pink-400', 'border-pink-500/30');
+          btn.classList.remove('bg-slate-100', 'dark:bg-gray-800', 'text-slate-500', 'dark:text-gray-400');
+        } else {
+          btn.classList.remove('bg-pink-500/15', 'text-pink-600', 'dark:text-pink-400', 'border-pink-500/30');
+          btn.classList.add('bg-slate-100', 'dark:bg-gray-800', 'text-slate-500', 'dark:text-gray-400');
+        }
+      });
+    }
 
     // Embedded YouTube Host Audio Player Engine (Pure Standalone Web)
     const myTabId = 'tab_' + Math.random().toString(36).slice(2, 9);
@@ -1837,15 +2041,35 @@
         releaseScreenWakeLock();
       });
 
-      hostAudio.addEventListener('ended', () => {
+      hostAudio.addEventListener('ended', async () => {
         releaseScreenWakeLock();
         if (isMeHost() && isCurrentAudioMaster) {
           console.log('🎵 Native audio track selesai di Mobile! Mengalihkan ke lagu berikutnya...');
-          fetch('/api/control/ended', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ videoId: currentNativeAudioVideoId, user: currentUser || 'Host' })
-          });
+          try {
+            const res = await fetch('/api/control/ended', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ videoId: currentNativeAudioVideoId, user: currentUser || 'Host' })
+            });
+            const data = await res.json();
+            if (data.success && data.current && data.current.videoId) {
+              const nextSong = data.current;
+              currentNativeAudioVideoId = nextSong.videoId;
+              currentSongData = nextSong;
+              currentVideoId = nextSong.videoId;
+              songDuration = nextSong.songDuration || 0;
+              currentElapsed = 0;
+              renderTimeline(0);
+              hostAudio.src = data.audioStreamUrl || `/api/audio/stream/${nextSong.videoId}`;
+              hostAudio.currentTime = 0;
+              ensureAudioContextGain();
+              hostAudio.play().catch(e => console.warn('Background auto play next error:', e));
+              updateMediaSession(nextSong);
+              loadLyricsForSong(nextSong);
+            }
+          } catch (e) {
+            console.error('Error advancing next track:', e);
+          }
         }
       });
 
@@ -2016,6 +2240,7 @@
           // If local native audio is ahead (or server was behind), immediately inform server of real position
           const curTime = hostAudio.currentTime || 0;
           if (curTime > targetSec + 2) {
+            const hostTok = localStorage.getItem('jukebox_host_token');
             fetch('/api/player/sync', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -2023,7 +2248,8 @@
                 videoId: currentNativeAudioVideoId,
                 elapsed: curTime,
                 duration: songDuration,
-                isPaused: hostAudio.paused
+                isPaused: hostAudio.paused,
+                token: hostTok
               })
             }).catch(() => {});
           }
@@ -2048,9 +2274,21 @@
       } else {
         if (typeof ytPlayer.getCurrentTime === 'function') {
           const localTime = ytPlayer.getCurrentTime() || 0;
-          if (Math.abs(localTime - targetSec) > 2) {
-            console.log(`⏱️ Resyncing host playback timeline to ${targetSec}s (local was ${localTime.toFixed(1)}s)`);
-            ytPlayer.seekTo(targetSec, true);
+          if (localTime > 0) {
+            currentElapsed = localTime;
+            // Inform server immediately of real host physical playback position (prevents tab focus reset)
+            const hostTok = localStorage.getItem('jukebox_host_token');
+            fetch('/api/player/sync', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                videoId: currentLoadedVideoId,
+                elapsed: localTime,
+                duration: songDuration,
+                isPaused: state !== 1,
+                token: hostTok
+              })
+            }).catch(() => {});
           }
         }
         if (currentSongData.isPaused && state === 1) { // 1 = PLAYING
@@ -2425,8 +2663,8 @@
     function isMeHost() {
       if (!currentPartyHost || currentPartyHost.isVacant || !currentPartyHost.name) return false;
       const myToken = localStorage.getItem('jukebox_host_token');
-      if (myToken && currentPartyHost.token) {
-        return myToken === currentPartyHost.token;
+      if (currentPartyHost.token) {
+        return Boolean(myToken && myToken === currentPartyHost.token);
       }
       if (currentUser && currentPartyHost.name.toLowerCase() === currentUser.toLowerCase()) return true;
       return false;
@@ -3217,6 +3455,20 @@
         }
 
         isPlaying = !song.isPaused;
+        // On Host device, verify physical audio playback: if browser blocked autoplay on refresh, show Play icon!
+        if (isMeHost()) {
+          if (isUseNativeAudioEngine()) {
+            const hostAudio = document.getElementById('host-native-audio');
+            if (hostAudio && hostAudio.paused && !isHostSpeakerActive) {
+              isPlaying = false;
+            }
+          } else if (ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
+            const state = ytPlayer.getPlayerState();
+            if (state !== 1 && !isHostSpeakerActive) {
+              isPlaying = false;
+            }
+          }
+        }
         if (song.songDuration && song.songDuration > 0) {
           songDuration = song.songDuration;
         } else if (!songDuration || songDuration === 0) {
@@ -3247,11 +3499,7 @@
 
       // Real Speaker Volume
       if (status.volume && typeof status.volume.state === 'number') {
-        const volSlider = document.getElementById('volume-slider');
-        if (!volSlider.matches(':active')) {
-          volSlider.value = status.volume.state;
-          updateVolumeUI(status.volume.state);
-        }
+        updateVolumeUI(status.volume.state);
       }
 
       // Sync Party Host (Auto-Vacant System v2.3.0)
@@ -3335,6 +3583,7 @@
           // Broadcast sync heartbeat to server every 2 seconds
           if (Date.now() - lastHostSyncTime > 2000) {
             lastHostSyncTime = Date.now();
+            const hostTok = localStorage.getItem('jukebox_host_token');
             fetch('/api/player/sync', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -3342,7 +3591,8 @@
                 videoId: currentNativeAudioVideoId || (currentSongData && currentSongData.videoId),
                 elapsed: audioTime,
                 duration: songDuration,
-                isPaused: hostAudio.paused
+                isPaused: hostAudio.paused,
+                token: hostTok
               })
             }).catch(() => {});
           }
@@ -3369,6 +3619,7 @@
           if (Date.now() - lastHostSyncTime > 2000) {
             lastHostSyncTime = Date.now();
             const isP = typeof ytPlayer.getPlayerState === 'function' ? (ytPlayer.getPlayerState() !== 1) : !isPlaying;
+            const hostTok = localStorage.getItem('jukebox_host_token');
             fetch('/api/player/sync', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -3376,7 +3627,8 @@
                 videoId: currentLoadedVideoId,
                 elapsed: playerTime,
                 duration: songDuration,
-                isPaused: isP
+                isPaused: isP,
+                token: hostTok
               })
             }).catch(() => {});
           }
@@ -3406,7 +3658,14 @@
       const num = Number(val);
       const label = document.getElementById('volume-label');
       const icon = document.getElementById('vol-icon');
+      const mobileDisplay = document.getElementById('mobile-volume-display');
+      const mobileSlider = document.getElementById('mobile-volume-slider');
+      const desktopSlider = document.getElementById('volume-slider');
+
       if (label) label.textContent = `${num}%`;
+      if (mobileDisplay) mobileDisplay.textContent = `${num}%`;
+      if (mobileSlider && !mobileSlider.matches(':active')) mobileSlider.value = num;
+      if (desktopSlider && !desktopSlider.matches(':active')) desktopSlider.value = num;
 
       if (icon) {
         if (num === 0) icon.textContent = '🔇';
@@ -3415,10 +3674,7 @@
         else icon.textContent = '🔊';
       }
 
-      // Adjust YouTube embedded audio engine volume directly
-      if (ytPlayer && typeof ytPlayer.setVolume === 'function') {
-        try { ytPlayer.setVolume(num); } catch (e) {}
-      }
+      applyAppVolume(num);
     }
 
     // Volume Snapping to 10% (0%, 10%, 20%, ... 100%)
@@ -3461,8 +3717,11 @@
         num = Math.round(num / 10) * 10;
       }
       num = Math.max(0, Math.min(100, num));
-      const slider = document.getElementById('volume-slider');
-      if (slider) slider.value = num;
+      const desktopSlider = document.getElementById('volume-slider');
+      if (desktopSlider) desktopSlider.value = num;
+      const mobileSlider = document.getElementById('mobile-volume-slider');
+      if (mobileSlider) mobileSlider.value = num;
+
       updateVolumeUI(num);
       clearTimeout(volumeDebounceTimeout);
       volumeDebounceTimeout = setTimeout(async () => {
@@ -3681,39 +3940,92 @@
       { videoId: 'T4SimnaiktU', title: '光年之外 (Light Years Away)', artist: '邓紫棋 G.E.M.', thumbnail: 'https://i.ytimg.com/vi/T4SimnaiktU/hqdefault.jpg', songDuration: 235 },
       { videoId: 'Y2ge3KrdeWs', title: '怎么了 (What\'s Wrong)', artist: '周兴哲 Eric Chou', thumbnail: 'https://i.ytimg.com/vi/Y2ge3KrdeWs/hqdefault.jpg', songDuration: 320 },
       { videoId: '_MQVmPpMQEc', title: '阿拉斯加海湾 (Gulf of Alaska)', artist: '菲道尔 Firdhaus', thumbnail: 'https://i.ytimg.com/vi/_MQVmPpMQEc/hqdefault.jpg', songDuration: 247 },
+      { videoId: 'DYptgVVkVLQ', title: '晴天 (Sunny Day)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/DYptgVVkVLQ/hqdefault.jpg', songDuration: 269 },
+      { videoId: 'Y4xdfspvi_o', title: '简单爱 (Simple Love)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/Y4xdfspvi_o/hqdefault.jpg', songDuration: 271 },
+      { videoId: 'w2a_H1_e5p0', title: '那些年 (Those Bygone Years)', artist: '胡夏 Hu Xia', thumbnail: 'https://i.ytimg.com/vi/w2a_H1_e5p0/hqdefault.jpg', songDuration: 360 },
       // Global Party & Anime Classics
       { videoId: 'dvgZkm1xWPE', title: 'Viva La Vida', artist: 'Coldplay', thumbnail: 'https://i.ytimg.com/vi/dvgZkm1xWPE/hqdefault.jpg', songDuration: 242 },
       { videoId: '34Na4j8AVgA', title: 'Starboy', artist: 'The Weeknd ft. Daft Punk', thumbnail: 'https://i.ytimg.com/vi/34Na4j8AVgA/hqdefault.jpg', songDuration: 230 },
       { videoId: 'JGwWNGJdvx8', title: 'Shape of You', artist: 'Ed Sheeran', thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg', songDuration: 233 },
       { videoId: 'ArmDp-zijuc', title: 'Super Shy', artist: 'NewJeans', thumbnail: 'https://i.ytimg.com/vi/ArmDp-zijuc/hqdefault.jpg', songDuration: 154 },
       { videoId: 'x8VYWazR5mE', title: '夜に駆ける (Racing into the Night)', artist: 'YOASOBI', thumbnail: 'https://i.ytimg.com/vi/x8VYWazR5mE/hqdefault.jpg', songDuration: 261 },
-      { videoId: 'a5uQMwRMHcs', title: 'Sparkle (スパークル)', artist: 'RADWIMPS', thumbnail: 'https://i.ytimg.com/vi/a5uQMwRMHcs/hqdefault.jpg', songDuration: 410 }
+      { videoId: 'a5uQMwRMHcs', title: 'Sparkle (スパークル)', artist: 'RADWIMPS', thumbnail: 'https://i.ytimg.com/vi/a5uQMwRMHcs/hqdefault.jpg', songDuration: 410 },
+      { videoId: 'qQrgvUj2yv4', title: 'Sial', artist: 'Mahalini', thumbnail: 'https://i.ytimg.com/vi/qQrgvUj2yv4/hqdefault.jpg', songDuration: 243 },
+      { videoId: 'v8Jt_4N_q0A', title: 'Komang', artist: 'Raim Laode', thumbnail: 'https://i.ytimg.com/vi/v8Jt_4N_q0A/hqdefault.jpg', songDuration: 222 },
+      { videoId: 'QU9c0053UAU', title: 'Seven', artist: 'Jung Kook ft. Latto', thumbnail: 'https://i.ytimg.com/vi/QU9c0053UAU/hqdefault.jpg', songDuration: 184 }
     ];
 
-    function renderDefaultRecommendations() {
+    let currentRecommendationPage = 1;
+    let isRecommendationShuffled = false;
+
+    function shuffleRecommendations() {
+      isRecommendationShuffled = !isRecommendationShuffled;
+      renderDefaultRecommendations(currentRecommendationPage);
+      showToast('🎲 Rekomendasi diacak!');
+    }
+
+    function renderDefaultRecommendations(page = 1) {
+      currentRecommendationPage = page;
       const container = document.getElementById('search-results');
+      if (!container) return;
+
+      const pageSize = 9;
+      let list = [...partyRecommendations];
+      if (isRecommendationShuffled) {
+        list = list.slice().reverse();
+      }
+      const totalPages = Math.ceil(list.length / pageSize);
+      const startIdx = (page - 1) * pageSize;
+      const pageItems = list.slice(startIdx, startIdx + pageSize);
+
       container.innerHTML = `
         <div class="pt-1 pb-2">
-          <div class="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-gray-300 mb-2 px-1">
+          <!-- Header with Pagination & Shuffle -->
+          <div class="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-gray-300 mb-2.5 px-1">
             <span class="flex items-center gap-1.5 text-pink-600 dark:text-pink-400">
-              <span>🔥</span> Rekomendasi Pilihan (Mandarin & Hits Populer)
+              <span>🔥</span> Rekomendasi Pilihan (${page}/${totalPages})
             </span>
-            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-normal">Tap + Queue untuk langsung request</span>
+            <div class="flex items-center gap-1.5">
+              <button onclick="shuffleRecommendations()" title="Acak Lagu" class="px-2 py-0.5 rounded-md text-[10px] bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-300 border border-slate-200 dark:border-gray-700 transition-all active:scale-95 cursor-pointer">
+                🎲 Acak
+              </button>
+              <button onclick="renderDefaultRecommendations(${page > 1 ? page - 1 : totalPages})" title="Halaman Sebelumnya" class="px-2 py-0.5 rounded-md text-[10px] bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-300 border border-slate-200 dark:border-gray-700 transition-all active:scale-95 cursor-pointer">
+                ◀
+              </button>
+              <button onclick="renderDefaultRecommendations(${page < totalPages ? page + 1 : 1})" title="Halaman Berikutnya" class="px-2 py-0.5 rounded-md text-[10px] bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-300 border border-slate-200 dark:border-gray-700 transition-all active:scale-95 cursor-pointer">
+                ▶
+              </button>
+            </div>
           </div>
-          <div class="space-y-1.5">
-            ${partyRecommendations.map(item => `
-              <div class="flex items-center gap-3 p-2 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800/80 hover:border-pink-500/50 shadow-2xs transition-colors">
-                <img src="${item.thumbnail}" onerror="this.onerror=null;this.src='https://placehold.co/80x80/1e293b/white?text=🎵';" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-slate-200 dark:border-gray-800">
-                <div class="flex-1 min-w-0">
-                  <h5 class="text-xs font-bold text-slate-900 dark:text-white truncate">${item.title}</h5>
-                  <p class="text-[11px] font-medium text-slate-500 dark:text-gray-400 truncate">${item.artist}</p>
+
+          <!-- 3x3 SQUARE GRID -->
+          <div class="grid grid-cols-3 gap-2 sm:gap-3">
+            ${pageItems.map(item => `
+              <div class="group relative flex flex-col p-2 rounded-2xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800/80 hover:border-pink-500/50 shadow-2xs hover:shadow-md transition-all active:scale-[0.98]">
+                <div class="relative aspect-square w-full rounded-xl overflow-hidden mb-1.5 bg-slate-200 dark:bg-gray-800">
+                  <img src="${item.thumbnail}" onerror="this.onerror=null;this.src='https://placehold.co/150x150/1e293b/white?text=🎵';" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                  <span class="absolute bottom-1 right-1 px-1.5 py-0.5 rounded-md bg-black/75 text-[9px] font-mono font-bold text-white shadow-xs">${formatTime(item.songDuration)}</span>
+                </div>
+                <div class="min-w-0 flex-1 mb-1.5">
+                  <h5 class="text-xs font-bold text-slate-900 dark:text-white truncate" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</h5>
+                  <p class="text-[10px] font-medium text-slate-500 dark:text-gray-400 truncate">${escapeHtml(item.artist)}</p>
                 </div>
                 <button onclick="queueTrackEncoded('${encodeURIComponent(JSON.stringify(item))}')"
-                        class="px-2.5 py-1.5 rounded-lg bg-pink-500/15 hover:bg-pink-500 text-pink-600 dark:text-pink-400 hover:text-white border border-pink-500/30 text-xs font-bold active:scale-95 transition-all flex items-center gap-1 shrink-0 cursor-pointer">
-                  + Queue
+                        class="w-full py-1 px-1 rounded-lg bg-pink-500/15 group-hover:bg-pink-500 text-pink-600 dark:text-pink-400 group-hover:text-white border border-pink-500/30 text-[11px] font-bold transition-all text-center truncate flex items-center justify-center gap-1 active:scale-95 cursor-pointer">
+                  <span>+ Queue</span>
                 </button>
               </div>
             `).join('')}
+          </div>
+
+          <!-- Bottom Pagination Controls -->
+          <div class="flex items-center justify-center gap-2 pt-3">
+            <button onclick="renderDefaultRecommendations(1)" class="px-3 py-1 rounded-lg text-xs font-bold transition-all border cursor-pointer ${page === 1 ? 'bg-pink-500 text-white border-pink-500 shadow-sm' : 'bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-400 border-slate-200 dark:border-gray-700'}">
+              1
+            </button>
+            <button onclick="renderDefaultRecommendations(2)" class="px-3 py-1 rounded-lg text-xs font-bold transition-all border cursor-pointer ${page === 2 ? 'bg-pink-500 text-white border-pink-500 shadow-sm' : 'bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-400 border-slate-200 dark:border-gray-700'}">
+              2
+            </button>
           </div>
         </div>
       `;
@@ -4034,7 +4346,21 @@
 
     // Playback Controls
     async function togglePlay() {
-      if (isMeHost() && ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
+      if (isMeHost() && isUseNativeAudioEngine()) {
+        const hostAudio = document.getElementById('host-native-audio');
+        if (hostAudio) {
+          ensureAudioContextGain();
+          if (hostAudio.paused) {
+            isHostSpeakerActive = true;
+            try { localStorage.setItem('jukebox_speaker_unlocked', 'true'); } catch (e) {}
+            const banner = document.getElementById('host-speaker-activation-banner');
+            if (banner) banner.classList.add('hidden');
+            hostAudio.play().catch(e => console.warn('Native audio play error:', e));
+          } else {
+            hostAudio.pause();
+          }
+        }
+      } else if (isMeHost() && ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
         const state = ytPlayer.getPlayerState();
         if (state === 1) {
           ytPlayer.pauseVideo();
@@ -4294,6 +4620,11 @@
       modal.classList.add('opacity-0', 'pointer-events-none');
     }
 
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
     function renderLyricsContent(lyrics) {
       // 1. Update Mobile Modal
       const modalSpinner = document.getElementById('lyrics-spinner');
@@ -4320,15 +4651,19 @@
         if (modalBadge) modalBadge.textContent = 'Karaoke Real-Time';
         if (deskBadge) deskBadge.textContent = 'Karaoke Real-Time';
 
+        const pinyinClass = isPinyinVisible ? '' : 'hidden';
+
         const linesHtmlModal = lyrics.lines.map((line, idx) => `
           <div id="lyric-line-${idx}" class="lyric-line transition-all duration-300 py-1.5 px-3 rounded-xl text-slate-400 dark:text-gray-500 font-semibold text-sm">
-            ${line.text}
+            ${line.pinyin ? `<div class="pinyin-line text-[11px] font-mono tracking-wide text-pink-500/90 dark:text-pink-400/90 mb-0.5 select-none ${pinyinClass}">${escapeHtml(line.pinyin)}</div>` : ''}
+            <div class="main-lyric-text">${escapeHtml(line.text)}</div>
           </div>
         `).join('');
 
         const linesHtmlDesk = lyrics.lines.map((line, idx) => `
           <div id="desk-lyric-line-${idx}" class="desk-lyric-line transition-all duration-300 py-1 px-2.5 rounded-lg text-slate-400 dark:text-gray-500 font-semibold text-xs">
-            ${line.text}
+            ${line.pinyin ? `<div class="pinyin-line text-[10px] font-mono tracking-wide text-pink-500/90 dark:text-pink-400/90 mb-0.5 select-none ${pinyinClass}">${escapeHtml(line.pinyin)}</div>` : ''}
+            <div class="main-lyric-text">${escapeHtml(line.text)}</div>
           </div>
         `).join('');
 
@@ -4336,17 +4671,27 @@
         if (deskBody) deskBody.innerHTML = linesHtmlDesk;
         currentActiveLyricIndex = -1;
         updateLyricsHighlight();
+        updatePinyinButtonsUI();
       } else {
         if (modalBadge) modalBadge.textContent = 'Teks Lirik';
         if (deskBadge) deskBadge.textContent = 'Teks Lirik';
 
-        const plainHtml = `
-          <div class="whitespace-pre-line text-xs sm:text-sm text-slate-700 dark:text-gray-300 leading-relaxed font-medium text-left px-4">
-            ${lyrics.plain}
-          </div>
-        `;
-        if (modalBody) modalBody.innerHTML = plainHtml;
-        if (deskBody) deskBody.innerHTML = plainHtml;
+        const pinyinClass = isPinyinVisible ? '' : 'hidden';
+        let plainContent = '';
+        if (lyrics.lines && lyrics.lines.length > 0) {
+          plainContent = lyrics.lines.map(line => `
+            <div class="py-1">
+              ${line.pinyin ? `<div class="pinyin-line text-[10px] font-mono tracking-wide text-pink-500/90 dark:text-pink-400/90 mb-0.5 select-none ${pinyinClass}">${escapeHtml(line.pinyin)}</div>` : ''}
+              <div class="text-xs sm:text-sm text-slate-700 dark:text-gray-300 font-medium">${escapeHtml(line.text)}</div>
+            </div>
+          `).join('');
+        } else {
+          plainContent = `<div class="whitespace-pre-line text-xs sm:text-sm text-slate-700 dark:text-gray-300 leading-relaxed font-medium text-left px-4">${escapeHtml(lyrics.plain)}</div>`;
+        }
+
+        if (modalBody) modalBody.innerHTML = plainContent;
+        if (deskBody) deskBody.innerHTML = plainContent;
+        updatePinyinButtonsUI();
       }
     }
 

@@ -9,7 +9,12 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.9.1';
+const APP_VERSION = '2.10.0';
+
+let pinyinLib = null;
+try { pinyinLib = require('pinyin-pro'); } catch (e) {}
+let wanakanaLib = null;
+try { wanakanaLib = require('wanakana'); } catch (e) {}
 
 const YTM_API = 'http://localhost:26538';
 let isYtmConnected = false;
@@ -283,6 +288,7 @@ function getPartyHostInfo() {
 
   return {
     name: partyHost.name,
+    token: partyHost.token,
     isVacant: partyHost.name === null,
     claimedAt: partyHost.claimedAt,
     lastHeartbeat: partyHost.lastHeartbeat,
@@ -512,6 +518,19 @@ function cleanSongTitle(title, artist = '') {
   return clean || title.trim();
 }
 
+function enrichLinePinyin(text) {
+  if (!text) return '';
+  try {
+    if (pinyinLib && /[\u4e00-\u9fa5]/.test(text)) {
+      return pinyinLib.pinyin(text);
+    }
+    if (wanakanaLib && /[\u3040-\u309F\u30A0-\u30FF]/.test(text)) {
+      return wanakanaLib.toRomaji(text);
+    }
+  } catch (e) {}
+  return '';
+}
+
 function parseLrc(lrcString) {
   if (!lrcString) return [];
   let offsetMs = 0;
@@ -532,7 +551,13 @@ function parseLrc(lrcString) {
       const ms = parseInt(msStr, 10);
       const time = Math.max(0, min * 60 + sec + ms / 1000 + offsetSec);
       const text = match[4].trim();
-      if (text) result.push({ time, text });
+      if (text) {
+        result.push({
+          time,
+          text,
+          pinyin: enrichLinePinyin(text)
+        });
+      }
     }
   }
   return result.sort((a, b) => a.time - b.time);
@@ -611,13 +636,18 @@ async function fetchLyrics(title, artist, duration) {
 
     const isSynced = Boolean(data.syncedLyrics);
     const parsedLines = isSynced ? parseLrc(data.syncedLyrics) : [];
+    const plainLines = (!isSynced && data.plainLyrics) ? data.plainLyrics.split('\n').map(l => ({
+      text: l.trim(),
+      pinyin: enrichLinePinyin(l.trim())
+    })).filter(l => l.text) : [];
+
     const result = {
       hasLyrics: true,
       isSynced,
       trackName: data.trackName || cleanTitle,
       artistName: data.artistName || cleanArtist,
       plain: data.plainLyrics || (isSynced ? parsedLines.map(l => l.text).join('\n') : ''),
-      lines: parsedLines
+      lines: isSynced ? parsedLines : plainLines
     };
 
     lyricsCache.set(cacheKey, result);
@@ -1465,9 +1495,13 @@ app.post('/api/control/ended', async (req, res) => {
   const { videoId, user } = req.body || {};
   if (!videoId || videoId === currentSong.videoId) {
     const next = await advanceNextTrack(user || 'Host Audio Engine');
-    return res.json({ success: true, current: next });
+    return res.json({
+      success: true,
+      current: next,
+      audioStreamUrl: next && next.videoId ? `/api/audio/stream/${next.videoId}` : null
+    });
   }
-  res.json({ success: false, reason: 'Track mismatch' });
+  res.json({ success: false, reason: 'Track mismatch', current: currentSong });
 });
 
 app.post('/api/control/volume', async (req, res) => {
@@ -1493,7 +1527,10 @@ app.post('/api/control/volume', async (req, res) => {
 });
 
 app.post('/api/player/sync', (req, res) => {
-  const { videoId, elapsed, duration, isPaused } = req.body || {};
+  const { videoId, elapsed, duration, isPaused, token } = req.body || {};
+  if (partyHost.name && partyHost.token && token && token !== partyHost.token) {
+    return res.status(403).json({ error: 'Stale host session ignored' });
+  }
   if (videoId && currentSong.videoId === videoId) {
     if (typeof elapsed === 'number' && elapsed >= 0) {
       playbackTracker.elapsed = elapsed;
