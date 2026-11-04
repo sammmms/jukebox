@@ -9,12 +9,30 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.11.0';
+const APP_VERSION = '2.11.1';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
 let wanakanaLib = null;
 try { wanakanaLib = require('wanakana'); } catch (e) {}
+let hangulRomanizer = null;
+try { hangulRomanizer = require('hangul-romanization'); } catch (e) {}
+
+let kuroshiro = null;
+let isKuroshiroReady = false;
+try {
+  const Kuroshiro = require('kuroshiro');
+  const KuromojiAnalyzer = require('kuroshiro-analyzer-kuromoji');
+  kuroshiro = new Kuroshiro();
+  kuroshiro.init(new KuromojiAnalyzer()).then(() => {
+    isKuroshiroReady = true;
+    console.log('🗾 Kuroshiro Japanese Romanizer initialized successfully');
+  }).catch(err => {
+    console.warn('Kuroshiro initialization warning:', err.message);
+  });
+} catch (e) {
+  console.warn('Kuroshiro module loading warning:', e.message);
+}
 
 const YTM_API = 'http://localhost:26538';
 let isYtmConnected = false;
@@ -377,21 +395,23 @@ const AUTOPLAY_FALLBACK_TRACKS = [
 ];
 
 async function getAutoplayNextTrack(prevSong) {
-  const recentVideoIds = new Set(playedHistory.slice(0, 15).map(h => h.videoId));
+  const recentVideoIds = new Set(playedHistory.slice(0, 20).map(h => h.videoId));
   if (prevSong && prevSong.videoId) recentVideoIds.add(prevSong.videoId);
 
   // 1. Try Innertube search based on previous song's artist or title
   if (prevSong && (prevSong.artist || prevSong.title) && prevSong.title !== 'No song playing') {
     try {
-      const searchKeyword = prevSong.artist ? `${prevSong.artist} popular songs` : `${prevSong.title} mix`;
+      const cleanArtist = (prevSong.artist || '').replace(/^(?:Video|Lagu)\s*•\s*/i, '').replace(/\s*•.*$/, '').trim();
+      const cleanTitle = cleanSongTitle(prevSong.title, prevSong.artist);
+      const searchKeyword = cleanArtist ? `${cleanArtist} popular songs` : `${cleanTitle} mix`;
       const searchResults = await searchYouTubeMusic(searchKeyword);
-      const candidates = (searchResults || []).filter(r => r.videoId && !recentVideoIds.has(r.videoId));
+      const candidates = (searchResults || []).filter(r => r.videoId && !recentVideoIds.has(r.videoId) && r.videoId !== prevSong?.videoId);
       if (candidates.length > 0) {
-        const picked = candidates[Math.floor(Math.random() * Math.min(candidates.length, 5))];
+        const picked = candidates[Math.floor(Math.random() * Math.min(candidates.length, 6))];
         return {
           videoId: picked.videoId,
           title: picked.title,
-          artist: picked.artist || prevSong.artist || 'YouTube Music',
+          artist: picked.artist || cleanArtist || 'YouTube Music',
           thumbnail: picked.thumbnail || '',
           songDuration: 240,
           addedBy: 'Autoplay / YouTube Algorithm'
@@ -402,19 +422,29 @@ async function getAutoplayNextTrack(prevSong) {
     }
   }
 
-  // 2. Fallback to curated popular party tracks
-  const availableFallback = AUTOPLAY_FALLBACK_TRACKS.filter(t => !recentVideoIds.has(t.videoId));
-  const pool = availableFallback.length > 0 ? availableFallback : AUTOPLAY_FALLBACK_TRACKS;
-  const picked = pool[Math.floor(Math.random() * pool.length)];
+  // 2. Fallback to curated popular party tracks (strictly excluding prevSong and recents)
+  const availableFallback = AUTOPLAY_FALLBACK_TRACKS.filter(t => !recentVideoIds.has(t.videoId) && t.videoId !== prevSong?.videoId);
+  const pool = availableFallback.length > 0 ? availableFallback : AUTOPLAY_FALLBACK_TRACKS.filter(t => t.videoId !== prevSong?.videoId);
+  const picked = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : AUTOPLAY_FALLBACK_TRACKS[0];
   return {
     ...picked,
     addedBy: 'Autoplay / Rekomendasi Pesta'
   };
 }
 
+let lastAdvanceTime = 0;
+
 async function advanceNextTrack(skippedByUser = null) {
-  if (currentSong && currentSong.videoId && currentSong.title !== 'No song playing') {
-    addPlayedHistory(currentSong);
+  const now = Date.now();
+  if (now - lastAdvanceTime < 1500 && !skippedByUser) {
+    console.log('[advanceNextTrack] Ignored rapid duplicate advance within 1.5s');
+    return currentSong;
+  }
+  lastAdvanceTime = now;
+
+  const prevSong = currentSong;
+  if (prevSong && prevSong.videoId && prevSong.title !== 'No song playing') {
+    addPlayedHistory(prevSong);
   }
 
   if (partyQueue.length > 0) {
@@ -438,7 +468,7 @@ async function advanceNextTrack(skippedByUser = null) {
     };
   } else {
     // AUTOPLAY: Queue is empty -> fetch YouTube recommendation automatically!
-    const autoTrack = await getAutoplayNextTrack(currentSong);
+    const autoTrack = await getAutoplayNextTrack(prevSong);
     currentSong = {
       videoId: autoTrack.videoId,
       title: autoTrack.title,
@@ -566,19 +596,6 @@ function cleanSongTitle(title, artist = '') {
   return clean || title.trim();
 }
 
-function enrichLinePinyin(text) {
-  if (!text) return '';
-  try {
-    if (pinyinLib && /[\u4e00-\u9fa5]/.test(text)) {
-      return pinyinLib.pinyin(text);
-    }
-    if (wanakanaLib && /[\u3040-\u309F\u30A0-\u30FF]/.test(text)) {
-      return wanakanaLib.toRomaji(text);
-    }
-  } catch (e) {}
-  return '';
-}
-
 function parseLrc(lrcString) {
   if (!lrcString) return [];
   let offsetMs = 0;
@@ -603,12 +620,54 @@ function parseLrc(lrcString) {
         result.push({
           time,
           text,
-          pinyin: enrichLinePinyin(text)
+          pinyin: ''
         });
       }
     }
   }
   return result.sort((a, b) => a.time - b.time);
+}
+
+async function enrichLyricsLines(lines) {
+  if (!Array.isArray(lines) || lines.length === 0) return { lang: 'other', lines: [] };
+
+  const fullText = lines.map(l => l.text).join(' ');
+  const hasHangul = /[\uac00-\ud7af\u1100-\u11ff]/.test(fullText);
+  const hasKana = /[\u3040-\u309f\u30a0-\u30ff]/.test(fullText);
+  const hasHanzi = /[\u4e00-\u9fa5]/.test(fullText);
+
+  let lang = 'other';
+  if (hasHangul) lang = 'korean';
+  else if (hasKana) lang = 'japanese';
+  else if (hasHanzi) lang = 'chinese';
+
+  for (const line of lines) {
+    if (!line.text) {
+      line.pinyin = '';
+      continue;
+    }
+    try {
+      if (lang === 'korean' && /[\uac00-\ud7af\u1100-\u11ff]/.test(line.text) && hangulRomanizer && hangulRomanizer.convert) {
+        line.pinyin = hangulRomanizer.convert(line.text);
+      } else if (lang === 'japanese') {
+        if (isKuroshiroReady && kuroshiro) {
+          line.pinyin = await kuroshiro.convert(line.text, { to: 'romaji', mode: 'spaced' });
+        } else if (wanakanaLib) {
+          line.pinyin = wanakanaLib.toRomaji(line.text);
+        } else {
+          line.pinyin = '';
+        }
+      } else if (lang === 'chinese' && /[\u4e00-\u9fa5]/.test(line.text) && pinyinLib) {
+        line.pinyin = pinyinLib.pinyin(line.text);
+      } else {
+        line.pinyin = '';
+      }
+    } catch (e) {
+      line.pinyin = '';
+    }
+  }
+
+  return { lang, lines };
 }
 
 async function fetchLyrics(title, artist, duration) {
@@ -686,16 +745,20 @@ async function fetchLyrics(title, artist, duration) {
     const parsedLines = isSynced ? parseLrc(data.syncedLyrics) : [];
     const plainLines = (!isSynced && data.plainLyrics) ? data.plainLyrics.split('\n').map(l => ({
       text: l.trim(),
-      pinyin: enrichLinePinyin(l.trim())
+      pinyin: ''
     })).filter(l => l.text) : [];
+
+    const rawLines = isSynced ? parsedLines : plainLines;
+    const { lang, lines: enrichedLines } = await enrichLyricsLines(rawLines);
 
     const result = {
       hasLyrics: true,
       isSynced,
+      language: lang,
       trackName: data.trackName || cleanTitle,
       artistName: data.artistName || cleanArtist,
-      plain: data.plainLyrics || (isSynced ? parsedLines.map(l => l.text).join('\n') : ''),
-      lines: isSynced ? parsedLines : plainLines
+      plain: data.plainLyrics || (isSynced ? enrichedLines.map(l => l.text).join('\n') : ''),
+      lines: enrichedLines
     };
 
     lyricsCache.set(cacheKey, result);
@@ -1603,7 +1666,17 @@ app.post('/api/control/next', async (req, res) => {
 
 app.post('/api/control/ended', async (req, res) => {
   const { videoId, user } = req.body || {};
-  if (!videoId || videoId === currentSong.videoId) {
+  const isRecentAdvance = (Date.now() - lastAdvanceTime < 3500);
+
+  if (!videoId || videoId === currentSong.videoId || isRecentAdvance) {
+    if (videoId && videoId !== currentSong.videoId && isRecentAdvance) {
+      // Server already advanced track within last 3.5s (e.g. from server watchdog)
+      return res.json({
+        success: true,
+        current: currentSong,
+        audioStreamUrl: currentSong && currentSong.videoId ? `/api/audio/stream/${currentSong.videoId}` : null
+      });
+    }
     const next = await advanceNextTrack(user || 'Host Audio Engine');
     return res.json({
       success: true,
