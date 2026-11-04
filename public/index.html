@@ -154,8 +154,8 @@
       .view-auto .col-left {
         grid-column: span 5 / span 5;
         position: sticky;
-        top: 1.25rem;
-        max-height: calc(100vh - 6.5rem);
+        top: calc(var(--header-height, 92px) + 1rem);
+        max-height: calc(100vh - var(--header-height, 92px) - 7rem);
         overflow-y: auto;
         scrollbar-width: thin;
         padding-right: 0.35rem;
@@ -220,8 +220,8 @@
     .view-desktop .col-left {
       grid-column: span 5 / span 5 !important;
       position: sticky !important;
-      top: 1.25rem !important;
-      max-height: calc(100vh - 6.5rem) !important;
+      top: calc(var(--header-height, 92px) + 1rem) !important;
+      max-height: calc(100vh - var(--header-height, 92px) - 7rem) !important;
       overflow-y: auto !important;
       scrollbar-width: thin !important;
       padding-right: 0.35rem !important;
@@ -328,7 +328,7 @@
   <!-- ============================================================
        TOP HEADER & CONTROLS BAR (Mobile Optimized & Tablet/Desktop Full)
        ============================================================ -->
-  <header class="sticky top-0 z-30 bg-white/90 dark:bg-[#0e1118]/90 backdrop-blur-md border-b border-slate-200/80 dark:border-gray-800/60 px-3.5 sm:px-4 py-2 sm:py-2.5 transition-colors duration-200 shadow-xs">
+  <header id="main-header" class="sticky top-0 z-30 bg-white/90 dark:bg-[#0e1118]/90 backdrop-blur-md border-b border-slate-200/80 dark:border-gray-800/60 px-3.5 sm:px-4 py-2 sm:py-2.5 transition-colors duration-200 shadow-xs">
     <div class="max-w-7xl mx-auto flex items-center justify-between gap-2.5">
       
       <!-- Brand & Connection Status -->
@@ -837,7 +837,7 @@
   <!-- ============================================================
        MODAL: FULLSCREEN REAL-TIME KARAOKE LYRICS
        ============================================================ -->
-  <div id="lyrics-modal" class="fixed inset-0 z-50 bg-white/95 dark:bg-[#090b10]/95 backdrop-blur-xl flex flex-col p-4 sm:p-6 transition-all duration-300 opacity-0 pointer-events-none">
+  <div id="lyrics-modal" onclick="if (event.target === this) closeLyrics()" class="fixed inset-0 z-50 bg-white/95 dark:bg-[#090b10]/95 backdrop-blur-xl flex flex-col p-4 sm:p-6 transition-all duration-300 opacity-0 pointer-events-none cursor-pointer">
     <!-- Header -->
     <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-gray-800/80 max-w-2xl mx-auto w-full shrink-0">
       <div class="min-w-0 pr-3">
@@ -878,7 +878,7 @@
   <!-- ============================================================
        MODAL: CHANGELOG & VERSION HISTORY (v2.1.0)
        ============================================================ -->
-  <div id="changelog-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all duration-300 opacity-0 pointer-events-none">
+  <div id="changelog-modal" onclick="if (event.target === this) closeChangelogModal()" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-all duration-300 opacity-0 pointer-events-none cursor-pointer">
     <div class="relative w-full max-w-lg rounded-2xl bg-white dark:bg-[#121520] border border-slate-200 dark:border-gray-800 shadow-2xl p-5 max-h-[85vh] flex flex-col transition-colors">
       <!-- Header -->
       <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-gray-800 shrink-0">
@@ -1164,7 +1164,7 @@
   <!-- ============================================================
        MODAL: ONBOARDING, GUEST PROFILE & AUTO-VACANT HOST (v2.3.0)
        ============================================================ -->
-  <div id="dj-modal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300 opacity-0 pointer-events-none">
+  <div id="dj-modal" onclick="if (event.target === this && !isDJModalMandatory) closeDJModal()" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300 opacity-0 pointer-events-none cursor-pointer">
     <div class="relative w-full max-w-sm sm:max-w-md rounded-2xl bg-white dark:bg-[#121520] border border-slate-200 dark:border-gray-800 shadow-2xl p-6 transition-all duration-300 transform scale-95" id="dj-modal-card">
       
       <!-- Close Button (Only shown if a valid user is already selected) -->
@@ -1238,7 +1238,7 @@
   <!-- ============================================================
        MODAL: TAKEOVER APPROVAL (Host A -> B Handshake with 30s auto-approve)
        ============================================================ -->
-  <div id="takeover-approval-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300">
+  <div id="takeover-approval-modal" onclick="if (event.target === this) respondTakeover(false)" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300 cursor-pointer">
     <div class="relative w-full max-w-sm sm:max-w-md rounded-3xl bg-white dark:bg-[#121520] border-2 border-amber-500/50 shadow-2xl p-6 flex flex-col items-center text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
       
       <!-- Glowing Crown Icon -->
@@ -1285,7 +1285,7 @@
   <!-- ============================================================
        MODAL: TAKEOVER REQUESTER WAITING (Countdown Progress Ring v2.10.1)
        ============================================================ -->
-  <div id="takeover-requester-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300">
+  <div id="takeover-requester-modal" onclick="if (event.target === this) cancelTakeoverRequest()" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300 cursor-pointer">
     <div class="relative w-full max-w-sm sm:max-w-md rounded-3xl bg-white dark:bg-[#121520] border-2 border-pink-500/50 shadow-2xl p-6 flex flex-col items-center text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
       
       <!-- Crown Badge -->
@@ -1369,7 +1369,7 @@
   <!-- ============================================================
        MODAL: SETTINGS & ROOM MANAGEMENT (Mobile Drawer / Config Page)
        ============================================================ -->
-  <div id="settings-modal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300">
+  <div id="settings-modal" onclick="if (event.target === this) closeSettingsModal()" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300 cursor-pointer">
     <div class="relative w-full max-w-sm sm:max-w-md rounded-3xl bg-white dark:bg-[#121520] border border-slate-200 dark:border-gray-800 shadow-2xl p-5 max-h-[90vh] flex flex-col space-y-4 overflow-y-auto">
       
       <!-- Header -->
@@ -1641,7 +1641,7 @@
   </div>
 
   <!-- Mobile Volume Modal Dialog -->
-  <div id="mobile-volume-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-3 sm:p-4 transition-opacity">
+  <div id="mobile-volume-modal" onclick="if (event.target === this) closeMobileVolumeModal()" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-3 sm:p-4 transition-opacity cursor-pointer">
     <div class="bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-3xl p-5 w-full max-w-sm shadow-2xl space-y-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2.5">
@@ -1736,7 +1736,7 @@
   <!-- ============================================================
        MODAL: KEYBOARD SHORTCUTS REFERENCE & GUIDE
        ============================================================ -->
-  <div id="shortcuts-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 transition-all duration-200 opacity-0 pointer-events-none">
+  <div id="shortcuts-modal" onclick="if (event.target === this) closeShortcutsModal()" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 transition-all duration-200 opacity-0 pointer-events-none cursor-pointer">
     <div class="bg-white dark:bg-[#121520] border border-slate-200 dark:border-gray-800 rounded-3xl p-5 sm:p-6 w-full max-w-lg shadow-2xl space-y-4">
       <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-gray-800">
         <div class="flex items-center gap-2.5">
@@ -3611,6 +3611,7 @@
           setTimeout(() => modal.classList.add('hidden'), 200);
           confirmBtn.onclick = null;
           cancelBtn.onclick = null;
+          modal.onclick = null;
           document.removeEventListener('keydown', handleKey);
         }
 
@@ -3633,6 +3634,13 @@
         cancelBtn.onclick = () => {
           cleanup();
           resolve(type === 'prompt' ? null : false);
+        };
+
+        modal.onclick = (e) => {
+          if (e.target === modal) {
+            if (type === 'alert') confirmBtn.click();
+            else cancelBtn.click();
+          }
         };
 
         document.addEventListener('keydown', handleKey);
@@ -5648,10 +5656,41 @@
       }
     });
 
-    // Close on backdrop click (only if not mandatory)
-    document.getElementById('dj-modal')?.addEventListener('click', (e) => {
-      if (e.target.id === 'dj-modal' && !isDJModalMandatory) {
-        closeDJModal();
+    // Dynamic sticky header offset calculation
+    function updateHeaderOffset() {
+      const header = document.getElementById('main-header');
+      if (header) {
+        const h = header.offsetHeight || 92;
+        document.documentElement.style.setProperty('--header-height', h + 'px');
+      }
+    }
+    window.addEventListener('resize', updateHeaderOffset);
+    window.addEventListener('orientationchange', updateHeaderOffset);
+    document.addEventListener('DOMContentLoaded', updateHeaderOffset);
+    setTimeout(updateHeaderOffset, 50);
+    setTimeout(updateHeaderOffset, 300);
+    setTimeout(updateHeaderOffset, 1000);
+
+    // Global Modal Backdrop Click Handler: Close dialog when clicking outside the content card
+    document.addEventListener('click', (e) => {
+      if (!e.target || !e.target.id) return;
+      const id = e.target.id;
+      if (id === 'shortcuts-modal') {
+        closeShortcutsModal();
+      } else if (id === 'changelog-modal') {
+        closeChangelogModal();
+      } else if (id === 'mobile-volume-modal') {
+        closeMobileVolumeModal();
+      } else if (id === 'settings-modal') {
+        closeSettingsModal();
+      } else if (id === 'dj-modal') {
+        if (!isDJModalMandatory) closeDJModal();
+      } else if (id === 'lyrics-modal') {
+        closeLyrics();
+      } else if (id === 'takeover-requester-modal') {
+        cancelTakeoverRequest();
+      } else if (id === 'takeover-approval-modal') {
+        respondTakeover(false);
       }
     });
   </script>
