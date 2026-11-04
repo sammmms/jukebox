@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.11.7] - 2026-11-04
+
+### Added
+- **Queue Bulk Delete with Checklist Selection:**
+  - Added multi-select checklist mode to the upcoming party queue on both Desktop and Mobile views (`☑️ Checklist`).
+  - Includes select/deselect individual songs, dynamic count badge (`X dipilih`), "Pilih Semua" (Select All) toggle, cancel button, and batch delete (`🗑️ Hapus (X)`).
+  - Backed by atomic reverse-order splice endpoint `POST /api/queue/delete-bulk` preventing index shifting during batch removal.
+
+### Fixed
+- **Timeline Reset Bug on Queue Deletion:**
+  - Fixed issue where deleting a queue item reset the currently playing song's progress to `0:00`.
+  - Host's physical audio hardware (`hostAudio.currentTime`) is now locked as the ground truth; incoming SSE queue mutations can no longer overwrite the playing track's timeline or trigger false seek events.
+- **Audio Stream Resolution Delay & Google CDN 403 Auto-Recovery:**
+  - Investigated the root cause of the "ad-like" 11-second silence before tracks start: `yt-dlp` direct stream resolution takes 8–11 seconds on demand.
+  - Implemented background pre-warming engine (`prewarmUpcomingTracks` in `server.js`) resolving streams for `partyQueue[0]` and `partyQueue[1]` ahead of time, ensuring instantaneous (0ms) track transitions.
+  - Added hidden pre-buffering audio element (`#host-prewarm-audio`) on the Host browser to preload initial audio chunks in the background for true gapless playback.
+  - Added automatic recovery on Google CDN 403 Forbidden / 404 stream responses: auto-purges stale cache tokens and transparently retries with a fresh direct stream URL.
+- **Volume Slider Desync & Debounce:**
+  - Added 1500ms interaction lock window (`lastUserVolumeInteraction`) to prevent remote SSE broadcasts from overwriting user volume adjustments.
+  - Reduced network calls with 350ms client debounce and 120ms server debounce, while providing instant 0ms local gain response.
+- **Instant Track Skip & Next Song Rendering:**
+  - Skipping tracks or clicking "Play Now" immediately renders the upcoming track metadata and timeline without waiting for SSE or requiring a page reload.
+
+---
+
 ## [2.6.0] - 2026-11-03
 
 ### Added

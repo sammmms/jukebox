@@ -9,7 +9,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.11.6';
+const APP_VERSION = '2.11.7';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -498,6 +498,7 @@ async function advanceNextTrack(skippedByUser = null) {
     addActivity(skippedByUser, 'skip', currentSong.title || 'song');
   }
   broadcastUpdate();
+  setTimeout(prewarmUpcomingTracks, 500);
 
   // Asynchronously resolve song duration if still missing
   if ((!currentSong.songDuration || currentSong.songDuration <= 0) && currentSong.videoId) {
@@ -1686,10 +1687,41 @@ app.delete('/api/queue/:index', async (req, res) => {
     persistPartyQueue();
     addActivity(user, 'remove', title || removed?.title || 'a song');
     broadcastUpdate();
+    setTimeout(prewarmUpcomingTracks, 500);
     return res.json({ success: true, removedIndex: index });
   }
 
   res.status(400).json({ error: 'Index out of bounds' });
+});
+
+// Bulk Delete Queue Items with Checklist
+app.post('/api/queue/delete-bulk', (req, res) => {
+  const { indices, videoIds, user } = req.body || {};
+  let removedCount = 0;
+
+  if (Array.isArray(indices) && indices.length > 0) {
+    const sorted = [...new Set(indices)].map(Number).filter(n => !isNaN(n)).sort((a, b) => b - a);
+    for (const idx of sorted) {
+      if (idx >= 0 && idx < partyQueue.length) {
+        partyQueue.splice(idx, 1);
+        removedCount++;
+      }
+    }
+  } else if (Array.isArray(videoIds) && videoIds.length > 0) {
+    const idSet = new Set(videoIds);
+    const initialLen = partyQueue.length;
+    partyQueue = partyQueue.filter(item => !idSet.has(item.videoId));
+    removedCount = initialLen - partyQueue.length;
+  }
+
+  if (removedCount > 0) {
+    persistPartyQueue();
+    addActivity(user || 'Host', 'remove', `menghapus ${removedCount} lagu sekaligus dari antrean`);
+    broadcastUpdate();
+    setTimeout(prewarmUpcomingTracks, 500);
+  }
+
+  res.json({ success: true, count: removedCount });
 });
 
 // 5. Move Queue Item
@@ -1851,30 +1883,43 @@ app.post('/api/control/ended', async (req, res) => {
   res.json({ success: false, reason: 'Track mismatch', current: currentSong });
 });
 
-app.post('/api/control/volume', async (req, res) => {
+let serverVolumeDebounce = null;
+let lastVolumeActivityLogTime = 0;
+
+app.post('/api/control/volume', (req, res) => {
   const { volume, user } = req.body;
   if (typeof volume !== 'number') return res.status(400).json({ error: 'volume number is required' });
 
   const vol = Math.max(0, Math.min(100, Math.round(volume)));
   currentVolume = vol;
 
-  await setSystemVolume(vol);
-
-  if (isUsingYtmDesktop()) {
-    fetch(`${YTM_API}/api/v1/volume`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ volume: vol })
-    }).catch(() => {});
-  }
-
-  addActivity(user, 'volume', `set volume to ${vol}%`);
-  broadcastUpdate();
+  // Immediate ACK to client with updated volume
   res.json({ success: true, volume: vol });
+
+  // Debounce osascript system volume and SSE broadcast to prevent event-loop freezing and desync jitter
+  clearTimeout(serverVolumeDebounce);
+  serverVolumeDebounce = setTimeout(async () => {
+    await setSystemVolume(vol);
+
+    if (isUsingYtmDesktop()) {
+      fetch(`${YTM_API}/api/v1/volume`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ volume: vol })
+      }).catch(() => {});
+    }
+
+    const now = Date.now();
+    if (now - lastVolumeActivityLogTime > 3000) {
+      lastVolumeActivityLogTime = now;
+      addActivity(user, 'volume', `set volume to ${vol}%`);
+    }
+    broadcastUpdate();
+  }, 120);
 });
 
 app.post('/api/player/sync', (req, res) => {
-  const { videoId, elapsed, duration, isPaused, token } = req.body || {};
+  const { videoId, elapsed, duration, token } = req.body || {};
   if (partyHost.name && partyHost.token && token && token !== partyHost.token) {
     return res.status(403).json({ error: 'Stale host session ignored' });
   }
@@ -1887,10 +1932,6 @@ app.post('/api/player/sync', (req, res) => {
     if (typeof duration === 'number' && duration > 0) {
       currentSong.songDuration = duration;
       playbackTracker.songDuration = duration;
-    }
-    if (typeof isPaused === 'boolean') {
-      currentSong.isPaused = isPaused;
-      playbackTracker.isPaused = isPaused;
     }
   }
   res.json({ success: true });
@@ -1919,11 +1960,13 @@ function extractDurationFromGoogleUrl(url) {
   return 0;
 }
 
-function fetchDirectAudioUrl(videoId) {
+function fetchDirectAudioUrl(videoId, forceFresh = false) {
   return new Promise((resolve, reject) => {
-    const cached = directAudioCache.get(videoId);
-    if (cached && Date.now() < cached.expiresAt) {
-      return resolve(cached);
+    if (!forceFresh) {
+      const cached = directAudioCache.get(videoId);
+      if (cached && Date.now() < cached.expiresAt) {
+        return resolve(cached);
+      }
     }
 
     const ytdlBin = findYtDlpBinary();
@@ -1947,7 +1990,7 @@ function fetchDirectAudioUrl(videoId) {
         videoId,
         url: rawUrl,
         duration,
-        expiresAt: Date.now() + (2 * 60 * 60 * 1000)
+        expiresAt: Date.now() + (45 * 60 * 1000) // 45m cache TTL to prevent 403 CDN token expirations
       };
       directAudioCache.set(videoId, entry);
       resolve(entry);
@@ -1955,11 +1998,113 @@ function fetchDirectAudioUrl(videoId) {
   });
 }
 
+// Background Proactive Audio Stream Pre-Warming
+// Pre-resolves direct audio URLs for the next songs in partyQueue so that track transitions happen with 0ms delay!
+let isPrewarming = false;
+async function prewarmUpcomingTracks() {
+  if (isPrewarming || partyQueue.length === 0) return;
+  isPrewarming = true;
+  try {
+    const nextItem = partyQueue[0];
+    if (nextItem && nextItem.videoId && !directAudioCache.has(nextItem.videoId)) {
+      console.log(`[PreWarm] Pre-resolving direct audio stream for next track: "${nextItem.title}" (${nextItem.videoId})...`);
+      await fetchDirectAudioUrl(nextItem.videoId).catch(() => {});
+    }
+    if (partyQueue.length > 1) {
+      const nextItem2 = partyQueue[1];
+      if (nextItem2 && nextItem2.videoId && !directAudioCache.has(nextItem2.videoId)) {
+        await new Promise(r => setTimeout(r, 2000));
+        await fetchDirectAudioUrl(nextItem2.videoId).catch(() => {});
+      }
+    }
+  } catch (e) {
+  } finally {
+    isPrewarming = false;
+  }
+}
+setInterval(prewarmUpcomingTracks, 25000);
+
 app.get('/api/audio/stream/:videoId', async (req, res) => {
   const { videoId } = req.params;
   if (!videoId || !/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
     return res.status(400).send('Invalid videoId');
   }
+
+  const pipeStreamFromUrl = (audioUrl, durSec, isRetry = false) => {
+    try {
+      const parsedUrl = new URL(audioUrl);
+      const rangeHeader = req.headers.range;
+      const reqHeaders = {};
+      if (rangeHeader) {
+        reqHeaders['Range'] = rangeHeader;
+      }
+
+      const proxyReq = https.request({
+        hostname: parsedUrl.hostname,
+        port: 443,
+        path: parsedUrl.pathname + parsedUrl.search,
+        method: req.method === 'HEAD' ? 'HEAD' : 'GET',
+        headers: reqHeaders
+      }, (proxyRes) => {
+        const statusCode = proxyRes.statusCode || 200;
+
+        // Auto-Recovery: If Google CDN returns 403 Forbidden or 404, invalidate cache and retry once with fresh URL
+        if ((statusCode === 403 || statusCode === 404) && !isRetry) {
+          console.warn(`[AudioStream] Google CDN returned ${statusCode} for ${videoId}. Invalidating cache and retrying with fresh direct URL...`);
+          directAudioCache.delete(videoId);
+          proxyRes.resume();
+
+          fetchDirectAudioUrl(videoId, true /* forceFresh */)
+            .then(freshInfo => {
+              const freshUrl = typeof freshInfo === 'object' && freshInfo.url ? freshInfo.url : freshInfo;
+              const freshDur = typeof freshInfo === 'object' && freshInfo.duration ? freshInfo.duration : durSec;
+              pipeStreamFromUrl(freshUrl, freshDur, true /* isRetry */);
+            })
+            .catch(err => {
+              console.error(`[AudioStream] Retry failed for ${videoId}:`, err.message);
+              if (!res.headersSent) res.status(502).send('Audio stream error');
+            });
+          return;
+        }
+
+        const resHeaders = {
+          'Content-Type': proxyRes.headers['content-type'] || 'audio/mp4',
+          'Accept-Ranges': 'bytes',
+          'Cache-Control': 'public, max-age=3600',
+          'Access-Control-Allow-Origin': '*'
+        };
+
+        if (proxyRes.headers['content-range']) {
+          resHeaders['Content-Range'] = proxyRes.headers['content-range'];
+        }
+        if (proxyRes.headers['content-length']) {
+          resHeaders['Content-Length'] = proxyRes.headers['content-length'];
+        }
+
+        res.writeHead(statusCode, resHeaders);
+        if (req.method === 'HEAD') {
+          return res.end();
+        }
+        proxyRes.pipe(res);
+      });
+
+      proxyReq.on('error', (err) => {
+        console.error('Audio stream proxy error:', err.message);
+        if (!res.headersSent) {
+          res.status(502).send('Audio stream proxy error');
+        }
+      });
+
+      req.on('close', () => {
+        proxyReq.destroy();
+      });
+
+      proxyReq.end();
+    } catch (e) {
+      console.error('Pipe stream error:', e.message);
+      if (!res.headersSent) res.status(500).send('Internal stream error');
+    }
+  };
 
   try {
     const audioInfo = await fetchDirectAudioUrl(videoId);
@@ -1973,55 +2118,7 @@ app.get('/api/audio/stream/:videoId', async (req, res) => {
       setTimeout(broadcastUpdate, 50);
     }
 
-    const parsedUrl = new URL(audioUrl);
-
-    const rangeHeader = req.headers.range;
-    const reqHeaders = {};
-    if (rangeHeader) {
-      reqHeaders['Range'] = rangeHeader;
-    }
-
-    const proxyReq = https.request({
-      hostname: parsedUrl.hostname,
-      port: 443,
-      path: parsedUrl.pathname + parsedUrl.search,
-      method: req.method === 'HEAD' ? 'HEAD' : 'GET',
-      headers: reqHeaders
-    }, (proxyRes) => {
-      const statusCode = proxyRes.statusCode || 200;
-      const resHeaders = {
-        'Content-Type': proxyRes.headers['content-type'] || 'audio/mp4',
-        'Accept-Ranges': 'bytes',
-        'Cache-Control': 'public, max-age=3600',
-        'Access-Control-Allow-Origin': '*'
-      };
-
-      if (proxyRes.headers['content-range']) {
-        resHeaders['Content-Range'] = proxyRes.headers['content-range'];
-      }
-      if (proxyRes.headers['content-length']) {
-        resHeaders['Content-Length'] = proxyRes.headers['content-length'];
-      }
-
-      res.writeHead(statusCode, resHeaders);
-      if (req.method === 'HEAD') {
-        return res.end();
-      }
-      proxyRes.pipe(res);
-    });
-
-    proxyReq.on('error', (err) => {
-      console.error('Audio stream proxy error:', err.message);
-      if (!res.headersSent) {
-        res.status(502).send('Audio stream proxy error');
-      }
-    });
-
-    req.on('close', () => {
-      proxyReq.destroy();
-    });
-
-    proxyReq.end();
+    pipeStreamFromUrl(audioUrl, durSec, false);
   } catch (err) {
     console.error('Failed to resolve audio stream for', videoId, ':', err.message);
     if (!res.headersSent) {

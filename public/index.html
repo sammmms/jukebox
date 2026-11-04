@@ -303,6 +303,9 @@
   <!-- Native HTML5 Audio Player for True 100% Background Playback on Mobile iOS & Android -->
   <audio id="host-native-audio" preload="auto" playsinline></audio>
 
+  <!-- Hidden HTML5 Pre-warm Audio Stream for Gapless Zero-Delay Transitions -->
+  <audio id="host-prewarm-audio" preload="auto" muted class="hidden"></audio>
+
   <!-- Hidden HTML5 Silent Audio Shield Anchor for iOS/Android Background Audio Keep-Alive -->
   <audio id="silent-audio-anchor" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/w==" loop preload="auto" playsinline></audio>
 
@@ -344,9 +347,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.6)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.7)"
                     class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-colors cursor-pointer active:scale-95">
-              v2.11.6
+              v2.11.7
             </button>
           </div>
           <div id="connection-btn" class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
@@ -558,10 +561,37 @@
                 <span id="history-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200/70 dark:bg-gray-800 text-slate-600 dark:text-gray-400 font-bold">0</span>
               </button>
             </div>
-            <div id="queue-legend" class="text-[10px] text-slate-400 dark:text-gray-500 flex items-center gap-1.5 font-medium select-none shrink-0 whitespace-nowrap">
-              <span class="text-pink-600 dark:text-pink-400 whitespace-nowrap">⠿ Drag</span>
-              <span>•</span>
-              <span class="whitespace-nowrap">🔥 Vote</span>
+            <div class="flex items-center gap-2 shrink-0">
+              <button id="queue-select-toggle-btn" onclick="toggleQueueSelectMode()" title="Pilih Beberapa Lagu untuk Hapus Massal"
+                      class="px-2 py-1 rounded-lg text-[10px] font-bold border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-pink-600 hover:border-pink-500/40 active:scale-95 transition-all flex items-center gap-1 cursor-pointer">
+                <span>☑️ Checklist</span>
+              </button>
+              <div id="queue-legend" class="text-[10px] text-slate-400 dark:text-gray-500 flex items-center gap-1.5 font-medium select-none shrink-0 whitespace-nowrap">
+                <span class="text-pink-600 dark:text-pink-400 whitespace-nowrap">⠿ Drag</span>
+                <span>•</span>
+                <span class="whitespace-nowrap">🔥 Vote</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Desktop Bulk Delete Toolbar -->
+          <div id="queue-bulk-toolbar" class="hidden p-2 rounded-xl bg-pink-500/10 dark:bg-pink-500/20 border border-pink-500/30 flex items-center justify-between gap-2 text-xs">
+            <div class="flex items-center gap-2">
+              <label class="flex items-center gap-1.5 cursor-pointer font-bold text-slate-700 dark:text-gray-200 select-none text-[11px]">
+                <input type="checkbox" id="queue-select-all-cb" onchange="toggleSelectAllQueue(this.checked)" class="w-4 h-4 rounded accent-pink-600 cursor-pointer">
+                <span>Pilih Semua</span>
+              </label>
+              <span class="text-slate-300 dark:text-gray-600">|</span>
+              <span id="queue-selected-count-badge" class="text-[11px] font-extrabold text-pink-600 dark:text-pink-400">0 dipilih</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button onclick="toggleQueueSelectMode(false)" class="px-2 py-1 rounded-lg text-[10px] font-bold bg-white dark:bg-gray-800 text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-gray-700 transition-all cursor-pointer">
+                Batal
+              </button>
+              <button id="queue-bulk-delete-btn" onclick="confirmBulkDeleteQueue()" disabled class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-red-500 hover:bg-red-600 text-white disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition-all flex items-center gap-1 cursor-pointer active:scale-95">
+                <span>🗑️ Hapus</span>
+                <span id="queue-bulk-delete-count" class="font-mono"></span>
+              </button>
             </div>
           </div>
 
@@ -887,7 +917,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.6</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.7</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -898,10 +928,26 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.11.6 -->
+        <!-- v2.11.7 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.11.6 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.11.7 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">🗹 Hapus Massal Antrean (Bulk Delete Checklist):</strong> Memungkinkan memilih beberapa lagu sekaligus dari antrean dengan checklist, tombol "Pilih Semua", dan menghapusnya secara bersamaan (bulk delete) baik di desktop maupun mobile.</li>
+            <li><strong class="text-slate-800 dark:text-white">🔒 Proteksi Timeline & Anti-Reset Lagu Saat Hapus Antrean:</strong> Memperbaiki bug di mana lagu yang sedang diputar ter-reset kembali ke detik 0:00 saat ada antrean yang dihapus. Audio fisik pada Host dikunci sebagai ground-truth yang tidak dapat ditimpa oleh event hapus antrean.</li>
+            <li><strong class="text-slate-800 dark:text-white">⚡ Eliminasi Delay Transisi Lagu (Pre-Warming & Gapless Pre-Buffering):</strong> Menginvestigasi dan mengatasi jeda 11 detik (seperti jeda iklan) saat pergantian lagu. Menggunakan mesin background pre-warming di server dan audio pre-buffering di browser sehingga lagu berikutnya langsung berputar tanpa jeda (0ms lookup).</li>
+            <li><strong class="text-slate-800 dark:text-white">🔊 Perbaikan Auto-Play & Auto-Recovery CDN 403:</strong> Menangani error 403 Forbidden dari Google CDN dengan pembaruan cache otomatis dan single retry langsung tanpa memutus koneksi streaming browser.</li>
+            <li><strong class="text-slate-800 dark:text-white">⏭️ Respon Instan Ganti Lagu (Next Song):</strong> Tombol skip dan Play Now langsung memperbarui tampilan lagu yang sedang diputar secara instan tanpa harus menunggu koneksi SSE atau me-reload halaman web.</li>
+            <li><strong class="text-slate-800 dark:text-white">🎚️ Proteksi Desync Volume & Smooth Debounce (350ms):</strong> Menggeser slider volume terasa mulus tanpa desync atau jumping berkat penguncian 1500ms dan respons audio lokal instan (0ms).</li>
+          </ul>
+        </div>
+
+        <!-- v2.11.6 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-800/40 border border-slate-200 dark:border-gray-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-600">v2.11.6</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -1566,7 +1612,7 @@
 
       <!-- Section 5: Version & Release Notes -->
       <div class="pt-1 flex items-center justify-between text-xs text-slate-400">
-        <span>Party Jukebox v2.11.6</span>
+        <span>Party Jukebox v2.11.7</span>
         <button onclick="openChangelogModal(); closeSettingsModal();" class="font-bold text-pink-600 dark:text-pink-400 hover:underline">
           Lihat Catatan Rilis 🚀
         </button>
@@ -1862,8 +1908,8 @@
       </div>
       
       <!-- Sheet Header -->
-      <div class="px-4 py-2.5 flex items-center justify-between border-b border-slate-100 dark:border-gray-800">
-        <div class="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-gray-800/70 border border-slate-200/50 dark:border-gray-700/50">
+      <div class="px-4 py-2.5 flex items-center justify-between border-b border-slate-100 dark:border-gray-800 gap-2">
+        <div class="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-gray-800/70 border border-slate-200/50 dark:border-gray-700/50 shrink-0">
           <button onclick="switchMobileQueueSheetTab('upcoming')" id="sheet-tab-btn-upcoming"
                   class="px-3 py-1 rounded-lg text-xs font-bold transition-all bg-white dark:bg-gray-700 text-slate-800 dark:text-white shadow-2xs flex items-center gap-1.5 cursor-pointer">
             <span>Antrean</span>
@@ -1875,14 +1921,40 @@
             <span id="mobile-sheet-history-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200/70 dark:bg-gray-800 text-slate-600 dark:text-gray-400 font-bold">0</span>
           </button>
         </div>
-        <button onclick="closeMobileQueueSheet()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center active:scale-95 transition-all text-xs cursor-pointer">
-          ✕
-        </button>
+        <div class="flex items-center gap-2 shrink-0">
+          <button id="mobile-sheet-queue-select-btn" onclick="toggleQueueSelectMode()" title="Pilih Beberapa Lagu untuk Hapus Massal"
+                  class="px-2 py-1 rounded-lg text-[10px] font-bold border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-pink-600 active:scale-95 transition-all flex items-center gap-1 cursor-pointer">
+            <span>☑️ Checklist</span>
+          </button>
+          <button onclick="closeMobileQueueSheet()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center active:scale-95 transition-all text-xs cursor-pointer">
+            ✕
+          </button>
+        </div>
       </div>
       
       <!-- Sheet Content (Scrollable list) -->
       <div class="flex-1 overflow-y-auto p-4 space-y-2">
         <div id="mobile-sheet-queue-view" class="space-y-2">
+          <!-- Mobile Bulk Delete Toolbar -->
+          <div id="mobile-sheet-queue-bulk-toolbar" class="hidden p-2 rounded-xl bg-pink-500/10 dark:bg-pink-500/20 border border-pink-500/30 flex items-center justify-between gap-2 text-xs">
+            <div class="flex items-center gap-2">
+              <label class="flex items-center gap-1.5 cursor-pointer font-bold text-slate-700 dark:text-gray-200 select-none text-[11px]">
+                <input type="checkbox" id="mobile-sheet-queue-select-all-cb" onchange="toggleSelectAllQueue(this.checked)" class="w-4 h-4 rounded accent-pink-600 cursor-pointer">
+                <span>Pilih Semua</span>
+              </label>
+              <span class="text-slate-300 dark:text-gray-600">|</span>
+              <span id="mobile-sheet-queue-selected-count-badge" class="text-[11px] font-extrabold text-pink-600 dark:text-pink-400">0 dipilih</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button onclick="toggleQueueSelectMode(false)" class="px-2 py-1 rounded-lg text-[10px] font-bold bg-white dark:bg-gray-800 text-slate-600 dark:text-gray-400 border border-slate-200 dark:border-gray-700 transition-all cursor-pointer">
+                Batal
+              </button>
+              <button id="mobile-sheet-queue-bulk-delete-btn" onclick="confirmBulkDeleteQueue()" disabled class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-red-500 hover:bg-red-600 text-white disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition-all flex items-center gap-1 cursor-pointer active:scale-95">
+                <span>🗑️ Hapus</span>
+                <span id="mobile-sheet-queue-bulk-delete-count" class="font-mono"></span>
+              </button>
+            </div>
+          </div>
           <div id="mobile-sheet-queue-list" class="space-y-2"></div>
         </div>
         <div id="mobile-sheet-history-view" class="space-y-2 hidden">
@@ -2043,7 +2115,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.11.6';
+    const CLIENT_VERSION = '2.11.7';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -2551,6 +2623,44 @@
       }
     }
 
+    function playNativeAudio(targetSec = 0) {
+      const hostAudio = document.getElementById('host-native-audio');
+      if (!hostAudio) return;
+      ensureAudioContextGain();
+
+      if (targetSec > 0) {
+        try { hostAudio.currentTime = targetSec; } catch (e) {}
+      }
+
+      const p = hostAudio.play();
+      if (p !== undefined) {
+        p.then(() => {
+          isHostSpeakerActive = true;
+          document.getElementById('host-speaker-activation-banner')?.classList.add('hidden');
+        }).catch(err => {
+          console.warn('[playNativeAudio] Direct play pending readiness:', err.message);
+          // If playback failed because media stream was still resolving, trigger play on canplay/loadeddata
+          const onReady = () => {
+            hostAudio.removeEventListener('canplay', onReady);
+            hostAudio.removeEventListener('loadeddata', onReady);
+            if (!currentSongData?.isPaused) {
+              hostAudio.play().then(() => {
+                isHostSpeakerActive = true;
+                document.getElementById('host-speaker-activation-banner')?.classList.add('hidden');
+              }).catch(e => {
+                console.warn('[playNativeAudio] Retry on ready failed:', e.message);
+                if (e.name === 'NotAllowedError') {
+                  document.getElementById('host-speaker-activation-banner')?.classList.remove('hidden');
+                }
+              });
+            }
+          };
+          hostAudio.addEventListener('canplay', onReady, { once: true });
+          hostAudio.addEventListener('loadeddata', onReady, { once: true });
+        });
+      }
+    }
+
     function initNativeAudioEngine() {
       const hostAudio = document.getElementById('host-native-audio');
       if (!hostAudio) return;
@@ -2571,8 +2681,7 @@
                 body: JSON.stringify({
                   videoId: currentNativeAudioVideoId || (currentSongData && currentSongData.videoId),
                   elapsed: hostAudio.currentTime || 0,
-                  duration: songDuration,
-                  isPaused: hostAudio.paused
+                  duration: songDuration
                 })
               }).catch(() => {});
             }
@@ -2624,16 +2733,17 @@
               currentVideoId = nextSong.videoId;
               songDuration = nextSong.songDuration || 0;
               currentElapsed = 0;
+              isPlaying = true;
               renderTimeline(0);
               const targetUrl = data.audioStreamUrl || `/api/audio/stream/${nextSong.videoId}`;
               if (!hostAudio.src.includes(`/api/audio/stream/${nextSong.videoId}`)) {
                 hostAudio.src = targetUrl;
                 hostAudio.currentTime = 0;
-                ensureAudioContextGain();
-                hostAudio.play().catch(e => console.warn('Background auto play next error:', e));
               }
+              playNativeAudio(0);
               updateMediaSession(nextSong);
               loadLyricsForSong(nextSong);
+              fetchStatus();
             }
           } catch (e) {
             console.error('Error advancing next track:', e);
@@ -2818,10 +2928,7 @@
             }
           }
           if (!currentSongData.isPaused) {
-            hostAudio.play().catch(e => {
-              console.warn('Native audio play error (touch required):', e);
-              if (banner) banner.classList.remove('hidden');
-            });
+            playNativeAudio(targetSec);
           } else {
             hostAudio.pause();
           }
@@ -2831,7 +2938,7 @@
           if (currentSongData.isPaused && !hostAudio.paused) {
             hostAudio.pause();
           } else if (!currentSongData.isPaused && hostAudio.paused) {
-            hostAudio.play().catch(() => {});
+            playNativeAudio(targetSec);
           }
           // If local native audio is ahead (or server was behind), immediately inform server of real position
           const curTime = hostAudio.currentTime || 0;
@@ -2844,7 +2951,6 @@
                 videoId: currentNativeAudioVideoId,
                 elapsed: curTime,
                 duration: songDuration,
-                isPaused: hostAudio.paused,
                 token: hostTok
               })
             }).catch(() => {});
@@ -4207,16 +4313,44 @@
             syncHostAudioEngine();
           }
         } else {
-          if (song.isPaused) {
+          // SAME SONG PLAYING:
+          const hostAudio = document.getElementById('host-native-audio');
+          const isHostPlayingNative = isMeHost() && isUseNativeAudioEngine() && hostAudio && hostAudio.src && !hostAudio.paused && !isNaN(hostAudio.currentTime) && hostAudio.currentTime > 0;
+          const isHostPlayingYT = isMeHost() && !isUseNativeAudioEngine() && ytPlayer && typeof ytPlayer.getPlayerState === 'function' && ytPlayer.getPlayerState() === 1;
+
+          if (isHostPlayingNative) {
+            // Local physical audio is ground truth for Host! Never let server queue updates overwrite progress
+            currentElapsed = hostAudio.currentTime;
+          } else if (isHostPlayingYT) {
+            const ytTime = ytPlayer.getCurrentTime();
+            if (typeof ytTime === 'number' && ytTime > 0) currentElapsed = ytTime;
+          } else if (song.isPaused) {
             if (typeof song.currentElapsed === 'number' && song.currentElapsed > 0) {
               currentElapsed = song.currentElapsed;
             }
             lastTickTimestamp = Date.now();
           } else if (typeof song.currentElapsed === 'number') {
+            // For non-host listeners: only sync drift if server provides a positive elapsed or if drift is significant
             const drift = Math.abs(song.currentElapsed - currentElapsed);
-            if (drift > 1.2) {
+            // Protect against server sending 0 when local already has positive progress:
+            if (song.currentElapsed === 0 && currentElapsed > 2) {
+              // Server is temporarily reporting 0 due to background queue mutation; IGNORE it!
+            } else if (drift > 1.5) {
               currentElapsed = song.currentElapsed;
               lastTickTimestamp = Date.now();
+            }
+          }
+        }
+
+        // Proactive Client Gapless Pre-Buffer for Upcoming Track
+        if (isMeHost() && isUseNativeAudioEngine() && status.queue && status.queue.length > 0) {
+          const nextTrack = status.queue[0];
+          if (nextTrack && nextTrack.videoId) {
+            const prewarmEl = document.getElementById('host-prewarm-audio');
+            const targetPrewarmUrl = `/api/audio/stream/${nextTrack.videoId}`;
+            if (prewarmEl && (!prewarmEl.src || !prewarmEl.src.includes(targetPrewarmUrl))) {
+              prewarmEl.src = targetPrewarmUrl;
+              prewarmEl.load();
             }
           }
         }
@@ -4251,9 +4385,11 @@
         renderTimeline(currentElapsed);
       }
 
-      // Real Speaker Volume
+      // Real Speaker Volume (Protected from Desync Jitter during User Dragging / Interaction)
       if (status.volume && typeof status.volume.state === 'number') {
-        updateVolumeUI(status.volume.state);
+        if (Date.now() - lastUserVolumeInteraction > 1500) {
+          updateVolumeUI(status.volume.state);
+        }
       }
 
       // Sync Party Host (Auto-Vacant System v2.3.0)
@@ -4359,7 +4495,6 @@
                 videoId: currentNativeAudioVideoId || (currentSongData && currentSongData.videoId),
                 elapsed: audioTime,
                 duration: songDuration,
-                isPaused: hostAudio.paused,
                 token: hostTok
               })
             }).catch(() => {});
@@ -4400,7 +4535,6 @@
           // Broadcast sync heartbeat to server every 2 seconds
           if (Date.now() - lastHostSyncTime > 2000) {
             lastHostSyncTime = Date.now();
-            const isP = typeof ytPlayer.getPlayerState === 'function' ? (ytPlayer.getPlayerState() !== 1) : !isPlaying;
             const hostTok = localStorage.getItem('jukebox_host_token');
             fetch('/api/player/sync', {
               method: 'POST',
@@ -4409,7 +4543,6 @@
                 videoId: currentLoadedVideoId,
                 elapsed: playerTime,
                 duration: songDuration,
-                isPaused: isP,
                 token: hostTok
               })
             }).catch(() => {});
@@ -4509,18 +4642,25 @@
       }
     }
 
+    let lastUserVolumeInteraction = 0;
+
     function handleVolumeInput(val) {
       let num = Number(val);
       if (isVolumeSnapEnabled) {
         num = Math.round(num / 10) * 10;
       }
       num = Math.max(0, Math.min(100, num));
+      lastUserVolumeInteraction = Date.now();
+
       const desktopSlider = document.getElementById('volume-slider');
       if (desktopSlider) desktopSlider.value = num;
       const mobileSlider = document.getElementById('mobile-volume-slider');
       if (mobileSlider) mobileSlider.value = num;
 
+      // Immediate 0ms local response (labels, icon, local Web Audio gain)
       updateVolumeUI(num);
+
+      // Debounce remote network API call to 350ms to prevent flooding osascript and SSE desync
       clearTimeout(volumeDebounceTimeout);
       volumeDebounceTimeout = setTimeout(async () => {
         try {
@@ -4532,7 +4672,7 @@
         } catch (e) {
           console.error(e);
         }
-      }, 100);
+      }, 350);
     }
 
     function toggleMuteQuick() {
@@ -4542,8 +4682,184 @@
       handleVolumeInput(newVol);
     }
 
+    // Attach release change event to instantly commit debounced volume without lag
+    document.addEventListener('DOMContentLoaded', () => {
+      const commitVol = (e) => {
+        const val = Number(e.target.value);
+        clearTimeout(volumeDebounceTimeout);
+        fetch('/api/control/volume', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ volume: val, user: currentUser })
+        }).catch(() => {});
+      };
+      document.getElementById('volume-slider')?.addEventListener('change', commitVol);
+      document.getElementById('mobile-volume-slider')?.addEventListener('change', commitVol);
+    });
+
+    // Queue Bulk Selection State & Handlers
+    let isQueueSelectMode = false;
+    const selectedQueueIndices = new Set();
+    let lastRawQueue = [];
+    let lastRawSelectedIndex = -1;
+
+    function toggleQueueSelectMode(forceState) {
+      if (typeof forceState === 'boolean') {
+        isQueueSelectMode = forceState;
+      } else {
+        isQueueSelectMode = !isQueueSelectMode;
+      }
+      if (!isQueueSelectMode) {
+        selectedQueueIndices.clear();
+      }
+      updateQueueBulkToolbarUI();
+      if (lastRawQueue && lastRawQueue.length > 0) {
+        renderQueue(lastRawQueue, lastRawSelectedIndex);
+      } else if (currentStatusData && currentStatusData.queue) {
+        renderQueue(currentStatusData.queue, currentStatusData.selectedIndex ?? -1);
+      }
+    }
+
+    function toggleQueueItemSelection(rawIndex, checked) {
+      if (checked) {
+        selectedQueueIndices.add(rawIndex);
+      } else {
+        selectedQueueIndices.delete(rawIndex);
+      }
+      updateQueueBulkToolbarUI();
+      document.querySelectorAll(`.queue-item-cb[data-raw-index="${rawIndex}"]`).forEach(cb => {
+        cb.checked = checked;
+      });
+      document.querySelectorAll(`.queue-item[data-raw-index="${rawIndex}"]`).forEach(el => {
+        if (checked) {
+          el.classList.add('border-pink-500/60', 'bg-pink-50/20', 'dark:bg-pink-500/10');
+          el.classList.remove('border-slate-200/90', 'dark:border-gray-800/80');
+        } else {
+          el.classList.remove('border-pink-500/60', 'bg-pink-50/20', 'dark:bg-pink-500/10');
+          el.classList.add('border-slate-200/90', 'dark:border-gray-800/80');
+        }
+      });
+    }
+
+    function toggleSelectAllQueue(checked) {
+      if (!currentUpcomingList) return;
+      currentUpcomingList.forEach(item => {
+        if (checked) {
+          selectedQueueIndices.add(item.rawIndex);
+        } else {
+          selectedQueueIndices.delete(item.rawIndex);
+        }
+      });
+      updateQueueBulkToolbarUI();
+      document.querySelectorAll('.queue-item-cb').forEach(cb => {
+        cb.checked = checked;
+      });
+      document.querySelectorAll('.queue-item').forEach(el => {
+        if (checked) {
+          el.classList.add('border-pink-500/60', 'bg-pink-50/20', 'dark:bg-pink-500/10');
+          el.classList.remove('border-slate-200/90', 'dark:border-gray-800/80');
+        } else {
+          el.classList.remove('border-pink-500/60', 'bg-pink-50/20', 'dark:bg-pink-500/10');
+          el.classList.add('border-slate-200/90', 'dark:border-gray-800/80');
+        }
+      });
+    }
+
+    function updateQueueBulkToolbarUI() {
+      const desktopToolbar = document.getElementById('queue-bulk-toolbar');
+      const mobileToolbar = document.getElementById('mobile-sheet-queue-bulk-toolbar');
+      const toggleBtn = document.getElementById('queue-select-toggle-btn');
+      const mobileToggleBtn = document.getElementById('mobile-sheet-queue-select-btn');
+
+      if (isQueueSelectMode) {
+        desktopToolbar?.classList.remove('hidden');
+        mobileToolbar?.classList.remove('hidden');
+        if (toggleBtn) {
+          toggleBtn.innerHTML = '<span>✕ Selesai</span>';
+          toggleBtn.className = 'px-2 py-1 rounded-lg text-[10px] font-bold border border-pink-500/40 bg-pink-50 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 active:scale-95 transition-all flex items-center gap-1 cursor-pointer';
+        }
+        if (mobileToggleBtn) {
+          mobileToggleBtn.innerHTML = '<span>✕ Selesai</span>';
+          mobileToggleBtn.className = 'px-2 py-1 rounded-lg text-[10px] font-bold border border-pink-500/40 bg-pink-50 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 active:scale-95 transition-all flex items-center gap-1 cursor-pointer';
+        }
+      } else {
+        desktopToolbar?.classList.add('hidden');
+        mobileToolbar?.classList.add('hidden');
+        if (toggleBtn) {
+          toggleBtn.innerHTML = '<span>☑️ Checklist</span>';
+          toggleBtn.className = 'px-2 py-1 rounded-lg text-[10px] font-bold border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-pink-600 hover:border-pink-500/40 active:scale-95 transition-all flex items-center gap-1 cursor-pointer';
+        }
+        if (mobileToggleBtn) {
+          mobileToggleBtn.innerHTML = '<span>☑️ Checklist</span>';
+          mobileToggleBtn.className = 'px-2 py-1 rounded-lg text-[10px] font-bold border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-pink-600 hover:border-pink-500/40 active:scale-95 transition-all flex items-center gap-1 cursor-pointer';
+        }
+      }
+
+      const count = selectedQueueIndices.size;
+      const total = currentUpcomingList ? currentUpcomingList.length : 0;
+      const isAll = total > 0 && count === total;
+
+      const badge = document.getElementById('queue-selected-count-badge');
+      if (badge) badge.textContent = `${count} dipilih`;
+      const mobileBadge = document.getElementById('mobile-sheet-queue-selected-count-badge');
+      if (mobileBadge) mobileBadge.textContent = `${count} dipilih`;
+
+      const deleteBtn = document.getElementById('queue-bulk-delete-btn');
+      if (deleteBtn) {
+        deleteBtn.disabled = count === 0;
+        const countSpan = document.getElementById('queue-bulk-delete-count');
+        if (countSpan) countSpan.textContent = count > 0 ? `(${count})` : '';
+      }
+      const mobileDeleteBtn = document.getElementById('mobile-sheet-queue-bulk-delete-btn');
+      if (mobileDeleteBtn) {
+        mobileDeleteBtn.disabled = count === 0;
+        const mobileCountSpan = document.getElementById('mobile-sheet-queue-bulk-delete-count');
+        if (mobileCountSpan) mobileCountSpan.textContent = count > 0 ? `(${count})` : '';
+      }
+
+      const selectAllCb = document.getElementById('queue-select-all-cb');
+      if (selectAllCb) selectAllCb.checked = isAll;
+      const mobileSelectAllCb = document.getElementById('mobile-sheet-queue-select-all-cb');
+      if (mobileSelectAllCb) mobileSelectAllCb.checked = isAll;
+    }
+
+    async function confirmBulkDeleteQueue() {
+      const count = selectedQueueIndices.size;
+      if (count === 0) return;
+      const ok = await customConfirm(
+        `Hapus ${count} lagu yang dipilih dari antrean sekarang?`,
+        `Hapus ${count} Lagu Antrean`,
+        '🗑️'
+      );
+      if (!ok) return;
+
+      try {
+        const indices = Array.from(selectedQueueIndices);
+        const res = await fetch('/api/queue/delete-bulk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ indices, user: currentUser })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`🗑️ ${data.count || count} lagu berhasil dihapus dari antrean`);
+          selectedQueueIndices.clear();
+          isQueueSelectMode = false;
+          updateQueueBulkToolbarUI();
+          await fetchStatus();
+        } else {
+          showToast('Gagal menghapus antrean');
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('Error menghapus antrean');
+      }
+    }
+
     // Render Queue (Synchronized for Desktop & Mobile Bottom Sheet)
     function renderQueue(queue, selectedIndex) {
+      lastRawQueue = queue || [];
+      lastRawSelectedIndex = selectedIndex ?? -1;
       const queueList = document.getElementById('queue-list');
       const mobileSheetQueueList = document.getElementById('mobile-sheet-queue-list');
       const countEl = document.getElementById('queue-count');
@@ -4562,6 +4878,13 @@
       if (countEl) countEl.textContent = upcoming.length;
       if (mobileSheetCountEl) mobileSheetCountEl.textContent = upcoming.length;
       if (mobileBarBadge) mobileBarBadge.textContent = upcoming.length;
+
+      // Clean up orphaned selected indices that no longer exist in upcoming queue
+      const validRawIndices = new Set(upcoming.map(i => i.rawIndex));
+      selectedQueueIndices.forEach(idx => {
+        if (!validRawIndices.has(idx)) selectedQueueIndices.delete(idx);
+      });
+      updateQueueBulkToolbarUI();
 
       // Up Next Preview Banner
       const upNextBanner = document.getElementById('up-next-banner');
@@ -4594,22 +4917,35 @@
         const voteBtnClass = hasVoted
           ? 'bg-gradient-to-r from-pink-500 to-indigo-600 text-white shadow-xs'
           : 'bg-slate-100 dark:bg-gray-800/80 hover:bg-slate-200 dark:hover:bg-gray-800 text-slate-700 dark:text-gray-300 border border-slate-200 dark:border-gray-700/60';
+        const isChecked = selectedQueueIndices.has(item.rawIndex);
 
         return `
           <div data-raw-index="${item.rawIndex}" data-idx="${idx}"
-               class="queue-item flex items-center gap-2.5 p-2.5 rounded-xl bg-white dark:bg-[#121520] border border-slate-200/90 dark:border-gray-800/80 hover:border-slate-300 dark:hover:border-gray-700 shadow-2xs transition-all select-none">
+               onclick="${isQueueSelectMode ? `toggleQueueItemSelection(${item.rawIndex}, !${isChecked})` : ''}"
+               class="queue-item flex items-center gap-2.5 p-2.5 rounded-xl bg-white dark:bg-[#121520] border ${isChecked ? 'border-pink-500/60 bg-pink-50/20 dark:bg-pink-500/10' : 'border-slate-200/90 dark:border-gray-800/80'} hover:border-slate-300 dark:hover:border-gray-700 shadow-2xs transition-all select-none ${isQueueSelectMode ? 'cursor-pointer' : ''}">
             
-            <!-- Drag Handle -->
-            <div class="drag-handle py-2 px-1 text-slate-400 dark:text-gray-500 hover:text-pink-500 cursor-grab active:cursor-grabbing shrink-0 flex items-center">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <circle cx="9" cy="5" r="1.5"/>
-                <circle cx="15" cy="5" r="1.5"/>
-                <circle cx="9" cy="12" r="1.5"/>
-                <circle cx="15" cy="12" r="1.5"/>
-                <circle cx="9" cy="19" r="1.5"/>
-                <circle cx="15" cy="19" r="1.5"/>
-              </svg>
-            </div>
+            ${isQueueSelectMode ? `
+              <!-- Checklist Checkbox in Select Mode -->
+              <label class="py-2 px-1 flex items-center cursor-pointer shrink-0" onclick="event.stopPropagation()">
+                <input type="checkbox"
+                       class="queue-item-cb w-4 h-4 rounded text-pink-600 focus:ring-pink-500 accent-pink-600 cursor-pointer"
+                       data-raw-index="${item.rawIndex}"
+                       ${isChecked ? 'checked' : ''}
+                       onchange="toggleQueueItemSelection(${item.rawIndex}, this.checked)">
+              </label>
+            ` : `
+              <!-- Drag Handle in Normal Mode -->
+              <div class="drag-handle py-2 px-1 text-slate-400 dark:text-gray-500 hover:text-pink-500 cursor-grab active:cursor-grabbing shrink-0 flex items-center">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <circle cx="9" cy="5" r="1.5"/>
+                  <circle cx="15" cy="5" r="1.5"/>
+                  <circle cx="9" cy="12" r="1.5"/>
+                  <circle cx="15" cy="12" r="1.5"/>
+                  <circle cx="9" cy="19" r="1.5"/>
+                  <circle cx="15" cy="19" r="1.5"/>
+                </svg>
+              </div>
+            `}
 
             <span class="text-xs font-extrabold text-slate-400 dark:text-gray-500 w-4 text-center shrink-0">#${idx + 1}</span>
             <img src="${item.thumbnail || 'https://via.placeholder.com/60'}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-slate-200 dark:border-gray-800 pointer-events-none">
@@ -4629,7 +4965,7 @@
             </div>
 
             <!-- Upvote Button -->
-            <button onclick="upvoteSong('${item.videoId}', '${item.title.replace(/'/g, "\\'")}')"
+            <button onclick="event.stopPropagation(); upvoteSong('${item.videoId}', '${item.title.replace(/'/g, "\\'")}')"
                     title="${hasVoted ? 'Batalkan vote' : 'Upvote untuk naikin antrean!'}"
                     class="px-2 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 active:scale-95 transition-all ${voteBtnClass}">
               <svg class="w-3.5 h-3.5 ${hasVoted ? 'text-white' : 'text-pink-500'}" fill="currentColor" viewBox="0 0 24 24">
@@ -4639,7 +4975,7 @@
             </button>
 
             <!-- Remove Button -->
-            <button onclick="removeSong(${item.rawIndex}, '${item.title.replace(/'/g, "\\'")}')"
+            <button onclick="event.stopPropagation(); removeSong(${item.rawIndex}, '${item.title.replace(/'/g, "\\'")}')"
                     title="Remove from queue"
                     class="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:text-gray-500 dark:hover:text-red-400 dark:hover:bg-red-500/10 active:scale-90 transition-all">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -4653,28 +4989,31 @@
       if (queueList) queueList.innerHTML = queueHtml;
       if (mobileSheetQueueList) mobileSheetQueueList.innerHTML = queueHtml;
 
-      // Initialize SortableJS for Desktop and Mobile
+      // Initialize SortableJS for Desktop and Mobile (only in normal drag mode)
       if (sortableInstance) {
         sortableInstance.destroy();
+        sortableInstance = null;
       }
 
-      if (queueList) {
-        sortableInstance = new Sortable(queueList, {
-          animation: 180,
-          handle: '.drag-handle',
-          ghostClass: 'sortable-ghost',
-          chosenClass: 'sortable-chosen',
-          onEnd: handleQueueSortEnd
-        });
-      }
-      if (mobileSheetQueueList) {
-        new Sortable(mobileSheetQueueList, {
-          animation: 180,
-          handle: '.drag-handle',
-          ghostClass: 'sortable-ghost',
-          chosenClass: 'sortable-chosen',
-          onEnd: handleQueueSortEnd
-        });
+      if (!isQueueSelectMode) {
+        if (queueList) {
+          sortableInstance = new Sortable(queueList, {
+            animation: 180,
+            handle: '.drag-handle',
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            onEnd: handleQueueSortEnd
+          });
+        }
+        if (mobileSheetQueueList) {
+          new Sortable(mobileSheetQueueList, {
+            animation: 180,
+            handle: '.drag-handle',
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            onEnd: handleQueueSortEnd
+          });
+        }
       }
     }
 
@@ -5665,20 +6004,63 @@
         }
       }
 
-      await fetch('/api/control/toggle', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user: currentUser, elapsed: currentElapsed })
-      });
+      try {
+        const res = await fetch('/api/control/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user: currentUser, elapsed: currentElapsed })
+        });
+        const data = await res.json();
+        if (data.success) {
+          isPlaying = !data.isPaused;
+          if (currentSongData) currentSongData.isPaused = data.isPaused;
+          const vinyl = document.getElementById('vinyl-disc');
+          const playIcon = document.getElementById('play-icon');
+          const pauseIcon = document.getElementById('pause-icon');
+          if (!isPlaying) {
+            vinyl?.classList.add('paused');
+            playIcon?.classList.remove('hidden');
+            pauseIcon?.classList.add('hidden');
+          } else {
+            vinyl?.classList.remove('paused');
+            playIcon?.classList.add('hidden');
+            pauseIcon?.classList.remove('hidden');
+          }
+        }
+      } catch (e) {
+        console.error('Toggle error:', e);
+      }
     }
 
     async function skipNext() {
-      await fetch('/api/control/next', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user: currentUser })
-      });
-      showToast(`Skipped by ${currentUser}`);
+      try {
+        const res = await fetch('/api/control/next', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user: currentUser || 'Host' })
+        });
+        const data = await res.json();
+        if (data.success && data.current) {
+          // Immediately apply next song and sync host audio without waiting for SSE
+          const next = data.current;
+          currentSongData = next;
+          currentVideoId = next.videoId;
+          songDuration = next.songDuration || 0;
+          currentElapsed = 0;
+          isPlaying = true;
+          renderTimeline(0);
+          updateMediaSession(next);
+          loadLyricsForSong(next);
+          if (isMeHost()) {
+            syncHostAudioEngine();
+          }
+          await fetchStatus();
+        }
+        showToast(`Skipped by ${currentUser || 'Host'}`);
+      } catch (err) {
+        console.error('Error skipping track:', err);
+        fetchStatus();
+      }
     }
 
     // Upvote Song
