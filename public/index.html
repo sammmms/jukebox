@@ -315,9 +315,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.10.2)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.10.3)"
                     class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-colors cursor-pointer active:scale-95">
-              v2.10.2
+              v2.10.3
             </button>
           </div>
           <div id="connection-btn" class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
@@ -762,8 +762,8 @@
               </div>
             </div>
 
-            <!-- Search Results / Curated Recommendations Container -->
-            <div id="search-results" class="space-y-2 max-h-72 overflow-y-auto pr-1"></div>
+            <!-- Search Results / Curated Recommendations Container (Natural Height, Non-scrollable 3x3 Grid) -->
+            <div id="search-results" class="space-y-2 w-full"></div>
           </div>
 
           <!-- TAB CONTENT: PASTE -->
@@ -894,7 +894,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.10.2</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.10.3</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -905,10 +905,23 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.10.2 -->
+        <!-- v2.10.3 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.10.2 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.10.3 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">🔲 Non-Scrollable 3x3 Grid:</strong> Menghilangkan batas tinggi statis dan scrollbar dalam pada grid 3x3 rekomendasi lagu sehingga seluruh 9 kotak tampil penuh dan pas di layar.</li>
+            <li><strong class="text-slate-800 dark:text-white">🔄 Master Autoplay Watchdog (Server & Client):</strong> Mencegah lagu berhenti di menit akhir (misal 4:20/4:20). Server dan client memonitor durasi secara independen dan otomatis memutar lagu berikutnya atau rekomendasi autoplay jika antrean kosong.</li>
+            <li><strong class="text-slate-800 dark:text-white">👑 Persistent Host & Background Tab Auto-Restore:</strong> Host disimpan permanen ke disk, batas idle diperpanjang hingga 1 jam, dan sesi host otomatis tersambung kembali saat membuka tab tanpa perlu klaim ulang.</li>
+          </ul>
+        </div>
+
+        <!-- v2.10.2 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-800/40 border border-slate-200 dark:border-gray-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-600">v2.10.2</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -1434,7 +1447,7 @@
 
       <!-- Section 5: Version & Release Notes -->
       <div class="pt-1 flex items-center justify-between text-xs text-slate-400">
-        <span>Party Jukebox v2.10.2</span>
+        <span>Party Jukebox v2.10.3</span>
         <button onclick="openChangelogModal(); closeSettingsModal();" class="font-bold text-pink-600 dark:text-pink-400 hover:underline">
           Lihat Catatan Rilis 🚀
         </button>
@@ -1677,7 +1690,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.10.2';
+    const CLIENT_VERSION = '2.10.3';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
 
@@ -2191,6 +2204,20 @@
           renderTimeline(currentElapsed);
           if (currentLyrics && currentLyrics.isSynced && currentLyrics.lines && currentLyrics.lines.length > 0) {
             updateLyricsHighlight();
+          }
+
+          // Mobile Host Watchdog: auto-trigger ended when near completion
+          if (dur > 5 && audioTime >= dur - 0.8 && isCurrentAudioMaster) {
+            const vid = currentNativeAudioVideoId || (currentSongData && currentSongData.videoId);
+            if (vid && (!window._lastEndedReportedVideoId || window._lastEndedReportedVideoId !== vid)) {
+              window._lastEndedReportedVideoId = vid;
+              console.log('🎵 Mobile native audio reached end of track. Triggering auto-advance...');
+              fetch('/api/control/ended', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ videoId: vid, user: currentUser || 'Host' })
+              }).catch(() => {});
+            }
           }
         }
       });
@@ -3518,18 +3545,22 @@
         const res = await fetch('/api/host/heartbeat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token })
+          body: JSON.stringify({ token, name: currentUser || 'Host' })
         });
         const data = await res.json();
-        if (!data.success) {
-          if (hostHeartbeatTimer) {
-            clearInterval(hostHeartbeatTimer);
-            hostHeartbeatTimer = null;
-          }
-          localStorage.removeItem('jukebox_host_token');
-          if (data.partyHost) updateHostUI(data.partyHost);
-        } else if (data.partyHost) {
+        if (data.success && data.partyHost) {
           currentPartyHost = data.partyHost;
+          updateHostUI(data.partyHost);
+        } else if (!data.success) {
+          // Only drop token if someone else truly took over the host seat
+          if (data.partyHost && data.partyHost.name && data.partyHost.token !== token) {
+            if (hostHeartbeatTimer) {
+              clearInterval(hostHeartbeatTimer);
+              hostHeartbeatTimer = null;
+            }
+            localStorage.removeItem('jukebox_host_token');
+            updateHostUI(data.partyHost);
+          }
         }
       } catch (e) {}
     }
@@ -3540,20 +3571,33 @@
       hostHeartbeatTimer = setInterval(sendHostHeartbeatImmediate, 10000);
     }
 
-    window.addEventListener('focus', () => {
+    window.addEventListener('focus', async () => {
+      const myToken = localStorage.getItem('jukebox_host_token');
+      if (myToken) {
+        await sendHostHeartbeatImmediate();
+      }
       if (isMeHost()) {
         claimAudioMaster();
-        sendHostHeartbeatImmediate();
         syncHostAudioEngine();
+      } else if (currentPartyHost?.isVacant && currentUser && myToken) {
+        // Auto-reclaim if still vacant
+        claimHost(currentUser, false);
       }
     });
 
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible' && isMeHost()) {
-        claimAudioMaster();
-        sendHostHeartbeatImmediate();
-        syncHostAudioEngine();
-        requestScreenWakeLock();
+    document.addEventListener('visibilitychange', async () => {
+      if (document.visibilityState === 'visible') {
+        const myToken = localStorage.getItem('jukebox_host_token');
+        if (myToken) {
+          await sendHostHeartbeatImmediate();
+        }
+        if (isMeHost()) {
+          claimAudioMaster();
+          syncHostAudioEngine();
+          requestScreenWakeLock();
+        } else if (currentPartyHost?.isVacant && currentUser && myToken) {
+          claimHost(currentUser, false);
+        }
       } else if (document.visibilityState === 'hidden' && isMeHost()) {
         // Maintain active OS audio session in background via silent shield anchor
         startSilentAudioAnchor();
@@ -3801,6 +3845,20 @@
             updateLyricsHighlight();
           }
 
+          // Mobile Host Watchdog: auto-trigger ended when near completion
+          if (dur > 5 && audioTime >= dur - 0.8 && isCurrentAudioMaster) {
+            const vid = currentNativeAudioVideoId || (currentSongData && currentSongData.videoId);
+            if (vid && (!window._lastEndedReportedVideoId || window._lastEndedReportedVideoId !== vid)) {
+              window._lastEndedReportedVideoId = vid;
+              console.log('🎵 Mobile native audio reached end of track. Triggering auto-advance...');
+              fetch('/api/control/ended', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ videoId: vid, user: currentUser || 'Host' })
+              }).catch(() => {});
+            }
+          }
+
           // Broadcast sync heartbeat to server every 2 seconds
           if (Date.now() - lastHostSyncTime > 2000) {
             lastHostSyncTime = Date.now();
@@ -3834,6 +3892,20 @@
           renderTimeline(currentElapsed);
           if (currentLyrics && currentLyrics.isSynced && currentLyrics.lines && currentLyrics.lines.length > 0) {
             updateLyricsHighlight();
+          }
+
+          // Desktop Host Watchdog: auto-trigger ended when near completion
+          if (dur > 5 && playerTime >= dur - 0.8 && isCurrentAudioMaster) {
+            const vid = currentLoadedVideoId;
+            if (vid && (!window._lastEndedReportedVideoId || window._lastEndedReportedVideoId !== vid)) {
+              window._lastEndedReportedVideoId = vid;
+              console.log('🎵 Desktop ytPlayer reached end of track. Triggering auto-advance...');
+              fetch('/api/control/ended', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ videoId: vid, user: currentUser || 'Host' })
+              }).catch(() => {});
+            }
           }
 
           // Broadcast sync heartbeat to server every 2 seconds

@@ -9,7 +9,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.10.2';
+const APP_VERSION = '2.10.3';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -39,6 +39,7 @@ if (!fs.existsSync(DATA_DIR)) {
 const PARTY_QUEUE_FILE = path.join(DATA_DIR, 'party_queue.json');
 const SOCIAL_QUEUE_FILE = path.join(DATA_DIR, 'social_queue.json');
 const PLAYED_HISTORY_FILE = path.join(DATA_DIR, 'played_history.json');
+const PARTY_HOST_FILE = path.join(DATA_DIR, 'party_host.json');
 
 // --- INTERNAL MASTER QUEUE & STATE ---
 let partyQueue = [];
@@ -232,14 +233,35 @@ function isUsingYtmDesktop() {
 }
 
 // --- AUTO-VACANT & TAKEOVER PARTY HOST MANAGEMENT ---
-// Set to 3 minutes (180s) to prevent background browser tab throttling from disconnecting the speaker host
-const HOST_VACANT_TIMEOUT_MS = 180 * 1000;
+// Set to 1 hour (3600s) to prevent background browser tab throttling from disconnecting the speaker host
+const HOST_VACANT_TIMEOUT_MS = 60 * 60 * 1000;
 let partyHost = {
   name: null,
   token: null,
   claimedAt: null,
   lastHeartbeat: null
 };
+
+try {
+  if (fs.existsSync(PARTY_HOST_FILE)) {
+    const rawHost = JSON.parse(fs.readFileSync(PARTY_HOST_FILE, 'utf8'));
+    if (rawHost && rawHost.name) {
+      partyHost = {
+        name: rawHost.name,
+        token: rawHost.token || null,
+        claimedAt: rawHost.claimedAt || Date.now(),
+        lastHeartbeat: Date.now() // Refreshed on process startup
+      };
+      knownDJs.add(partyHost.name);
+    }
+  }
+} catch (e) {}
+
+function persistPartyHost() {
+  try {
+    fs.writeFileSync(PARTY_HOST_FILE, JSON.stringify(partyHost, null, 2));
+  } catch (e) {}
+}
 
 let pendingTakeover = null;
 let pendingTakeoverTimer = null;
@@ -257,6 +279,7 @@ function checkHostVacant() {
     if (Date.now() - partyHost.lastHeartbeat > HOST_VACANT_TIMEOUT_MS) {
       const oldHost = partyHost.name;
       partyHost = { name: null, token: null, claimedAt: null, lastHeartbeat: null };
+      persistPartyHost();
       clearPendingTakeover();
       addActivity('System', 'vacant', `Host ${oldHost} offline. Status Host sekarang VACANT ⚠️`);
       broadcastUpdate();
@@ -457,6 +480,25 @@ async function advanceNextTrack(skippedByUser = null) {
   }
   return currentSong;
 }
+
+// Server-Side Master Autoplay & Song Completion Watchdog (Never sits at end of track)
+function checkServerPlaybackAutoplay() {
+  if (isUsingYtmDesktop()) return;
+  if (!currentSong || !currentSong.videoId || currentSong.title === 'No song playing') return;
+  if (currentSong.isPaused) return;
+  if (!currentSong.songDuration || currentSong.songDuration <= 0) return;
+
+  const now = Date.now();
+  const delta = (now - playbackTracker.lastUpdated) / 1000;
+  const rawElapsed = (playbackTracker.elapsed || 0) + delta;
+
+  // If track has reached or exceeded its duration (+ 1s buffer)
+  if (rawElapsed >= currentSong.songDuration + 1) {
+    console.log(`[Autoplay Watchdog] Track "${currentSong.title}" reached end (${rawElapsed.toFixed(1)}s / ${currentSong.songDuration}s). Advancing track automatically...`);
+    advanceNextTrack('Autoplay Watchdog / Server');
+  }
+}
+setInterval(checkServerPlaybackAutoplay, 1000);
 
 // Volume Controls
 function getSystemVolume() {
@@ -1015,6 +1057,7 @@ app.post('/api/host/claim', (req, res) => {
       claimedAt: Date.now(),
       lastHeartbeat: Date.now()
     };
+    persistPartyHost();
     knownDJs.add(cleanName);
     addActivity(cleanName, 'host_claimed', prevHost && prevHost !== cleanName ? `mengambil alih kursi Host dari ${prevHost}` : 'menjadi Host Party malam ini 👑');
     broadcastUpdate();
@@ -1048,6 +1091,7 @@ app.post('/api/host/claim', (req, res) => {
         claimedAt: Date.now(),
         lastHeartbeat: Date.now()
       };
+      persistPartyHost();
       knownDJs.add(newHost);
       addActivity(newHost, 'host_claimed', `mengambil alih kursi Host dari ${oldHost} (Auto-Approve 30 detik) 👑`);
       clearPendingTakeover();
@@ -1090,6 +1134,7 @@ app.post('/api/host/takeover/respond', (req, res) => {
       claimedAt: Date.now(),
       lastHeartbeat: Date.now()
     };
+    persistPartyHost();
     knownDJs.add(reqUser);
     addActivity(curHost, 'takeover_approved', `menyetujui pemindahan kursi Host ke ${reqUser} 👑`);
     broadcastUpdate();
@@ -1116,11 +1161,29 @@ app.post('/api/host/takeover/cancel', (req, res) => {
 });
 
 app.post('/api/host/heartbeat', (req, res) => {
-  const { token } = req.body || {};
+  const { token, name } = req.body || {};
   if (partyHost.name && partyHost.token && partyHost.token === token) {
     partyHost.lastHeartbeat = Date.now();
+    persistPartyHost();
     return res.json({ success: true, partyHost: getPartyHostInfo() });
   }
+
+  // AUTO-RESTORE: If host seat is vacant, re-attach returning user seamlessly
+  if ((partyHost.name === null || partyHost.isVacant) && token && name) {
+    const cleanName = name.trim().slice(0, 25);
+    console.log(`[Host Auto-Restore] Re-attaching host session for ${cleanName}`);
+    partyHost = {
+      name: cleanName,
+      token: token,
+      claimedAt: Date.now(),
+      lastHeartbeat: Date.now()
+    };
+    knownDJs.add(cleanName);
+    persistPartyHost();
+    broadcastUpdate();
+    return res.json({ success: true, partyHost: getPartyHostInfo() });
+  }
+
   checkHostVacant();
   res.json({ success: false, partyHost: getPartyHostInfo() });
 });
@@ -1130,6 +1193,7 @@ app.post('/api/host/release', (req, res) => {
   if (partyHost.name && (!token || partyHost.token === token)) {
     const oldHost = partyHost.name;
     partyHost = { name: null, token: null, claimedAt: null, lastHeartbeat: null };
+    persistPartyHost();
     addActivity(oldHost, 'host_released', 'melepas kursi Host. Status sekarang VACANT ⚠️');
     broadcastUpdate();
     return res.json({ success: true, partyHost: getPartyHostInfo() });
