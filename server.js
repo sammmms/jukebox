@@ -9,7 +9,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.10.1';
+const APP_VERSION = '2.10.2';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -345,7 +345,12 @@ const AUTOPLAY_FALLBACK_TRACKS = [
   { videoId: 'JGwWNGJdvx8', title: 'Shape of You', artist: 'Ed Sheeran', thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg', songDuration: 233 },
   { videoId: 'ArmDp-zijuc', title: 'Super Shy', artist: 'NewJeans', thumbnail: 'https://i.ytimg.com/vi/ArmDp-zijuc/hqdefault.jpg', songDuration: 154 },
   { videoId: 'x8VYWazR5mE', title: '夜に駆ける (Racing into the Night)', artist: 'YOASOBI', thumbnail: 'https://i.ytimg.com/vi/x8VYWazR5mE/hqdefault.jpg', songDuration: 261 },
-  { videoId: 'a5uQMwRMHcs', title: 'Sparkle (スパークル)', artist: 'RADWIMPS', thumbnail: 'https://i.ytimg.com/vi/a5uQMwRMHcs/hqdefault.jpg', songDuration: 410 }
+  { videoId: 'a5uQMwRMHcs', title: 'Sparkle (スパークル)', artist: 'RADWIMPS', thumbnail: 'https://i.ytimg.com/vi/a5uQMwRMHcs/hqdefault.jpg', songDuration: 410 },
+  { videoId: 'DYptgVvkVLQ', title: '晴天 (Sunny Day)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/DYptgVvkVLQ/hqdefault.jpg', songDuration: 319 },
+  { videoId: 'kvEeCLf16zM', title: '简单爱 (Simple Love)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/kvEeCLf16zM/hqdefault.jpg', songDuration: 271 },
+  { videoId: 'KqjgLbKZ1h0', title: '那些年 (Those Bygone Years)', artist: '胡夏 Hu Xia', thumbnail: 'https://i.ytimg.com/vi/KqjgLbKZ1h0/hqdefault.jpg', songDuration: 369 },
+  { videoId: 'QSWYyoF79oE', title: 'Sial', artist: 'Mahalini', thumbnail: 'https://i.ytimg.com/vi/QSWYyoF79oE/hqdefault.jpg', songDuration: 244 },
+  { videoId: 'fKRtnMYMW08', title: 'Komang', artist: 'Raim Laode', thumbnail: 'https://i.ytimg.com/vi/fKRtnMYMW08/hqdefault.jpg', songDuration: 223 }
 ];
 
 async function getAutoplayNextTrack(prevSong) {
@@ -1217,16 +1222,43 @@ app.post('/api/search', async (req, res) => {
 
 // 3. Add to Queue / Transfer Song to YouTube Music
 app.post('/api/queue', async (req, res) => {
-  const { input, user, title, artist, thumbnail, songDuration } = req.body;
-  const videoId = extractVideoId(input);
+  let { input, user, title, artist, thumbnail, songDuration } = req.body;
+  let videoId = extractVideoId(input);
 
   if (!videoId) {
     return res.status(400).json({ error: 'Format link atau ID YouTube tidak valid.' });
   }
 
-  const validation = await validateYouTubeMusicTrack(videoId);
+  let validation = await validateYouTubeMusicTrack(videoId);
   if (!validation.valid) {
-    return res.status(422).json({ error: validation.error });
+    // SMART AUTO-RECOVERY: If video is 404/deleted/has typo, but we have title/artist, search YouTube Music for an active live track!
+    if (title || artist) {
+      try {
+        const cleanQuery = `${title || ''} ${artist || ''}`.replace(/\([^)]*\)/g, ' ').trim();
+        console.log(`[Queue Auto-Recovery] Video ID ${videoId} returned 404. Searching alternative for: "${cleanQuery}"`);
+        const searchResults = await searchYouTubeMusic(cleanQuery);
+        for (const candidate of searchResults) {
+          if (candidate.videoId && candidate.videoId !== videoId) {
+            const candidateValidation = await validateYouTubeMusicTrack(candidate.videoId);
+            if (candidateValidation.valid) {
+              console.log(`[Queue Auto-Recovery] Auto-recovered working track: ${candidate.videoId} (${candidate.title})`);
+              videoId = candidate.videoId;
+              validation = candidateValidation;
+              if (!thumbnail || thumbnail.includes('placeholder')) {
+                thumbnail = candidate.thumbnail || validation.thumbnail;
+              }
+              break;
+            }
+          }
+        }
+      } catch (recoveryErr) {
+        console.warn('[Queue Auto-Recovery] Error during auto-search:', recoveryErr.message);
+      }
+    }
+
+    if (!validation.valid) {
+      return res.status(422).json({ error: validation.error });
+    }
   }
 
   const songTitle = title || validation.title || 'Song';

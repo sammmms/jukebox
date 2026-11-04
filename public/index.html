@@ -315,9 +315,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.10.1)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.10.2)"
                     class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-colors cursor-pointer active:scale-95">
-              v2.10.1
+              v2.10.2
             </button>
           </div>
           <div id="connection-btn" class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
@@ -894,7 +894,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.10.1</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.10.2</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -905,10 +905,21 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.10.1 -->
+        <!-- v2.10.2 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.10.1 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.10.2 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">🎯 Fix Rekomendasi 404 & Smart Auto-Recovery:</strong> Memperbaiki video ID resmi & thumbnail yang sebelumnya 404 pada lagu 晴天 (Sunny Day), 简单爱 (Simple Love), 那些年, Sial, dan Komang. Dilengkapi sistem server auto-recovery yang otomatis mencari versi aktif di YouTube Music jika ada video yang terhapus atau typo, sehingga lagu selalu sukses masuk antrean.</li>
+          </ul>
+        </div>
+
+        <!-- v2.10.1 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-800/40 border border-slate-200 dark:border-gray-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-600">v2.10.1</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -1423,7 +1434,7 @@
 
       <!-- Section 5: Version & Release Notes -->
       <div class="pt-1 flex items-center justify-between text-xs text-slate-400">
-        <span>Party Jukebox v2.10.1</span>
+        <span>Party Jukebox v2.10.2</span>
         <button onclick="openChangelogModal(); closeSettingsModal();" class="font-bold text-pink-600 dark:text-pink-400 hover:underline">
           Lihat Catatan Rilis 🚀
         </button>
@@ -1666,7 +1677,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.10.1';
+    const CLIENT_VERSION = '2.10.2';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
 
@@ -4150,9 +4161,9 @@
       { videoId: 'T4SimnaiktU', title: '光年之外 (Light Years Away)', artist: '邓紫棋 G.E.M.', thumbnail: 'https://i.ytimg.com/vi/T4SimnaiktU/hqdefault.jpg', songDuration: 235 },
       { videoId: 'Y2ge3KrdeWs', title: '怎么了 (What\'s Wrong)', artist: '周兴哲 Eric Chou', thumbnail: 'https://i.ytimg.com/vi/Y2ge3KrdeWs/hqdefault.jpg', songDuration: 320 },
       { videoId: '_MQVmPpMQEc', title: '阿拉斯加海湾 (Gulf of Alaska)', artist: '菲道尔 Firdhaus', thumbnail: 'https://i.ytimg.com/vi/_MQVmPpMQEc/hqdefault.jpg', songDuration: 247 },
-      { videoId: 'DYptgVVkVLQ', title: '晴天 (Sunny Day)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/DYptgVVkVLQ/hqdefault.jpg', songDuration: 269 },
-      { videoId: 'Y4xdfspvi_o', title: '简单爱 (Simple Love)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/Y4xdfspvi_o/hqdefault.jpg', songDuration: 271 },
-      { videoId: 'w2a_H1_e5p0', title: '那些年 (Those Bygone Years)', artist: '胡夏 Hu Xia', thumbnail: 'https://i.ytimg.com/vi/w2a_H1_e5p0/hqdefault.jpg', songDuration: 360 },
+      { videoId: 'DYptgVvkVLQ', title: '晴天 (Sunny Day)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/DYptgVvkVLQ/hqdefault.jpg', songDuration: 319 },
+      { videoId: 'kvEeCLf16zM', title: '简单爱 (Simple Love)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/kvEeCLf16zM/hqdefault.jpg', songDuration: 271 },
+      { videoId: 'KqjgLbKZ1h0', title: '那些年 (Those Bygone Years)', artist: '胡夏 Hu Xia', thumbnail: 'https://i.ytimg.com/vi/KqjgLbKZ1h0/hqdefault.jpg', songDuration: 369 },
       // Global Party & Anime Classics
       { videoId: 'dvgZkm1xWPE', title: 'Viva La Vida', artist: 'Coldplay', thumbnail: 'https://i.ytimg.com/vi/dvgZkm1xWPE/hqdefault.jpg', songDuration: 242 },
       { videoId: '34Na4j8AVgA', title: 'Starboy', artist: 'The Weeknd ft. Daft Punk', thumbnail: 'https://i.ytimg.com/vi/34Na4j8AVgA/hqdefault.jpg', songDuration: 230 },
@@ -4160,8 +4171,8 @@
       { videoId: 'ArmDp-zijuc', title: 'Super Shy', artist: 'NewJeans', thumbnail: 'https://i.ytimg.com/vi/ArmDp-zijuc/hqdefault.jpg', songDuration: 154 },
       { videoId: 'x8VYWazR5mE', title: '夜に駆ける (Racing into the Night)', artist: 'YOASOBI', thumbnail: 'https://i.ytimg.com/vi/x8VYWazR5mE/hqdefault.jpg', songDuration: 261 },
       { videoId: 'a5uQMwRMHcs', title: 'Sparkle (スパークル)', artist: 'RADWIMPS', thumbnail: 'https://i.ytimg.com/vi/a5uQMwRMHcs/hqdefault.jpg', songDuration: 410 },
-      { videoId: 'qQrgvUj2yv4', title: 'Sial', artist: 'Mahalini', thumbnail: 'https://i.ytimg.com/vi/qQrgvUj2yv4/hqdefault.jpg', songDuration: 243 },
-      { videoId: 'v8Jt_4N_q0A', title: 'Komang', artist: 'Raim Laode', thumbnail: 'https://i.ytimg.com/vi/v8Jt_4N_q0A/hqdefault.jpg', songDuration: 222 },
+      { videoId: 'QSWYyoF79oE', title: 'Sial', artist: 'Mahalini', thumbnail: 'https://i.ytimg.com/vi/QSWYyoF79oE/hqdefault.jpg', songDuration: 244 },
+      { videoId: 'fKRtnMYMW08', title: 'Komang', artist: 'Raim Laode', thumbnail: 'https://i.ytimg.com/vi/fKRtnMYMW08/hqdefault.jpg', songDuration: 223 },
       { videoId: 'QU9c0053UAU', title: 'Seven', artist: 'Jung Kook ft. Latto', thumbnail: 'https://i.ytimg.com/vi/QU9c0053UAU/hqdefault.jpg', songDuration: 184 }
     ];
 
