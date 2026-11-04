@@ -9,7 +9,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.11.3';
+const APP_VERSION = '2.11.4';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -836,9 +836,12 @@ function updatePlaybackTracker(freshSong) {
 }
 
 function getCalculatedElapsed() {
-  if (playbackTracker.isPaused) return Math.floor(playbackTracker.elapsed);
+  const base = (typeof playbackTracker.elapsed === 'number' && playbackTracker.elapsed > 0)
+    ? playbackTracker.elapsed
+    : (currentSong.elapsedSeconds || 0);
+  if (playbackTracker.isPaused) return Math.floor(base);
   const delta = (Date.now() - playbackTracker.lastUpdated) / 1000;
-  const total = playbackTracker.elapsed + delta;
+  const total = base + delta;
   const max = playbackTracker.songDuration > 0 ? playbackTracker.songDuration : 9999;
   return Math.floor(Math.min(total, max));
 }
@@ -1351,9 +1354,9 @@ app.get('/api/status', async (req, res) => {
 
 // 2. Direct Search
 app.post('/api/search', async (req, res) => {
-  const { query } = req.body;
-  if (!query || typeof query !== 'string') {
-    return res.status(400).json({ error: 'Query is required' });
+  const { query } = req.body || {};
+  if (!query || typeof query !== 'string' || !query.trim()) {
+    return res.json({ results: [] });
   }
   const results = await searchYouTubeMusic(query.trim());
   res.json({ results });
@@ -1645,7 +1648,7 @@ app.post('/api/upvote', async (req, res) => {
 
 // 7. Playback Controls
 app.post('/api/control/toggle', async (req, res) => {
-  const { user } = req.body;
+  const { user, elapsed } = req.body || {};
 
   if (isUsingYtmDesktop()) {
     try {
@@ -1659,13 +1662,27 @@ app.post('/api/control/toggle', async (req, res) => {
   }
 
   if (!currentSong.videoId) return res.json({ success: false, error: 'No song loaded' });
+
+  const now = Date.now();
+  // If client provided explicit elapsed timestamp, commit it directly
+  if (typeof elapsed === 'number' && elapsed >= 0) {
+    playbackTracker.elapsed = elapsed;
+    currentSong.elapsedSeconds = elapsed;
+  } else if (!playbackTracker.isPaused) {
+    // If transitioning from PLAYING -> PAUSED: commit elapsed delta so timeline freezes exactly here!
+    const delta = (now - playbackTracker.lastUpdated) / 1000;
+    const dur = playbackTracker.songDuration || currentSong.songDuration || 9999;
+    playbackTracker.elapsed = Math.min((playbackTracker.elapsed || 0) + delta, dur);
+    currentSong.elapsedSeconds = playbackTracker.elapsed;
+  }
+
   currentSong.isPaused = !currentSong.isPaused;
   playbackTracker.isPaused = currentSong.isPaused;
-  playbackTracker.lastUpdated = Date.now();
+  playbackTracker.lastUpdated = now;
   addActivity(user, currentSong.isPaused ? 'pause' : 'play', currentSong.title);
   persistPartyQueue();
   broadcastUpdate();
-  res.json({ success: true, isPaused: currentSong.isPaused });
+  res.json({ success: true, isPaused: currentSong.isPaused, elapsed: getCalculatedElapsed() });
 });
 
 app.post('/api/control/next', async (req, res) => {

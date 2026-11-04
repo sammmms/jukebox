@@ -344,9 +344,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.3)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.4)"
                     class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-colors cursor-pointer active:scale-95">
-              v2.11.3
+              v2.11.4
             </button>
           </div>
           <div id="connection-btn" class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
@@ -549,12 +549,12 @@
             <div class="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-gray-800/70 border border-slate-200/50 dark:border-gray-700/50">
               <button onclick="switchQueueTab('upcoming')" id="tab-btn-upcoming"
                       class="px-3 py-1 rounded-lg text-xs font-bold transition-all bg-white dark:bg-gray-700 text-slate-800 dark:text-white shadow-2xs flex items-center gap-1.5 cursor-pointer">
-                <span>Antrean</span>
+                <span>Antrean Mendatang</span>
                 <span id="queue-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-pink-500/15 text-pink-600 dark:text-pink-400 font-extrabold">0</span>
               </button>
               <button onclick="switchQueueTab('history')" id="tab-btn-history"
                       class="px-3 py-1 rounded-lg text-xs font-semibold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-800 dark:hover:text-white flex items-center gap-1.5 cursor-pointer">
-                <span>Sudah Diputar</span>
+                <span>Lagu yang Sudah Diputar</span>
                 <span id="history-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200/70 dark:bg-gray-800 text-slate-600 dark:text-gray-400 font-bold">0</span>
               </button>
             </div>
@@ -887,7 +887,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.3</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.4</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -898,10 +898,24 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.11.3 -->
+        <!-- v2.11.4 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.11.3 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.11.4 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">🎛️ 3x3 Grid untuk Filter Genre & Country:</strong> Saat memilih filter genre dan negara, rekomendasi lagu tetap rapi ditampilkan dalam format grid 3x3 (kartu horizontal yang hemat ruang) lengkap dengan paginasi dan tombol acak.</li>
+            <li><strong class="text-slate-800 dark:text-white">🔍 1-Column Search Layout:</strong> Saat mengetik pencarian lagu/artis di kolom input, hasil pencarian ditampilkan dalam 1 kolom vertikal membujur penuh agar judul dan nama penyanyi panjang mudah dibaca tanpa sesak.</li>
+            <li><strong class="text-slate-800 dark:text-white">⏱️ Perbaikan Timeline Freeze saat Pause:</strong> Memperbaiki bug di mana waktu lagu (timeline) mereset ke 0:00 saat lagu dijeda (pause). Posisi detik pemutaran kini bertahan presisi tanpa terpotong atau kembali ke awal.</li>
+            <li><strong class="text-slate-800 dark:text-white">👑 Host Identity Auto-Recovery:</strong> Host otomatis disinkronkan saat refresh browser tanpa menampilkan tombol keliru "Ambil Alih Host" dari diri sendiri.</li>
+          </ul>
+        </div>
+
+        <!-- v2.11.3 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-800/40 border border-slate-200 dark:border-gray-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-600">v2.11.3</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -1912,7 +1926,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.11.3';
+    const CLIENT_VERSION = '2.11.4';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -2334,7 +2348,7 @@
         if ('setPositionState' in navigator.mediaSession && songDuration > 0) {
           navigator.mediaSession.setPositionState({
             duration: songDuration,
-            playbackRate: song.isPaused ? 0 : 1,
+            playbackRate: 1,
             position: Math.min(Math.floor(currentElapsed || 0), songDuration)
           });
         }
@@ -3090,11 +3104,15 @@
 
     function isMeHost() {
       if (!currentPartyHost || currentPartyHost.isVacant || !currentPartyHost.name) return false;
-      const myToken = localStorage.getItem('jukebox_host_token');
-      if (currentPartyHost.token) {
-        return Boolean(myToken && myToken === currentPartyHost.token);
+      // 1. Primary check: Current DJ username matches host name (case-insensitive)
+      if (currentUser && currentPartyHost.name && currentUser.trim().toLowerCase() === currentPartyHost.name.trim().toLowerCase()) {
+        return true;
       }
-      if (currentUser && currentPartyHost.name.toLowerCase() === currentUser.toLowerCase()) return true;
+      // 2. Token match check
+      const myToken = localStorage.getItem('jukebox_host_token');
+      if (myToken && currentPartyHost.token && myToken === currentPartyHost.token) {
+        return true;
+      }
       return false;
     }
 
@@ -3298,9 +3316,19 @@
     function updateHostUI(partyHost) {
       currentPartyHost = partyHost;
 
-      // Check if previous active host lost the host token
       const myToken = localStorage.getItem('jukebox_host_token');
-      if (isHostSpeakerActive && myToken && partyHost.token && myToken !== partyHost.token) {
+      const meHost = isMeHost();
+
+      // AUTO-SYNC HOST TOKEN: If I am the host (by name), ensure local token matches server token!
+      if (meHost && partyHost.token && myToken !== partyHost.token) {
+        localStorage.setItem('jukebox_host_token', partyHost.token);
+        if (!hostHeartbeatTimer) {
+          startHostHeartbeat();
+        }
+      }
+
+      // Check if previous active host lost the host token to someone else
+      if (isHostSpeakerActive && myToken && partyHost.token && myToken !== partyHost.token && !meHost) {
         console.log('⚠️ Kursi Host diambil alih oleh:', partyHost.name);
         localStorage.removeItem('jukebox_host_token');
         if (hostHeartbeatTimer) {
@@ -3329,7 +3357,6 @@
       // Update Mobile Header Host Strip
       const mobileName = document.getElementById('mobile-host-name');
       const mobileAction = document.getElementById('mobile-host-action-container');
-      const meHost = isMeHost();
       if (mobileName && mobileAction) {
         if (!partyHost || partyHost.isVacant || !partyHost.name) {
           mobileName.textContent = 'Vacant';
@@ -4009,37 +4036,21 @@
           loadLyricsForSong(song);
         } else {
           if (song.isPaused) {
-            currentElapsed = song.currentElapsed || 0;
+            if (typeof song.currentElapsed === 'number' && song.currentElapsed > 0) {
+              currentElapsed = song.currentElapsed;
+            }
             lastTickTimestamp = Date.now();
           } else if (typeof song.currentElapsed === 'number') {
             const drift = Math.abs(song.currentElapsed - currentElapsed);
-            if (drift > 0.4) {
+            if (drift > 1.2) {
               currentElapsed = song.currentElapsed;
               lastTickTimestamp = Date.now();
             }
           }
         }
 
-        if (isMeHost()) {
-          const isNative = isUseNativeAudioEngine();
-          const hostAudio = document.getElementById('host-native-audio');
-          let isPhysicallyPlaying = false;
-          if (isNative && hostAudio) {
-            isPhysicallyPlaying = !hostAudio.paused;
-          } else if (ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
-            isPhysicallyPlaying = (ytPlayer.getPlayerState() === 1);
-          }
-
-          // On Host device, if song is marked playing on server but local audio is not physically playing,
-          // show Play icon so user knows audio is waiting/not producing sound.
-          if (!song.isPaused && !isPhysicallyPlaying) {
-            isPlaying = false;
-          } else {
-            isPlaying = !song.isPaused;
-          }
-        } else {
-          isPlaying = !song.isPaused;
-        }
+        // Room Playback State: Play/Pause button strictly reflects room playback state
+        isPlaying = !song.isPaused;
         if (song.songDuration && song.songDuration > 0) {
           songDuration = song.songDuration;
         } else if (!songDuration || songDuration === 0) {
@@ -4557,48 +4568,156 @@
     // ============================================================
     const partyRecommendations = [
       // Top Mandarin / C-Pop Hits
-      { videoId: 'bu7nU9Mhpyo', title: '告白气球 (Love Confession)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/bu7nU9Mhpyo/hqdefault.jpg', songDuration: 215 },
-      { videoId: '6D79CYTxvOM', title: '爱人错过 (Somewhere in time)', artist: '告五人 Accusefive', thumbnail: 'https://i.ytimg.com/vi/6D79CYTxvOM/hqdefault.jpg', songDuration: 290 },
-      { videoId: 'LWV-f6dMN3Q', title: '修炼爱情 (Practice Love)', artist: '林俊杰 JJ Lin', thumbnail: 'https://i.ytimg.com/vi/LWV-f6dMN3Q/hqdefault.jpg', songDuration: 280 },
-      { videoId: 'T4SimnaiktU', title: '光年之外 (Light Years Away)', artist: '邓紫棋 G.E.M.', thumbnail: 'https://i.ytimg.com/vi/T4SimnaiktU/hqdefault.jpg', songDuration: 235 },
-      { videoId: 'Y2ge3KrdeWs', title: '怎么了 (What\'s Wrong)', artist: '周兴哲 Eric Chou', thumbnail: 'https://i.ytimg.com/vi/Y2ge3KrdeWs/hqdefault.jpg', songDuration: 320 },
-      { videoId: '_MQVmPpMQEc', title: '阿拉斯加海湾 (Gulf of Alaska)', artist: '菲道尔 Firdhaus', thumbnail: 'https://i.ytimg.com/vi/_MQVmPpMQEc/hqdefault.jpg', songDuration: 247 },
-      { videoId: 'DYptgVvkVLQ', title: '晴天 (Sunny Day)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/DYptgVvkVLQ/hqdefault.jpg', songDuration: 319 },
-      { videoId: 'kvEeCLf16zM', title: '简单爱 (Simple Love)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/kvEeCLf16zM/hqdefault.jpg', songDuration: 271 },
-      { videoId: 'KqjgLbKZ1h0', title: '那些年 (Those Bygone Years)', artist: '胡夏 Hu Xia', thumbnail: 'https://i.ytimg.com/vi/KqjgLbKZ1h0/hqdefault.jpg', songDuration: 369 },
-      { videoId: 'Dnj5Tcpev0Q', title: '年少有为 (If I Were Young)', artist: '李荣浩 Li Ronghao', thumbnail: 'https://i.ytimg.com/vi/Dnj5Tcpev0Q/hqdefault.jpg', songDuration: 279 },
-      { videoId: 'e-ORhEE9VVg', title: 'Blank Space', artist: 'Taylor Swift', thumbnail: 'https://i.ytimg.com/vi/e-ORhEE9VVg/hqdefault.jpg', songDuration: 231 },
-      { videoId: 'k2qgadSvNyU', title: 'New Rules', artist: 'Dua Lipa', thumbnail: 'https://i.ytimg.com/vi/k2qgadSvNyU/hqdefault.jpg', songDuration: 225 },
+      { videoId: 'bu7nU9Mhpyo', title: '告白气球 (Love Confession)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/bu7nU9Mhpyo/hqdefault.jpg', songDuration: 215, country: 'Mandarin', genre: 'Pop Hits' },
+      { videoId: '6D79CYTxvOM', title: '爱人错过 (Somewhere in time)', artist: '告五人 Accusefive', thumbnail: 'https://i.ytimg.com/vi/6D79CYTxvOM/hqdefault.jpg', songDuration: 290, country: 'Taiwan', genre: 'Pop Hits' },
+      { videoId: 'LWV-f6dMN3Q', title: '修炼爱情 (Practice Love)', artist: '林俊杰 JJ Lin', thumbnail: 'https://i.ytimg.com/vi/LWV-f6dMN3Q/hqdefault.jpg', songDuration: 280, country: 'Mandarin', genre: 'Ballad Galau' },
+      { videoId: 'T4SimnaiktU', title: '光年之外 (Light Years Away)', artist: '邓紫棋 G.E.M.', thumbnail: 'https://i.ytimg.com/vi/T4SimnaiktU/hqdefault.jpg', songDuration: 235, country: 'Mandarin', genre: 'Pop Hits' },
+      { videoId: 'Y2ge3KrdeWs', title: '怎么了 (What\'s Wrong)', artist: '周兴哲 Eric Chou', thumbnail: 'https://i.ytimg.com/vi/Y2ge3KrdeWs/hqdefault.jpg', songDuration: 320, country: 'Mandarin', genre: 'Ballad Galau' },
+      { videoId: '_MQVmPpMQEc', title: '阿拉斯加海湾 (Gulf of Alaska)', artist: '菲道尔 Firdhaus', thumbnail: 'https://i.ytimg.com/vi/_MQVmPpMQEc/hqdefault.jpg', songDuration: 247, country: 'Mandarin', genre: 'Acoustic Chill' },
+      { videoId: 'DYptgVvkVLQ', title: '晴天 (Sunny Day)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/DYptgVvkVLQ/hqdefault.jpg', songDuration: 319, country: 'Mandarin', genre: 'Pop Hits' },
+      { videoId: 'kvEeCLf16zM', title: '简单爱 (Simple Love)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/kvEeCLf16zM/hqdefault.jpg', songDuration: 271, country: 'Mandarin', genre: 'Pop Hits' },
+      { videoId: 'KqjgLbKZ1h0', title: '那些年 (Those Bygone Years)', artist: '胡夏 Hu Xia', thumbnail: 'https://i.ytimg.com/vi/KqjgLbKZ1h0/hqdefault.jpg', songDuration: 369, country: 'Taiwan', genre: 'Ballad Galau' },
+      { videoId: 'Dnj5Tcpev0Q', title: '年少有为 (If I Were Young)', artist: '李荣浩 Li Ronghao', thumbnail: 'https://i.ytimg.com/vi/Dnj5Tcpev0Q/hqdefault.jpg', songDuration: 279, country: 'Mandarin', genre: 'Ballad Galau' },
+      { videoId: 'e-ORhEE9VVg', title: 'Blank Space', artist: 'Taylor Swift', thumbnail: 'https://i.ytimg.com/vi/e-ORhEE9VVg/hqdefault.jpg', songDuration: 231, country: 'Western', genre: 'Pop Hits' },
+      { videoId: 'k2qgadSvNyU', title: 'New Rules', artist: 'Dua Lipa', thumbnail: 'https://i.ytimg.com/vi/k2qgadSvNyU/hqdefault.jpg', songDuration: 225, country: 'Western', genre: 'EDM Dance' },
       // Top Indo Hits
-      { videoId: 'QSWYyoF79oE', title: 'Sial', artist: 'Mahalini', thumbnail: 'https://i.ytimg.com/vi/QSWYyoF79oE/hqdefault.jpg', songDuration: 244 },
-      { videoId: 'fKRtnMYMW08', title: 'Komang', artist: 'Raim Laode', thumbnail: 'https://i.ytimg.com/vi/fKRtnMYMW08/hqdefault.jpg', songDuration: 223 },
-      { videoId: 'yjnSX_iUFVo', title: 'Satu Bulan', artist: 'Bernadya', thumbnail: 'https://i.ytimg.com/vi/yjnSX_iUFVo/hqdefault.jpg', songDuration: 201 },
-      { videoId: 'AQpEIZ8dNcU', title: 'Gala Bunga Matahari', artist: 'Sal Priadi', thumbnail: 'https://i.ytimg.com/vi/AQpEIZ8dNcU/hqdefault.jpg', songDuration: 238 },
-      { videoId: '0i-D1eBVKUM', title: 'Sialan', artist: 'Juicy Luicy ft. Adrian Khalif', thumbnail: 'https://i.ytimg.com/vi/0i-D1eBVKUM/hqdefault.jpg', songDuration: 269 },
-      { videoId: 'dGcGbF4ex5o', title: 'Dan...', artist: 'Sheila on 7', thumbnail: 'https://i.ytimg.com/vi/dGcGbF4ex5o/hqdefault.jpg', songDuration: 286 },
+      { videoId: 'QSWYyoF79oE', title: 'Sial', artist: 'Mahalini', thumbnail: 'https://i.ytimg.com/vi/QSWYyoF79oE/hqdefault.jpg', songDuration: 244, country: 'Indonesia', genre: 'Pop Hits' },
+      { videoId: 'fKRtnMYMW08', title: 'Komang', artist: 'Raim Laode', thumbnail: 'https://i.ytimg.com/vi/fKRtnMYMW08/hqdefault.jpg', songDuration: 223, country: 'Indonesia', genre: 'Acoustic Chill' },
+      { videoId: 'yjnSX_iUFVo', title: 'Satu Bulan', artist: 'Bernadya', thumbnail: 'https://i.ytimg.com/vi/yjnSX_iUFVo/hqdefault.jpg', songDuration: 201, country: 'Indonesia', genre: 'Pop Hits' },
+      { videoId: 'AQpEIZ8dNcU', title: 'Gala Bunga Matahari', artist: 'Sal Priadi', thumbnail: 'https://i.ytimg.com/vi/AQpEIZ8dNcU/hqdefault.jpg', songDuration: 238, country: 'Indonesia', genre: 'Acoustic Chill' },
+      { videoId: '0i-D1eBVKUM', title: 'Sialan', artist: 'Juicy Luicy ft. Adrian Khalif', thumbnail: 'https://i.ytimg.com/vi/0i-D1eBVKUM/hqdefault.jpg', songDuration: 269, country: 'Indonesia', genre: 'Pop Hits' },
+      { videoId: 'dGcGbF4ex5o', title: 'Dan...', artist: 'Sheila on 7', thumbnail: 'https://i.ytimg.com/vi/dGcGbF4ex5o/hqdefault.jpg', songDuration: 286, country: 'Indonesia', genre: 'Rock' },
       // Global Party & Pop Hits
-      { videoId: 'dvgZkm1xWPE', title: 'Viva La Vida', artist: 'Coldplay', thumbnail: 'https://i.ytimg.com/vi/dvgZkm1xWPE/hqdefault.jpg', songDuration: 242 },
-      { videoId: '34Na4j8AVgA', title: 'Starboy', artist: 'The Weeknd ft. Daft Punk', thumbnail: 'https://i.ytimg.com/vi/34Na4j8AVgA/hqdefault.jpg', songDuration: 230 },
-      { videoId: 'JGwWNGJdvx8', title: 'Shape of You', artist: 'Ed Sheeran', thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg', songDuration: 233 },
-      { videoId: '4NRXx6U8ABQ', title: 'Blinding Lights', artist: 'The Weeknd', thumbnail: 'https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg', songDuration: 200 },
-      { videoId: 'H5v3kku4y6Q', title: 'As It Was', artist: 'Harry Styles', thumbnail: 'https://i.ytimg.com/vi/H5v3kku4y6Q/hqdefault.jpg', songDuration: 167 },
-      { videoId: 'V9PVRfjEBTI', title: 'BIRDS OF A FEATHER', artist: 'Billie Eilish', thumbnail: 'https://i.ytimg.com/vi/V9PVRfjEBTI/hqdefault.jpg', songDuration: 190 },
-      { videoId: 'V1Pl8CzNzCw', title: 'lovely', artist: 'Billie Eilish & Khalid', thumbnail: 'https://i.ytimg.com/vi/V1Pl8CzNzCw/hqdefault.jpg', songDuration: 200 },
-      { videoId: 'kPa7bsKwL-c', title: 'Die With A Smile', artist: 'Lady Gaga & Bruno Mars', thumbnail: 'https://i.ytimg.com/vi/kPa7bsKwL-c/hqdefault.jpg', songDuration: 251 },
+      { videoId: 'dvgZkm1xWPE', title: 'Viva La Vida', artist: 'Coldplay', thumbnail: 'https://i.ytimg.com/vi/dvgZkm1xWPE/hqdefault.jpg', songDuration: 242, country: 'Western', genre: 'Rock' },
+      { videoId: '34Na4j8AVgA', title: 'Starboy', artist: 'The Weeknd ft. Daft Punk', thumbnail: 'https://i.ytimg.com/vi/34Na4j8AVgA/hqdefault.jpg', songDuration: 230, country: 'Western', genre: 'R&B Soul' },
+      { videoId: 'JGwWNGJdvx8', title: 'Shape of You', artist: 'Ed Sheeran', thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg', songDuration: 233, country: 'Western', genre: 'Pop Hits' },
+      { videoId: '4NRXx6U8ABQ', title: 'Blinding Lights', artist: 'The Weeknd', thumbnail: 'https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg', songDuration: 200, country: 'Western', genre: 'Pop Hits' },
+      { videoId: 'H5v3kku4y6Q', title: 'As It Was', artist: 'Harry Styles', thumbnail: 'https://i.ytimg.com/vi/H5v3kku4y6Q/hqdefault.jpg', songDuration: 167, country: 'Western', genre: 'Pop Hits' },
+      { videoId: 'V9PVRfjEBTI', title: 'BIRDS OF A FEATHER', artist: 'Billie Eilish', thumbnail: 'https://i.ytimg.com/vi/V9PVRfjEBTI/hqdefault.jpg', songDuration: 190, country: 'Western', genre: 'Pop Hits' },
+      { videoId: 'V1Pl8CzNzCw', title: 'lovely', artist: 'Billie Eilish & Khalid', thumbnail: 'https://i.ytimg.com/vi/V1Pl8CzNzCw/hqdefault.jpg', songDuration: 200, country: 'Western', genre: 'Ballad Galau' },
+      { videoId: 'kPa7bsKwL-c', title: 'Die With A Smile', artist: 'Lady Gaga & Bruno Mars', thumbnail: 'https://i.ytimg.com/vi/kPa7bsKwL-c/hqdefault.jpg', songDuration: 251, country: 'Western', genre: 'Ballad Galau' },
       // K-Pop & J-Pop Anime
-      { videoId: 'ArmDp-zijuc', title: 'Super Shy', artist: 'NewJeans', thumbnail: 'https://i.ytimg.com/vi/ArmDp-zijuc/hqdefault.jpg', songDuration: 154 },
-      { videoId: 'QU9c0053UAU', title: 'Seven', artist: 'Jung Kook ft. Latto', thumbnail: 'https://i.ytimg.com/vi/QU9c0053UAU/hqdefault.jpg', songDuration: 184 },
-      { videoId: 'hLvWy2b857I', title: 'Perfect Night', artist: 'LE SSERAFIM', thumbnail: 'https://i.ytimg.com/vi/hLvWy2b857I/hqdefault.jpg', songDuration: 159 },
-      { videoId: 'phuiiNCxRMg', title: 'Supernova', artist: 'aespa', thumbnail: 'https://i.ytimg.com/vi/phuiiNCxRMg/hqdefault.jpg', songDuration: 178 },
-      { videoId: 'x8VYWazR5mE', title: '夜に駆ける (Racing into the Night)', artist: 'YOASOBI', thumbnail: 'https://i.ytimg.com/vi/x8VYWazR5mE/hqdefault.jpg', songDuration: 261 },
-      { videoId: 'a2GujJZfXpg', title: 'Sparkle (スパークル)', artist: 'RADWIMPS', thumbnail: 'https://i.ytimg.com/vi/a2GujJZfXpg/hqdefault.jpg', songDuration: 410 },
-      { videoId: 'ZRtdQ81jPUQ', title: 'Idol (アイドル)', artist: 'YOASOBI', thumbnail: 'https://i.ytimg.com/vi/ZRtdQ81jPUQ/hqdefault.jpg', songDuration: 213 }
+      { videoId: 'ArmDp-zijuc', title: 'Super Shy', artist: 'NewJeans', thumbnail: 'https://i.ytimg.com/vi/ArmDp-zijuc/hqdefault.jpg', songDuration: 154, country: 'Korea', genre: 'Pop Hits' },
+      { videoId: 'QU9c0053UAU', title: 'Seven', artist: 'Jung Kook ft. Latto', thumbnail: 'https://i.ytimg.com/vi/QU9c0053UAU/hqdefault.jpg', songDuration: 184, country: 'Korea', genre: 'Pop Hits' },
+      { videoId: 'hLvWy2b857I', title: 'Perfect Night', artist: 'LE SSERAFIM', thumbnail: 'https://i.ytimg.com/vi/hLvWy2b857I/hqdefault.jpg', songDuration: 159, country: 'Korea', genre: 'Pop Hits' },
+      { videoId: 'phuiiNCxRMg', title: 'Supernova', artist: 'aespa', thumbnail: 'https://i.ytimg.com/vi/phuiiNCxRMg/hqdefault.jpg', songDuration: 178, country: 'Korea', genre: 'EDM Dance' },
+      { videoId: 'x8VYWazR5mE', title: '夜に駆ける (Racing into the Night)', artist: 'YOASOBI', thumbnail: 'https://i.ytimg.com/vi/x8VYWazR5mE/hqdefault.jpg', songDuration: 261, country: 'Jepang', genre: 'Anime OST' },
+      { videoId: 'a2GujJZfXpg', title: 'Sparkle (スパークル)', artist: 'RADWIMPS', thumbnail: 'https://i.ytimg.com/vi/a2GujJZfXpg/hqdefault.jpg', songDuration: 410, country: 'Jepang', genre: 'Anime OST' },
+      { videoId: 'ZRtdQ81jPUQ', title: 'Idol (アイドル)', artist: 'YOASOBI', thumbnail: 'https://i.ytimg.com/vi/ZRtdQ81jPUQ/hqdefault.jpg', songDuration: 213, country: 'Jepang', genre: 'Anime OST' }
     ];
 
     let dynamicRecommendationsPool = [...partyRecommendations];
+    let filteredRecommendationsPool = [];
+    let currentFilterKey = '';
     let currentRecommendationPage = 1;
     let isFetchingRecommendations = false;
     let recommendationSearchRotation = 0;
+
+    function getFilterQueryTag() {
+      let queryTag = '';
+      if (currentFilterCountry) {
+        if (currentFilterCountry.includes('Mandarin')) queryTag = 'Mandopop Hits 热门华语流行 周杰伦 林俊杰';
+        else if (currentFilterCountry.includes('Taiwan')) queryTag = 'Taiwan C-Pop 经典华语流行';
+        else if (currentFilterCountry.includes('Indonesia')) queryTag = 'Top Indo Pop Hits Bernadya Mahalini';
+        else if (currentFilterCountry.includes('Western')) queryTag = 'Top Western Global Hits Billie Eilish Coldplay';
+        else if (currentFilterCountry.includes('Korea')) queryTag = 'Trending K-Pop Hits NewJeans aespa';
+        else if (currentFilterCountry.includes('Jepang')) queryTag = 'Top Anime J-Pop Hits YOASOBI';
+        else queryTag = currentFilterCountry;
+      }
+      if (currentFilterGenre) {
+        queryTag = (queryTag ? queryTag + ' ' : '') + currentFilterGenre;
+      }
+      return queryTag.trim();
+    }
+
+    function getActivePool() {
+      if (currentFilterCountry || currentFilterGenre) {
+        return filteredRecommendationsPool;
+      }
+      return dynamicRecommendationsPool;
+    }
+
+    async function updateFilteredRecommendations(page = 1) {
+      const filterKey = `${currentFilterCountry}__${currentFilterGenre}`;
+      if (filterKey !== currentFilterKey) {
+        currentFilterKey = filterKey;
+        currentRecommendationPage = 1;
+
+        // 1. Initial seeds from curated catalog
+        const seeds = partyRecommendations.filter(item => {
+          let matchC = true;
+          let matchG = true;
+          if (currentFilterCountry) {
+            const c = currentFilterCountry.toLowerCase();
+            const itC = (item.country || '').toLowerCase();
+            if (c.includes('mandarin') && !itC.includes('mandarin')) matchC = false;
+            else if (c.includes('taiwan') && !itC.includes('taiwan')) matchC = false;
+            else if (c.includes('indonesia') && !itC.includes('indonesia')) matchC = false;
+            else if (c.includes('western') && !itC.includes('western')) matchC = false;
+            else if (c.includes('korea') && !itC.includes('korea')) matchC = false;
+            else if (c.includes('jepang') && !itC.includes('jepang')) matchC = false;
+          }
+          if (currentFilterGenre) {
+            const g = currentFilterGenre.toLowerCase();
+            const itG = (item.genre || '').toLowerCase();
+            if (g.includes('pop') && !itG.includes('pop')) matchG = false;
+            else if (g.includes('rock') && !itG.includes('rock')) matchG = false;
+            else if (g.includes('r&b') && !itG.includes('r&b')) matchG = false;
+            else if (g.includes('ballad') && !itG.includes('ballad')) matchG = false;
+            else if (g.includes('edm') && !itG.includes('edm')) matchG = false;
+            else if (g.includes('acoustic') && !itG.includes('acoustic')) matchG = false;
+            else if (g.includes('anime') && !itG.includes('anime')) matchG = false;
+          }
+          return matchC && matchG;
+        });
+
+        filteredRecommendationsPool = [...seeds];
+      }
+
+      // If pool has fewer than 9 or need more for next page, fetch online candidates from YouTube Music
+      const needed = page * 9;
+      if (filteredRecommendationsPool.length < needed) {
+        const queryTag = getFilterQueryTag();
+        if (queryTag) {
+          try {
+            document.getElementById('search-spinner')?.classList.remove('hidden');
+            const res = await fetch('/api/search', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ query: queryTag })
+            });
+            if (res.ok) {
+              const data = await res.json();
+              const newItems = (data.results || []).filter(item =>
+                item.videoId && !filteredRecommendationsPool.some(existing => existing.videoId === item.videoId)
+              );
+              filteredRecommendationsPool.push(...newItems);
+            }
+          } catch (e) {
+            console.error('Filter recommendation fetch error:', e);
+          } finally {
+            document.getElementById('search-spinner')?.classList.add('hidden');
+          }
+        }
+      }
+
+      renderDefaultRecommendations(page);
+    }
+
+    function resetFilters() {
+      currentFilterCountry = '';
+      currentFilterGenre = '';
+      currentFilterKey = '';
+      document.getElementById('select-icon-country').textContent = '🌍';
+      document.getElementById('select-label-country').textContent = 'Semua Negara';
+      document.getElementById('select-icon-genre').textContent = '🎵';
+      document.getElementById('select-label-genre').textContent = 'Semua Genre';
+      document.querySelectorAll('.select-opt-country .check-mark').forEach((c, i) => c.classList.toggle('hidden', i !== 0));
+      document.querySelectorAll('.select-opt-genre .check-mark').forEach((c, i) => c.classList.toggle('hidden', i !== 0));
+      currentRecommendationPage = 1;
+      renderDefaultRecommendations(1);
+      showToast('Filter direset ke semua rekomendasi');
+    }
 
     const DYNAMIC_ROTATING_SEEDS = [
       'Top 50 Pop Hits',
@@ -4646,17 +4765,22 @@
     async function changeRecommendationPage(targetPage) {
       if (targetPage < 1) targetPage = 1;
       currentRecommendationPage = targetPage;
-      await ensureRecommendationsForPage(targetPage);
-      renderDefaultRecommendations(targetPage);
-      // Preload next page in background for instant responsiveness
-      ensureRecommendationsForPage(targetPage + 1);
+      if (currentFilterCountry || currentFilterGenre) {
+        await updateFilteredRecommendations(targetPage);
+      } else {
+        await ensureRecommendationsForPage(targetPage);
+        renderDefaultRecommendations(targetPage);
+        // Preload next page in background for instant responsiveness
+        ensureRecommendationsForPage(targetPage + 1);
+      }
     }
 
     function shuffleRecommendations() {
+      const pool = getActivePool();
       // Fisher-Yates Shuffle
-      for (let i = dynamicRecommendationsPool.length - 1; i > 0; i--) {
+      for (let i = pool.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [dynamicRecommendationsPool[i], dynamicRecommendationsPool[j]] = [dynamicRecommendationsPool[j], dynamicRecommendationsPool[i]];
+        [pool[i], pool[j]] = [pool[j], pool[i]];
       }
       currentRecommendationPage = 1;
       renderDefaultRecommendations(1);
@@ -4668,10 +4792,11 @@
       const container = document.getElementById('search-results');
       if (!container) return;
 
+      const activePool = getActivePool();
       const pageSize = 9;
-      const totalPages = Math.max(page, Math.ceil(dynamicRecommendationsPool.length / pageSize));
+      const totalPages = Math.max(1, Math.ceil(activePool.length / pageSize));
       const startIdx = (page - 1) * pageSize;
-      const pageItems = dynamicRecommendationsPool.slice(startIdx, startIdx + pageSize);
+      const pageItems = activePool.slice(startIdx, startIdx + pageSize);
 
       // Dynamic pagination window
       const pageNumbers = [];
@@ -4681,14 +4806,48 @@
         pageNumbers.push(p);
       }
 
+      const isFiltered = Boolean(currentFilterCountry || currentFilterGenre);
+      let filterBadgeText = 'Rekomendasi Pilihan';
+      if (isFiltered) {
+        const parts = [];
+        if (currentFilterCountry) {
+          const l = document.getElementById('select-label-country')?.textContent || currentFilterCountry;
+          parts.push(l.replace(/\(.*\)/, '').trim());
+        }
+        if (currentFilterGenre) {
+          const l = document.getElementById('select-label-genre')?.textContent || currentFilterGenre;
+          parts.push(l.trim());
+        }
+        filterBadgeText = 'Filter: ' + parts.join(' • ');
+      }
+
+      if (pageItems.length === 0) {
+        container.innerHTML = `
+          <div class="p-6 text-center text-xs text-slate-400 dark:text-gray-500 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800 space-y-2">
+            <p>Belum ada lagu untuk filter ini.</p>
+            <button onclick="resetFilters()" class="px-3 py-1 rounded-lg text-xs font-bold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30 hover:bg-pink-500 hover:text-white cursor-pointer transition-all">
+              ✕ Reset ke Semua Rekomendasi
+            </button>
+          </div>
+        `;
+        return;
+      }
+
       container.innerHTML = `
         <div class="pt-1 pb-2">
-          <!-- Header with Pagination & Shuffle -->
+          <!-- Header with Pagination, Filter Badge & Shuffle -->
           <div class="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-gray-300 mb-2.5 px-1">
-            <span class="flex items-center gap-1.5 text-pink-600 dark:text-pink-400">
-              <span>🔥</span> Rekomendasi Pilihan (Halaman ${page})
-            </span>
-            <div class="flex items-center gap-1.5">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="flex items-center gap-1.5 text-pink-600 dark:text-pink-400 truncate">
+                <span>🔥</span> <strong class="truncate">${escapeHtml(filterBadgeText)}</strong> (Halaman ${page})
+              </span>
+              ${isFiltered ? `
+                <button onclick="resetFilters()" title="Reset Filter" class="shrink-0 px-2 py-0.5 rounded-md text-[10px] font-bold bg-pink-500/10 text-pink-600 dark:text-pink-400 border border-pink-500/25 hover:bg-pink-500 hover:text-white transition-all active:scale-95 cursor-pointer">
+                  ✕ Reset
+                </button>
+              ` : ''}
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0 ml-2">
               <button onclick="shuffleRecommendations()" title="Acak Lagu" class="px-2 py-0.5 rounded-md text-[10px] bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-300 border border-slate-200 dark:border-gray-700 transition-all active:scale-95 cursor-pointer">
                 🎲 Acak
               </button>
@@ -4830,27 +4989,19 @@
     function triggerSearchFilter() {
       const input = document.getElementById('search-input').value.trim();
       
-      // If user selected a filter without typing a keyword, search curated hits for that filter!
+      // CASE 1: No search keyword entered -> User is browsing recommendations by Country/Genre filter!
+      // Must display as 3x3 GRID!
       if (!input) {
         if (currentFilterCountry || currentFilterGenre) {
-          let queryTag = '';
-          if (currentFilterCountry.includes('Mandarin')) queryTag = 'Mandopop Hits 热门华语歌曲 周杰伦 林俊杰';
-          else if (currentFilterCountry.includes('Taiwan')) queryTag = 'Taiwan C-Pop 经典华语流行';
-          else if (currentFilterCountry.includes('Indonesia')) queryTag = 'Top Indo Pop Hits';
-          else if (currentFilterCountry.includes('Western')) queryTag = 'Top Western Global Hits';
-          else if (currentFilterCountry.includes('Korea')) queryTag = 'Trending K-Pop Hits';
-          else if (currentFilterCountry.includes('Jepang')) queryTag = 'Top Anime J-Pop Hits';
-
-          if (currentFilterGenre) {
-            queryTag = (queryTag ? queryTag + ' ' : '') + currentFilterGenre;
-          }
-          executeSearch(queryTag);
-          return;
+          updateFilteredRecommendations(1);
+        } else {
+          renderDefaultRecommendations(1);
         }
-        renderDefaultRecommendations();
         return;
       }
 
+      // CASE 2: Search keyword entered -> User is performing a search!
+      // Must display as ONE COLUMN!
       const parts = [input];
       if (currentFilterCountry && !input.includes(currentFilterCountry)) parts.push(currentFilterCountry);
       if (currentFilterGenre && !input.includes(currentFilterGenre)) parts.push(currentFilterGenre);
@@ -4920,30 +5071,54 @@
     function renderSearchResults(results, label = '') {
       const container = document.getElementById('search-results');
       if (results.length === 0) {
-        container.innerHTML = `<div class="p-4 text-center text-xs text-slate-400 dark:text-gray-500">Tidak ada lagu yang ditemukan. Coba pilih rekomendasi kategori lain atau ketik judul.</div>`;
+        container.innerHTML = `
+          <div class="p-6 text-center text-xs text-slate-400 dark:text-gray-500 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800 space-y-2">
+            <p>Tidak ada lagu yang ditemukan untuk pencarian ini.</p>
+            <button onclick="clearSearch()" class="px-3 py-1 rounded-lg text-xs font-bold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30 hover:bg-pink-500 hover:text-white cursor-pointer transition-all">
+              ✕ Reset Pencarian
+            </button>
+          </div>
+        `;
         return;
       }
 
-      const activeHeader = label ? `
-        <div class="flex items-center justify-between px-3 py-1.5 rounded-xl bg-pink-500/10 dark:bg-pink-500/20 border border-pink-500/25 text-xs font-bold text-pink-600 dark:text-pink-300 mb-2">
-          <span>✨ Kategori: <strong>${label}</strong> (${results.length} lagu)</span>
-          <button onclick="clearSearch()" class="text-[11px] hover:underline font-semibold text-slate-500 dark:text-gray-400 hover:text-pink-500 cursor-pointer">✕ Reset</button>
-        </div>
-      ` : '';
+      const queryText = document.getElementById('search-input')?.value?.trim() || label || 'Pencarian';
 
-      container.innerHTML = activeHeader + results.map(item => `
-        <div class="flex items-center gap-3 p-2 rounded-xl bg-slate-50 dark:bg-gray-900/80 border border-slate-200 dark:border-gray-800 hover:border-pink-500/50 shadow-2xs transition-colors">
-          <img src="${item.thumbnail || 'https://via.placeholder.com/60'}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-slate-200 dark:border-gray-800">
-          <div class="flex-1 min-w-0">
-            <h5 class="text-xs font-bold text-slate-900 dark:text-white truncate">${item.title}</h5>
-            <p class="text-[11px] font-medium text-slate-500 dark:text-gray-400 truncate">${item.artist}</p>
+      container.innerHTML = `
+        <div class="pt-1 pb-2 space-y-2">
+          <!-- Search Header -->
+          <div class="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-gray-300 px-1 mb-1">
+            <span class="flex items-center gap-1.5 text-pink-600 dark:text-pink-400 truncate">
+              <span>🔍</span> Hasil Pencarian: <strong class="truncate">"${escapeHtml(queryText)}"</strong> (${results.length} lagu)
+            </span>
+            <button onclick="clearSearch()" class="shrink-0 px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 text-slate-500 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 cursor-pointer transition-all active:scale-95">
+              ✕ Reset
+            </button>
           </div>
-          <button onclick="queueTrackEncoded('${encodeURIComponent(JSON.stringify(item))}')"
-                  class="px-3 py-1.5 rounded-lg bg-pink-500/20 text-pink-600 dark:text-pink-400 hover:bg-pink-500 hover:text-white border border-pink-500/30 text-xs font-bold active:scale-95 transition-all flex items-center gap-1 cursor-pointer">
-            + Queue
-          </button>
+
+          <!-- ONE COLUMN SEARCH LIST (Full Width Rows) -->
+          <div class="flex flex-col gap-2">
+            ${results.map(item => `
+              <div class="group relative flex items-center justify-between gap-3 p-2.5 rounded-xl bg-slate-50 dark:bg-gray-900/80 border border-slate-200 dark:border-gray-800 hover:border-pink-500/50 shadow-2xs hover:shadow-md transition-all active:scale-[0.99]">
+                <div class="flex items-center gap-3 min-w-0 flex-1">
+                  <div class="relative w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-slate-200 dark:bg-gray-800">
+                    <img src="${item.thumbnail || 'https://via.placeholder.com/60'}" onerror="this.onerror=null;this.src='https://placehold.co/150x150/1e293b/white?text=🎵';" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    ${item.songDuration ? `<span class="absolute bottom-0.5 right-0.5 px-1 py-0.2 rounded bg-black/80 text-[8px] font-mono font-bold text-white shadow-xs">${formatTime(item.songDuration)}</span>` : ''}
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <h5 class="text-xs font-bold text-slate-900 dark:text-white truncate" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</h5>
+                    <p class="text-[11px] font-medium text-slate-500 dark:text-gray-400 truncate">${escapeHtml(item.artist)}</p>
+                  </div>
+                </div>
+                <button onclick="queueTrackEncoded('${encodeURIComponent(JSON.stringify(item))}')"
+                        class="px-3.5 py-1.5 rounded-lg bg-pink-500/15 group-hover:bg-pink-500 text-pink-600 dark:text-pink-400 group-hover:text-white border border-pink-500/30 text-xs font-bold active:scale-95 transition-all flex items-center gap-1 cursor-pointer shrink-0">
+                  <span>+ Queue</span>
+                </button>
+              </div>
+            `).join('')}
+          </div>
         </div>
-      `).join('');
+      `;
     }
 
     // Queue Song (With safe JSON decode helper)
@@ -5115,7 +5290,7 @@
       await fetch('/api/control/toggle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user: currentUser })
+        body: JSON.stringify({ user: currentUser, elapsed: currentElapsed })
       });
     }
 
