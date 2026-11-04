@@ -9,7 +9,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.11.2';
+const APP_VERSION = '2.11.3';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -376,7 +376,7 @@ function resolveAddedBy(videoId, queue = [], title = '') {
 
 const AUTOPLAY_FALLBACK_TRACKS = [
   { videoId: 'bu7nU9Mhpyo', title: '告白气球 (Love Confession)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/bu7nU9Mhpyo/hqdefault.jpg', songDuration: 215 },
-  { videoId: '6ZXzn1jwtM4', title: '爱人错过 (Somewhere in time)', artist: '告五人 Accusefive', thumbnail: 'https://i.ytimg.com/vi/6ZXzn1jwtM4/hqdefault.jpg', songDuration: 298 },
+  { videoId: '6D79CYTxvOM', title: '爱人错过 (Somewhere in time)', artist: '告五人 Accusefive', thumbnail: 'https://i.ytimg.com/vi/6D79CYTxvOM/hqdefault.jpg', songDuration: 290 },
   { videoId: 'LWV-f6dMN3Q', title: '修炼爱情 (Practice Love)', artist: '林俊杰 JJ Lin', thumbnail: 'https://i.ytimg.com/vi/LWV-f6dMN3Q/hqdefault.jpg', songDuration: 284 },
   { videoId: 'T4SimnaiktU', title: '光年之外 (Light Years Away)', artist: '邓紫棋 G.E.M.', thumbnail: 'https://i.ytimg.com/vi/T4SimnaiktU/hqdefault.jpg', songDuration: 235 },
   { videoId: 'Y2ge3KrdeWs', title: '怎么了 (What\'s Wrong)', artist: '周兴哲 Eric Chou', thumbnail: 'https://i.ytimg.com/vi/Y2ge3KrdeWs/hqdefault.jpg', songDuration: 321 },
@@ -386,12 +386,14 @@ const AUTOPLAY_FALLBACK_TRACKS = [
   { videoId: 'JGwWNGJdvx8', title: 'Shape of You', artist: 'Ed Sheeran', thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg', songDuration: 233 },
   { videoId: 'ArmDp-zijuc', title: 'Super Shy', artist: 'NewJeans', thumbnail: 'https://i.ytimg.com/vi/ArmDp-zijuc/hqdefault.jpg', songDuration: 154 },
   { videoId: 'x8VYWazR5mE', title: '夜に駆ける (Racing into the Night)', artist: 'YOASOBI', thumbnail: 'https://i.ytimg.com/vi/x8VYWazR5mE/hqdefault.jpg', songDuration: 261 },
-  { videoId: 'a5uQMwRMHcs', title: 'Sparkle (スパークル)', artist: 'RADWIMPS', thumbnail: 'https://i.ytimg.com/vi/a5uQMwRMHcs/hqdefault.jpg', songDuration: 410 },
+  { videoId: 'a2GujJZfXpg', title: 'Sparkle (スパークル)', artist: 'RADWIMPS', thumbnail: 'https://i.ytimg.com/vi/a2GujJZfXpg/hqdefault.jpg', songDuration: 410 },
   { videoId: 'DYptgVvkVLQ', title: '晴天 (Sunny Day)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/DYptgVvkVLQ/hqdefault.jpg', songDuration: 319 },
   { videoId: 'kvEeCLf16zM', title: '简单爱 (Simple Love)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/kvEeCLf16zM/hqdefault.jpg', songDuration: 271 },
   { videoId: 'KqjgLbKZ1h0', title: '那些年 (Those Bygone Years)', artist: '胡夏 Hu Xia', thumbnail: 'https://i.ytimg.com/vi/KqjgLbKZ1h0/hqdefault.jpg', songDuration: 369 },
   { videoId: 'QSWYyoF79oE', title: 'Sial', artist: 'Mahalini', thumbnail: 'https://i.ytimg.com/vi/QSWYyoF79oE/hqdefault.jpg', songDuration: 244 },
-  { videoId: 'fKRtnMYMW08', title: 'Komang', artist: 'Raim Laode', thumbnail: 'https://i.ytimg.com/vi/fKRtnMYMW08/hqdefault.jpg', songDuration: 223 }
+  { videoId: 'fKRtnMYMW08', title: 'Komang', artist: 'Raim Laode', thumbnail: 'https://i.ytimg.com/vi/fKRtnMYMW08/hqdefault.jpg', songDuration: 223 },
+  { videoId: 'V9PVRfjEBTI', title: 'BIRDS OF A FEATHER', artist: 'Billie Eilish', thumbnail: 'https://i.ytimg.com/vi/V9PVRfjEBTI/hqdefault.jpg', songDuration: 190 },
+  { videoId: 'V1Pl8CzNzCw', title: 'lovely', artist: 'Billie Eilish, Khalid', thumbnail: 'https://i.ytimg.com/vi/V1Pl8CzNzCw/hqdefault.jpg', songDuration: 200 }
 ];
 
 async function getAutoplayNextTrack(prevSong) {
@@ -852,6 +854,16 @@ function extractVideoId(input) {
   const embedMatch = input.match(/youtube\.com\/(?:embed|shorts|v)\/([a-zA-Z0-9_-]{11})/);
   if (embedMatch) return embedMatch[1];
   return null;
+}
+
+function isTitleKeywordMatch(reqTitle, ytTitle) {
+  if (!reqTitle || !ytTitle) return true;
+  const extractWords = s => (s.toLowerCase().match(/[a-z0-9]+|[\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/g) || []);
+  const w1 = extractWords(reqTitle);
+  const w2 = new Set(extractWords(ytTitle));
+  const meaningful = w1.filter(w => w.length >= 3 || /[\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/.test(w));
+  if (meaningful.length === 0) return true;
+  return meaningful.some(w => w2.has(w));
 }
 
 async function validateYouTubeMusicTrack(videoId) {
@@ -1357,18 +1369,23 @@ app.post('/api/queue', async (req, res) => {
   }
 
   let validation = await validateYouTubeMusicTrack(videoId);
-  if (!validation.valid) {
-    // SMART AUTO-RECOVERY: If video is 404/deleted/has typo, but we have title/artist, search YouTube Music for an active live track!
+  const hasMismatch = validation.valid && validation.title && validation.title !== 'Unknown Title' && title && !isTitleKeywordMatch(title, validation.title);
+
+  if (!validation.valid || hasMismatch) {
+    if (hasMismatch) {
+      console.warn(`[Queue Title Mismatch] Requested "${title}" by "${artist}", but videoId ${videoId} is actually "${validation.title}". Initiating auto-recovery...`);
+    }
+    // SMART AUTO-RECOVERY: If video is 404/deleted/has typo/title mismatch, search YouTube Music for an active matching live track!
     if (title || artist) {
       try {
         const cleanQuery = `${title || ''} ${artist || ''}`.replace(/\([^)]*\)/g, ' ').trim();
-        console.log(`[Queue Auto-Recovery] Video ID ${videoId} returned 404. Searching alternative for: "${cleanQuery}"`);
+        console.log(`[Queue Auto-Recovery] Searching YouTube Music for: "${cleanQuery}"`);
         const searchResults = await searchYouTubeMusic(cleanQuery);
         for (const candidate of searchResults) {
-          if (candidate.videoId && candidate.videoId !== videoId) {
+          if (candidate.videoId) {
             const candidateValidation = await validateYouTubeMusicTrack(candidate.videoId);
-            if (candidateValidation.valid) {
-              console.log(`[Queue Auto-Recovery] Auto-recovered working track: ${candidate.videoId} (${candidate.title})`);
+            if (candidateValidation.valid && (!title || isTitleKeywordMatch(title, candidateValidation.title))) {
+              console.log(`[Queue Auto-Recovery] Auto-recovered matching track: ${candidate.videoId} (${candidate.title})`);
               videoId = candidate.videoId;
               validation = candidateValidation;
               if (!thumbnail || thumbnail.includes('placeholder')) {
@@ -1388,8 +1405,14 @@ app.post('/api/queue', async (req, res) => {
     }
   }
 
-  const songTitle = title || validation.title || 'Song';
-  const songArtist = artist || validation.artist || '';
+  // Canonicalize song title: if title still completely disagrees with real YouTube video, adopt the true YouTube title!
+  let songTitle = title || validation.title || 'Song';
+  let songArtist = artist || validation.artist || '';
+  if (validation.title && validation.title !== 'Unknown Title' && !isTitleKeywordMatch(songTitle, validation.title)) {
+    console.log(`[Queue Title Canonicalization] Adopting true YouTube title: "${validation.title}"`);
+    songTitle = validation.title;
+    if (validation.artist && validation.artist !== 'YouTube') songArtist = validation.artist;
+  }
   const songThumb = thumbnail || validation.thumbnail || '';
   const songUser = user || 'Anonymous';
   let duration = (typeof songDuration === 'number' && songDuration > 0) ? Math.round(songDuration) : 0;

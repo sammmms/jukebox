@@ -344,9 +344,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.2)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.3)"
                     class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-colors cursor-pointer active:scale-95">
-              v2.11.2
+              v2.11.3
             </button>
           </div>
           <div id="connection-btn" class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
@@ -887,7 +887,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.2</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.3</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -898,10 +898,22 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.11.2 -->
+        <!-- v2.11.3 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.11.2 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.11.3 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">🎯 Perbaikan Mismatch Rekomendasi Lagu (BIRDS OF A FEATHER vs Lovely):</strong> Memperbaiki Video ID YouTube untuk lagu-lagu rekomendasi yang tertukar atau tidak aktif (seperti videoId `V1Pl8CzNzCw` yang memutar lagu Lovely padahal berlabel BIRDS OF A FEATHER kini diganti ke `V9PVRfjEBTI` resmi, serta perbaikan lagu yang sebelumnya 404 seperti 爱人错过, 年少有为, Satu Bulan, Gala Bunga Matahari, Sialan, Dan, Supernova, Sparkle).</li>
+            <li><strong class="text-slate-800 dark:text-white">🛡️ Server-Side Title Mismatch Guard & Auto-Recovery:</strong> Server kini secara cerdas memvalidasi kesesuaian judul lagu permintaan terhadap judul oEmbed resmi YouTube. Jika terdeteksi ketidakcocokan (mismatch), server otomatis mencari trek pengganti yang benar di YouTube Music atau mengadopsi judul asli YouTube agar tampilan dan audio selalu 100% selaras.</li>
+          </ul>
+        </div>
+
+        <!-- v2.11.2 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-800/40 border border-slate-200 dark:border-gray-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-600">v2.11.2</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -1484,7 +1496,7 @@
 
       <!-- Section 5: Version & Release Notes -->
       <div class="pt-1 flex items-center justify-between text-xs text-slate-400">
-        <span>Party Jukebox v2.11.2</span>
+        <span>Party Jukebox v2.11.3</span>
         <button onclick="openChangelogModal(); closeSettingsModal();" class="font-bold text-pink-600 dark:text-pink-400 hover:underline">
           Lihat Catatan Rilis 🚀
         </button>
@@ -1900,7 +1912,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.11.2';
+    const CLIENT_VERSION = '2.11.3';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -4546,7 +4558,7 @@
     const partyRecommendations = [
       // Top Mandarin / C-Pop Hits
       { videoId: 'bu7nU9Mhpyo', title: '告白气球 (Love Confession)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/bu7nU9Mhpyo/hqdefault.jpg', songDuration: 215 },
-      { videoId: '6ZXzn1jwtM4', title: '爱人错过 (Somewhere in time)', artist: '告五人 Accusefive', thumbnail: 'https://i.ytimg.com/vi/6ZXzn1jwtM4/hqdefault.jpg', songDuration: 290 },
+      { videoId: '6D79CYTxvOM', title: '爱人错过 (Somewhere in time)', artist: '告五人 Accusefive', thumbnail: 'https://i.ytimg.com/vi/6D79CYTxvOM/hqdefault.jpg', songDuration: 290 },
       { videoId: 'LWV-f6dMN3Q', title: '修炼爱情 (Practice Love)', artist: '林俊杰 JJ Lin', thumbnail: 'https://i.ytimg.com/vi/LWV-f6dMN3Q/hqdefault.jpg', songDuration: 280 },
       { videoId: 'T4SimnaiktU', title: '光年之外 (Light Years Away)', artist: '邓紫棋 G.E.M.', thumbnail: 'https://i.ytimg.com/vi/T4SimnaiktU/hqdefault.jpg', songDuration: 235 },
       { videoId: 'Y2ge3KrdeWs', title: '怎么了 (What\'s Wrong)', artist: '周兴哲 Eric Chou', thumbnail: 'https://i.ytimg.com/vi/Y2ge3KrdeWs/hqdefault.jpg', songDuration: 320 },
@@ -4554,31 +4566,32 @@
       { videoId: 'DYptgVvkVLQ', title: '晴天 (Sunny Day)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/DYptgVvkVLQ/hqdefault.jpg', songDuration: 319 },
       { videoId: 'kvEeCLf16zM', title: '简单爱 (Simple Love)', artist: '周杰伦 Jay Chou', thumbnail: 'https://i.ytimg.com/vi/kvEeCLf16zM/hqdefault.jpg', songDuration: 271 },
       { videoId: 'KqjgLbKZ1h0', title: '那些年 (Those Bygone Years)', artist: '胡夏 Hu Xia', thumbnail: 'https://i.ytimg.com/vi/KqjgLbKZ1h0/hqdefault.jpg', songDuration: 369 },
-      { videoId: 'h73MMxvg878', title: '年少有为 (If I Were Young)', artist: '李荣浩 Li Ronghao', thumbnail: 'https://i.ytimg.com/vi/h73MMxvg878/hqdefault.jpg', songDuration: 279 },
+      { videoId: 'Dnj5Tcpev0Q', title: '年少有为 (If I Were Young)', artist: '李荣浩 Li Ronghao', thumbnail: 'https://i.ytimg.com/vi/Dnj5Tcpev0Q/hqdefault.jpg', songDuration: 279 },
       { videoId: 'e-ORhEE9VVg', title: 'Blank Space', artist: 'Taylor Swift', thumbnail: 'https://i.ytimg.com/vi/e-ORhEE9VVg/hqdefault.jpg', songDuration: 231 },
       { videoId: 'k2qgadSvNyU', title: 'New Rules', artist: 'Dua Lipa', thumbnail: 'https://i.ytimg.com/vi/k2qgadSvNyU/hqdefault.jpg', songDuration: 225 },
       // Top Indo Hits
       { videoId: 'QSWYyoF79oE', title: 'Sial', artist: 'Mahalini', thumbnail: 'https://i.ytimg.com/vi/QSWYyoF79oE/hqdefault.jpg', songDuration: 244 },
       { videoId: 'fKRtnMYMW08', title: 'Komang', artist: 'Raim Laode', thumbnail: 'https://i.ytimg.com/vi/fKRtnMYMW08/hqdefault.jpg', songDuration: 223 },
-      { videoId: 'F_g1r60o_2s', title: 'Satu Bulan', artist: 'Bernadya', thumbnail: 'https://i.ytimg.com/vi/F_g1r60o_2s/hqdefault.jpg', songDuration: 201 },
-      { videoId: 'a7fzkqLozwA', title: 'Gala Bunga Matahari', artist: 'Sal Priadi', thumbnail: 'https://i.ytimg.com/vi/a7fzkqLozwA/hqdefault.jpg', songDuration: 238 },
-      { videoId: 'xWggXeX0Z9Y', title: 'Sialan', artist: 'Juicy Luicy ft. Adrian Khalif', thumbnail: 'https://i.ytimg.com/vi/xWggXeX0Z9Y/hqdefault.jpg', songDuration: 234 },
-      { videoId: '8S0D4v66N0Q', title: 'Dan...', artist: 'Sheila on 7', thumbnail: 'https://i.ytimg.com/vi/8S0D4v66N0Q/hqdefault.jpg', songDuration: 286 },
+      { videoId: 'yjnSX_iUFVo', title: 'Satu Bulan', artist: 'Bernadya', thumbnail: 'https://i.ytimg.com/vi/yjnSX_iUFVo/hqdefault.jpg', songDuration: 201 },
+      { videoId: 'AQpEIZ8dNcU', title: 'Gala Bunga Matahari', artist: 'Sal Priadi', thumbnail: 'https://i.ytimg.com/vi/AQpEIZ8dNcU/hqdefault.jpg', songDuration: 238 },
+      { videoId: '0i-D1eBVKUM', title: 'Sialan', artist: 'Juicy Luicy ft. Adrian Khalif', thumbnail: 'https://i.ytimg.com/vi/0i-D1eBVKUM/hqdefault.jpg', songDuration: 269 },
+      { videoId: 'dGcGbF4ex5o', title: 'Dan...', artist: 'Sheila on 7', thumbnail: 'https://i.ytimg.com/vi/dGcGbF4ex5o/hqdefault.jpg', songDuration: 286 },
       // Global Party & Pop Hits
       { videoId: 'dvgZkm1xWPE', title: 'Viva La Vida', artist: 'Coldplay', thumbnail: 'https://i.ytimg.com/vi/dvgZkm1xWPE/hqdefault.jpg', songDuration: 242 },
       { videoId: '34Na4j8AVgA', title: 'Starboy', artist: 'The Weeknd ft. Daft Punk', thumbnail: 'https://i.ytimg.com/vi/34Na4j8AVgA/hqdefault.jpg', songDuration: 230 },
       { videoId: 'JGwWNGJdvx8', title: 'Shape of You', artist: 'Ed Sheeran', thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg', songDuration: 233 },
       { videoId: '4NRXx6U8ABQ', title: 'Blinding Lights', artist: 'The Weeknd', thumbnail: 'https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg', songDuration: 200 },
       { videoId: 'H5v3kku4y6Q', title: 'As It Was', artist: 'Harry Styles', thumbnail: 'https://i.ytimg.com/vi/H5v3kku4y6Q/hqdefault.jpg', songDuration: 167 },
-      { videoId: 'V1Pl8CzNzCw', title: 'BIRDS OF A FEATHER', artist: 'Billie Eilish', thumbnail: 'https://i.ytimg.com/vi/V1Pl8CzNzCw/hqdefault.jpg', songDuration: 190 },
+      { videoId: 'V9PVRfjEBTI', title: 'BIRDS OF A FEATHER', artist: 'Billie Eilish', thumbnail: 'https://i.ytimg.com/vi/V9PVRfjEBTI/hqdefault.jpg', songDuration: 190 },
+      { videoId: 'V1Pl8CzNzCw', title: 'lovely', artist: 'Billie Eilish & Khalid', thumbnail: 'https://i.ytimg.com/vi/V1Pl8CzNzCw/hqdefault.jpg', songDuration: 200 },
       { videoId: 'kPa7bsKwL-c', title: 'Die With A Smile', artist: 'Lady Gaga & Bruno Mars', thumbnail: 'https://i.ytimg.com/vi/kPa7bsKwL-c/hqdefault.jpg', songDuration: 251 },
       // K-Pop & J-Pop Anime
       { videoId: 'ArmDp-zijuc', title: 'Super Shy', artist: 'NewJeans', thumbnail: 'https://i.ytimg.com/vi/ArmDp-zijuc/hqdefault.jpg', songDuration: 154 },
       { videoId: 'QU9c0053UAU', title: 'Seven', artist: 'Jung Kook ft. Latto', thumbnail: 'https://i.ytimg.com/vi/QU9c0053UAU/hqdefault.jpg', songDuration: 184 },
       { videoId: 'hLvWy2b857I', title: 'Perfect Night', artist: 'LE SSERAFIM', thumbnail: 'https://i.ytimg.com/vi/hLvWy2b857I/hqdefault.jpg', songDuration: 159 },
-      { videoId: 'phuiAIQAxZ4', title: 'Supernova', artist: 'aespa', thumbnail: 'https://i.ytimg.com/vi/phuiAIQAxZ4/hqdefault.jpg', songDuration: 178 },
+      { videoId: 'phuiiNCxRMg', title: 'Supernova', artist: 'aespa', thumbnail: 'https://i.ytimg.com/vi/phuiiNCxRMg/hqdefault.jpg', songDuration: 178 },
       { videoId: 'x8VYWazR5mE', title: '夜に駆ける (Racing into the Night)', artist: 'YOASOBI', thumbnail: 'https://i.ytimg.com/vi/x8VYWazR5mE/hqdefault.jpg', songDuration: 261 },
-      { videoId: 'a5uQMwRMHcs', title: 'Sparkle (スパークル)', artist: 'RADWIMPS', thumbnail: 'https://i.ytimg.com/vi/a5uQMwRMHcs/hqdefault.jpg', songDuration: 410 },
+      { videoId: 'a2GujJZfXpg', title: 'Sparkle (スパークル)', artist: 'RADWIMPS', thumbnail: 'https://i.ytimg.com/vi/a2GujJZfXpg/hqdefault.jpg', songDuration: 410 },
       { videoId: 'ZRtdQ81jPUQ', title: 'Idol (アイドル)', artist: 'YOASOBI', thumbnail: 'https://i.ytimg.com/vi/ZRtdQ81jPUQ/hqdefault.jpg', songDuration: 213 }
     ];
 
