@@ -9,7 +9,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.11.5';
+const APP_VERSION = '2.11.6';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -860,6 +860,65 @@ function extractVideoId(input) {
   return null;
 }
 
+function extractPlaylistId(input) {
+  if (!input || typeof input !== 'string') return null;
+  input = input.trim();
+  const match = input.match(/[?&]list=([a-zA-Z0-9_-]+)/);
+  if (match) return match[1];
+  if (/^(?:PL|RD|OLAK5uy)[a-zA-Z0-9_-]{10,}$/.test(input)) return input;
+  return null;
+}
+
+function fetchPlaylistInfo(playlistId) {
+  return new Promise((resolve, reject) => {
+    const ytdlBin = findYtDlpBinary();
+    const url = `https://www.youtube.com/playlist?list=${playlistId}`;
+    execFile(ytdlBin, [
+      '--flat-playlist',
+      '--dump-single-json',
+      '--playlist-items', '1-50', // Max 50 tracks for party speed and safety
+      url
+    ], { timeout: 20000, maxBuffer: 10 * 1024 * 1024 }, (err, stdout) => {
+      if (err) {
+        return reject(new Error('Gagal membaca playlist atau playlist bersifat privat / tidak ditemukan.'));
+      }
+      try {
+        const data = JSON.parse(stdout);
+        const tracks = (data.entries || []).map((entry, idx) => {
+          let thumb = '';
+          if (entry.thumbnails && Array.isArray(entry.thumbnails) && entry.thumbnails.length > 0) {
+            thumb = entry.thumbnails[entry.thumbnails.length - 1].url;
+          } else if (entry.id) {
+            thumb = `https://i.ytimg.com/vi/${entry.id}/hqdefault.jpg`;
+          }
+          return {
+            index: idx + 1,
+            videoId: entry.id,
+            title: entry.title || 'Unknown Title',
+            artist: entry.uploader || entry.channel || entry.artist || 'YouTube Music',
+            thumbnail: thumb,
+            songDuration: typeof entry.duration === 'number' ? Math.round(entry.duration) : 0
+          };
+        }).filter(t => t.videoId && t.videoId.length === 11);
+
+        if (tracks.length === 0) {
+          return reject(new Error('Playlist tidak memiliki lagu publik yang dapat diputar.'));
+        }
+
+        resolve({
+          playlistId,
+          title: data.title || 'YouTube Playlist',
+          author: data.uploader || data.channel || 'YouTube Music',
+          totalTracks: tracks.length,
+          tracks
+        });
+      } catch (e) {
+        reject(new Error('Format data playlist tidak dapat diproses.'));
+      }
+    });
+  });
+}
+
 function isTitleKeywordMatch(reqTitle, ytTitle) {
   if (!reqTitle || !ytTitle) return true;
   const extractWords = s => (s.toLowerCase().match(/[a-z0-9]+|[\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/g) || []);
@@ -1361,6 +1420,70 @@ app.post('/api/search', async (req, res) => {
   }
   const results = await searchYouTubeMusic(query.trim());
   res.json({ results });
+});
+
+// 2.5 Playlist Extraction & Confirmation Endpoints
+app.post('/api/playlist/info', async (req, res) => {
+  const { url } = req.body || {};
+  const playlistId = extractPlaylistId(url);
+  if (!playlistId) {
+    return res.status(400).json({ error: 'Format link playlist YouTube tidak valid. Pastikan link memiliki format list=...' });
+  }
+
+  try {
+    const info = await fetchPlaylistInfo(playlistId);
+    res.json({ success: true, ...info });
+  } catch (err) {
+    console.error('Playlist fetch error:', err.message);
+    res.status(400).json({ error: err.message || 'Gagal memuat playlist' });
+  }
+});
+
+app.post('/api/playlist/queue', async (req, res) => {
+  let { tracks, user, playlistTitle, shuffle } = req.body || {};
+  if (!Array.isArray(tracks) || tracks.length === 0) {
+    return res.status(400).json({ error: 'Tidak ada lagu yang dipilih dari playlist' });
+  }
+
+  // Cap at 100 tracks max to protect party queue
+  tracks = tracks.slice(0, 100);
+
+  if (shuffle) {
+    for (let i = tracks.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [tracks[i], tracks[j]] = [tracks[j], tracks[i]];
+    }
+  }
+
+  const effectiveUser = user || 'Guest';
+  const newItems = tracks.map(t => ({
+    videoId: t.videoId,
+    title: t.title,
+    artist: t.artist || '',
+    thumbnail: t.thumbnail || `https://i.ytimg.com/vi/${t.videoId}/hqdefault.jpg`,
+    songDuration: t.songDuration || 0,
+    addedBy: effectiveUser,
+    votes: 0,
+    voters: []
+  }));
+
+  partyQueue.push(...newItems);
+  persistPartyQueue();
+
+  addActivity(effectiveUser, 'playlist', `menambahkan ${newItems.length} lagu dari playlist "${playlistTitle || 'YouTube'}"`);
+
+  // If no song currently playing, immediately start playing first song
+  if (!currentSong || !currentSong.videoId || currentSong.title === 'No song playing') {
+    await advanceNextTrack('Playlist Auto Play');
+  } else {
+    broadcastUpdate();
+  }
+
+  res.json({
+    success: true,
+    count: newItems.length,
+    playlistTitle: playlistTitle || 'YouTube Playlist'
+  });
 });
 
 // 3. Add to Queue / Transfer Song to YouTube Music
