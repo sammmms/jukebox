@@ -307,7 +307,7 @@
   <audio id="silent-audio-anchor" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/w==" loop preload="auto" playsinline></audio>
 
   <!-- Embedded YouTube Audio Engine for Host Device -->
-  <div id="host-audio-player-wrapper" class="fixed -bottom-96 -left-96 opacity-0 pointer-events-none w-1 h-1 overflow-hidden" aria-hidden="true">
+  <div id="host-audio-player-wrapper" class="fixed bottom-0 right-0 pointer-events-none w-48 h-32 -z-50 overflow-hidden" aria-hidden="true">
     <div id="youtube-host-player"></div>
   </div>
 
@@ -344,9 +344,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.1)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.2)"
                     class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-colors cursor-pointer active:scale-95">
-              v2.11.1
+              v2.11.2
             </button>
           </div>
           <div id="connection-btn" class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
@@ -544,21 +544,22 @@
 
         <!-- DESKTOP-ONLY: QUEUE & PLAYED HISTORY TABS CARD (Sticky in Left Column) -->
         <div id="desktop-queue-card" class="dashboard-card desktop-only rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-4 shadow-md dark:shadow-xl space-y-3 transition-colors duration-200">
-          <div class="flex items-center justify-between border-b border-slate-200 dark:border-gray-800 pb-2.5">
-            <div class="flex gap-2">
+          <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-gray-800/80">
+            <!-- Modern Segmented Pill Control -->
+            <div class="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-gray-800/70 border border-slate-200/50 dark:border-gray-700/50">
               <button onclick="switchQueueTab('upcoming')" id="tab-btn-upcoming"
-                      class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-white dark:bg-gray-800 text-slate-900 dark:text-white flex items-center gap-1.5 border border-slate-300 dark:border-gray-700 shadow-xs">
-                <span>Antrean Mendatang</span>
-                <span id="queue-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-pink-500/20 text-pink-600 dark:text-pink-400 font-extrabold">0</span>
+                      class="px-3 py-1 rounded-lg text-xs font-bold transition-all bg-white dark:bg-gray-700 text-slate-800 dark:text-white shadow-2xs flex items-center gap-1.5 cursor-pointer">
+                <span>Antrean</span>
+                <span id="queue-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-pink-500/15 text-pink-600 dark:text-pink-400 font-extrabold">0</span>
               </button>
               <button onclick="switchQueueTab('history')" id="tab-btn-history"
-                      class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 border border-transparent">
-                <span>Lagu yang Sudah Diputar</span>
-                <span id="history-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-400 font-bold">0</span>
+                      class="px-3 py-1 rounded-lg text-xs font-semibold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-800 dark:hover:text-white flex items-center gap-1.5 cursor-pointer">
+                <span>Sudah Diputar</span>
+                <span id="history-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200/70 dark:bg-gray-800 text-slate-600 dark:text-gray-400 font-bold">0</span>
               </button>
             </div>
-            <div id="queue-legend" class="text-[11px] text-slate-500 dark:text-gray-400 flex items-center gap-1.5 font-bold">
-              <span class="text-pink-500">⠿ Drag</span>
+            <div id="queue-legend" class="text-[10px] text-slate-400 dark:text-gray-500 flex items-center gap-1.5 font-medium select-none">
+              <span>⠿ Drag</span>
               <span>•</span>
               <span>🔥 Vote</span>
             </div>
@@ -886,7 +887,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.1</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.2</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -897,10 +898,25 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.11.1 -->
+        <!-- v2.11.2 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.11.1 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.11.2 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">🎨 Modern Segmented Pill Tabs:</strong> Tampilan tab Antrean & Riwayat Lagu diperbarui menjadi kontrol pill segmented yang bersih, minimalis, dan proporsional tanpa border/box tebal yang mencolok.</li>
+            <li><strong class="text-slate-800 dark:text-white">⚡ 1-Click Instant Audio & Auto-Resume on Refresh:</strong> Saat host/DJ me-refresh browser, audio otomatis dilanjutkan atau langsung bersuara dalam 1 kali klik (atau interaksi apa pun di layar) tanpa desync dan tanpa memerlukan pause lalu play ulang.</li>
+            <li><strong class="text-slate-800 dark:text-white">🎯 Real-Time Play/Pause Icon Ground Truth:</strong> Ikon pemutar kini 100% akurat merefleksikan keluaran audio fisik. Jika audio belum bersuara setelah refresh, tombol dengan benar menampilkan Play (▶) dan langsung mengaktifkan speaker tanpa memutus alur room.</li>
+            <li><strong class="text-slate-800 dark:text-white">🖱️ Modal Outside Click Dismiss:</strong> Semua modal/dialog (Shortcuts, Changelog, Volume, Settings, Lyrics, Host Takeover) dapat ditutup instan hanya dengan mengklik area di luar popup (backdrop).</li>
+            <li><strong class="text-slate-800 dark:text-white">📌 Header-Respecting Sticky Panel:</strong> Kolom kiri kini menghormati tinggi topbar/header secara dinamis sehingga tidak pernah menyelinap di bawah header saat scrolling.</li>
+          </ul>
+        </div>
+
+        <!-- v2.11.1 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-800/40 border border-slate-200 dark:border-gray-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-600">v2.11.1</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -1468,7 +1484,7 @@
 
       <!-- Section 5: Version & Release Notes -->
       <div class="pt-1 flex items-center justify-between text-xs text-slate-400">
-        <span>Party Jukebox v2.11.1</span>
+        <span>Party Jukebox v2.11.2</span>
         <button onclick="openChangelogModal(); closeSettingsModal();" class="font-bold text-pink-600 dark:text-pink-400 hover:underline">
           Lihat Catatan Rilis 🚀
         </button>
@@ -1703,20 +1719,20 @@
       </div>
       
       <!-- Sheet Header -->
-      <div class="px-4 py-2 flex items-center justify-between border-b border-slate-100 dark:border-gray-800">
-        <div class="flex gap-2">
+      <div class="px-4 py-2.5 flex items-center justify-between border-b border-slate-100 dark:border-gray-800">
+        <div class="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-gray-800/70 border border-slate-200/50 dark:border-gray-700/50">
           <button onclick="switchMobileQueueSheetTab('upcoming')" id="sheet-tab-btn-upcoming"
-                  class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-pink-500 text-white shadow-xs flex items-center gap-1.5">
-            <span>Antrean Mendatang</span>
-            <span id="mobile-sheet-queue-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20 text-white font-extrabold">0</span>
+                  class="px-3 py-1 rounded-lg text-xs font-bold transition-all bg-white dark:bg-gray-700 text-slate-800 dark:text-white shadow-2xs flex items-center gap-1.5 cursor-pointer">
+            <span>Antrean</span>
+            <span id="mobile-sheet-queue-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-pink-500/15 text-pink-600 dark:text-pink-400 font-extrabold">0</span>
           </button>
           <button onclick="switchMobileQueueSheetTab('history')" id="sheet-tab-btn-history"
-                  class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5">
+                  class="px-3 py-1 rounded-lg text-xs font-semibold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-800 dark:hover:text-white flex items-center gap-1.5 cursor-pointer">
             <span>Sudah Diputar</span>
-            <span id="mobile-sheet-history-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-400 font-bold">0</span>
+            <span id="mobile-sheet-history-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200/70 dark:bg-gray-800 text-slate-600 dark:text-gray-400 font-bold">0</span>
           </button>
         </div>
-        <button onclick="closeMobileQueueSheet()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center active:scale-95 transition-all text-xs">
+        <button onclick="closeMobileQueueSheet()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center active:scale-95 transition-all text-xs cursor-pointer">
           ✕
         </button>
       </div>
@@ -1884,7 +1900,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.11.1';
+    const CLIENT_VERSION = '2.11.2';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -2081,6 +2097,10 @@
       isYTReady = true;
       initHostPlayer();
     };
+    if (window.YT && window.YT.Player) {
+      isYTReady = true;
+      setTimeout(initHostPlayer, 20);
+    }
 
     function initHostPlayer() {
       if (!window.YT || !window.YT.Player) return;
@@ -2088,8 +2108,8 @@
 
       try {
         ytPlayer = new YT.Player('youtube-host-player', {
-          height: '10',
-          width: '10',
+          height: '128',
+          width: '192',
           playerVars: {
             autoplay: 1,
             controls: 0,
@@ -2127,10 +2147,22 @@
         if (banner) banner.classList.add('hidden');
         startSilentAudioAnchor();
         requestScreenWakeLock();
+        isPlaying = true;
+        document.getElementById('vinyl-disc')?.classList.remove('paused');
+        document.getElementById('play-icon')?.classList.add('hidden');
+        document.getElementById('pause-icon')?.classList.remove('hidden');
       } else if (event.data === YT.PlayerState.PAUSED) {
         releaseScreenWakeLock();
+        isPlaying = false;
+        document.getElementById('vinyl-disc')?.classList.add('paused');
+        document.getElementById('play-icon')?.classList.remove('hidden');
+        document.getElementById('pause-icon')?.classList.add('hidden');
       } else if (event.data === YT.PlayerState.ENDED) {
         releaseScreenWakeLock();
+        isPlaying = false;
+        document.getElementById('vinyl-disc')?.classList.add('paused');
+        document.getElementById('play-icon')?.classList.remove('hidden');
+        document.getElementById('pause-icon')?.classList.add('hidden');
         try { ytPlayer.pauseVideo(); } catch (e) {}
         if (isMeHost() && isCurrentAudioMaster) {
           console.log('🎵 Track selesai di Web Player! Mengalihkan ke lagu berikutnya...');
@@ -2299,19 +2331,43 @@
       }
     }
 
-    // Global touch/click interaction to unlock audio silently on mobile without needing the banner
-    document.addEventListener('pointerdown', () => {
-      enableAudioSessionPlayback();
-      if (!isHostSpeakerActive && isMeHost()) {
-        isHostSpeakerActive = true;
-        try { localStorage.setItem('jukebox_speaker_unlocked', 'true'); } catch (e) {}
-        const banner = document.getElementById('host-speaker-activation-banner');
-        if (banner) banner.classList.add('hidden');
-        startSilentAudioAnchor();
-        requestScreenWakeLock();
-        syncHostAudioEngine();
+    // Auto-resume audio on user gesture if browser blocked autoplay on refresh
+    function tryAutoResumePlayback() {
+      if (!isMeHost() || !currentSongData || currentSongData.isPaused) return;
+
+      const isNative = isUseNativeAudioEngine();
+      const hostAudio = document.getElementById('host-native-audio');
+      if (isNative && hostAudio && hostAudio.paused) {
+        ensureAudioContextGain();
+        hostAudio.play().then(() => {
+          isHostSpeakerActive = true;
+          document.getElementById('host-speaker-activation-banner')?.classList.add('hidden');
+        }).catch(() => {});
+      } else if (ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
+        const state = ytPlayer.getPlayerState();
+        if (state !== 1 && state !== 0) { // Not playing and not ended
+          ytPlayer.playVideo();
+          isHostSpeakerActive = true;
+          document.getElementById('host-speaker-activation-banner')?.classList.add('hidden');
+        }
       }
-    }, { passive: true });
+    }
+
+    // Global touch/click/key interaction to unlock audio silently without needing the banner
+    ['pointerdown', 'keydown', 'touchstart'].forEach(evt => {
+      document.addEventListener(evt, () => {
+        enableAudioSessionPlayback();
+        if (isMeHost()) {
+          isHostSpeakerActive = true;
+          try { localStorage.setItem('jukebox_speaker_unlocked', 'true'); } catch (e) {}
+          const banner = document.getElementById('host-speaker-activation-banner');
+          if (banner) banner.classList.add('hidden');
+          startSilentAudioAnchor();
+          requestScreenWakeLock();
+          tryAutoResumePlayback();
+        }
+      }, { passive: true });
+    });
 
     let currentNativeAudioVideoId = '';
 
@@ -2360,10 +2416,18 @@
         startSilentAudioAnchor();
         requestScreenWakeLock();
         updateNativeAudioDuration();
+        isPlaying = true;
+        document.getElementById('vinyl-disc')?.classList.remove('paused');
+        document.getElementById('play-icon')?.classList.add('hidden');
+        document.getElementById('pause-icon')?.classList.remove('hidden');
       });
 
       hostAudio.addEventListener('pause', () => {
         releaseScreenWakeLock();
+        isPlaying = false;
+        document.getElementById('vinyl-disc')?.classList.add('paused');
+        document.getElementById('play-icon')?.classList.remove('hidden');
+        document.getElementById('pause-icon')?.classList.add('hidden');
       });
 
       hostAudio.addEventListener('ended', async () => {
@@ -3944,20 +4008,25 @@
           }
         }
 
-        isPlaying = !song.isPaused;
-        // On Host device, verify physical audio playback: if browser blocked autoplay on refresh, show Play icon!
         if (isMeHost()) {
-          if (isUseNativeAudioEngine()) {
-            const hostAudio = document.getElementById('host-native-audio');
-            if (hostAudio && hostAudio.paused && !isHostSpeakerActive) {
-              isPlaying = false;
-            }
+          const isNative = isUseNativeAudioEngine();
+          const hostAudio = document.getElementById('host-native-audio');
+          let isPhysicallyPlaying = false;
+          if (isNative && hostAudio) {
+            isPhysicallyPlaying = !hostAudio.paused;
           } else if (ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
-            const state = ytPlayer.getPlayerState();
-            if (state !== 1 && !isHostSpeakerActive) {
-              isPlaying = false;
-            }
+            isPhysicallyPlaying = (ytPlayer.getPlayerState() === 1);
           }
+
+          // On Host device, if song is marked playing on server but local audio is not physically playing,
+          // show Play icon so user knows audio is waiting/not producing sound.
+          if (!song.isPaused && !isPhysicallyPlaying) {
+            isPlaying = false;
+          } else {
+            isPlaying = !song.isPaused;
+          }
+        } else {
+          isPlaying = !song.isPaused;
         }
         if (song.songDuration && song.songDuration > 0) {
           songDuration = song.songDuration;
@@ -4981,31 +5050,55 @@
 
     // Playback Controls
     async function togglePlay() {
-      if (isMeHost() && isUseNativeAudioEngine()) {
+      if (isMeHost()) {
+        const isNative = isUseNativeAudioEngine();
         const hostAudio = document.getElementById('host-native-audio');
-        if (hostAudio) {
-          ensureAudioContextGain();
-          if (hostAudio.paused) {
-            isHostSpeakerActive = true;
-            try { localStorage.setItem('jukebox_speaker_unlocked', 'true'); } catch (e) {}
-            const banner = document.getElementById('host-speaker-activation-banner');
-            if (banner) banner.classList.add('hidden');
-            hostAudio.play().catch(e => console.warn('Native audio play error:', e));
-          } else {
-            hostAudio.pause();
-          }
+        let isPhysicallyPlaying = false;
+        if (isNative && hostAudio) {
+          isPhysicallyPlaying = !hostAudio.paused;
+        } else if (ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
+          isPhysicallyPlaying = (ytPlayer.getPlayerState() === 1);
         }
-      } else if (isMeHost() && ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
-        const state = ytPlayer.getPlayerState();
-        if (state === 1) {
-          ytPlayer.pauseVideo();
-        } else {
+
+        // Case A: Room is ALREADY unpaused/playing, but local physical audio is waiting / stopped after reload
+        // Resume physical sound immediately without toggling server room state to paused!
+        if (!currentSongData?.isPaused && !isPhysicallyPlaying) {
           isHostSpeakerActive = true;
+          try { localStorage.setItem('jukebox_speaker_unlocked', 'true'); } catch (e) {}
           const banner = document.getElementById('host-speaker-activation-banner');
           if (banner) banner.classList.add('hidden');
-          ytPlayer.playVideo();
+
+          if (isNative && hostAudio) {
+            ensureAudioContextGain();
+            hostAudio.play().catch(e => console.warn('Native audio play error:', e));
+          } else if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
+            ytPlayer.playVideo();
+          }
+
+          isPlaying = true;
+          document.getElementById('vinyl-disc')?.classList.remove('paused');
+          document.getElementById('play-icon')?.classList.add('hidden');
+          document.getElementById('pause-icon')?.classList.remove('hidden');
+          return;
+        }
+
+        // Case B: Audio is physically playing, or room is paused -> normal toggle
+        if (isNative && hostAudio) {
+          if (isPhysicallyPlaying) {
+            hostAudio.pause();
+          } else {
+            ensureAudioContextGain();
+            hostAudio.play().catch(e => console.warn('Native audio play error:', e));
+          }
+        } else if (ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
+          if (isPhysicallyPlaying) {
+            ytPlayer.pauseVideo();
+          } else {
+            ytPlayer.playVideo();
+          }
         }
       }
+
       await fetch('/api/control/toggle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -5139,14 +5232,14 @@
       const legend = document.getElementById('queue-legend');
 
       if (tab === 'upcoming') {
-        btnUpcoming.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-white dark:bg-gray-800 text-slate-900 dark:text-white flex items-center gap-1.5 border border-slate-300 dark:border-gray-700 shadow-xs';
-        btnHistory.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 border border-transparent';
+        btnUpcoming.className = 'px-3 py-1 rounded-lg text-xs font-bold transition-all bg-white dark:bg-gray-700 text-slate-800 dark:text-white shadow-2xs flex items-center gap-1.5 cursor-pointer';
+        btnHistory.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-800 dark:hover:text-white flex items-center gap-1.5 cursor-pointer';
         viewUpcoming.classList.remove('hidden');
         viewHistory.classList.add('hidden');
         legend.classList.remove('hidden');
       } else {
-        btnHistory.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-white dark:bg-gray-800 text-slate-900 dark:text-white flex items-center gap-1.5 border border-slate-300 dark:border-gray-700 shadow-xs';
-        btnUpcoming.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 border border-transparent';
+        btnHistory.className = 'px-3 py-1 rounded-lg text-xs font-bold transition-all bg-white dark:bg-gray-700 text-slate-800 dark:text-white shadow-2xs flex items-center gap-1.5 cursor-pointer';
+        btnUpcoming.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-800 dark:hover:text-white flex items-center gap-1.5 cursor-pointer';
         viewHistory.classList.remove('hidden');
         viewUpcoming.classList.add('hidden');
         legend.classList.add('hidden');
@@ -5463,13 +5556,13 @@
       if (tab === 'upcoming') {
         upcomingView?.classList.remove('hidden');
         historyView?.classList.add('hidden');
-        if (btnUpcoming) btnUpcoming.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-pink-500 text-white shadow-xs flex items-center gap-1.5';
-        if (btnHistory) btnHistory.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5';
+        if (btnUpcoming) btnUpcoming.className = 'px-3 py-1 rounded-lg text-xs font-bold transition-all bg-white dark:bg-gray-700 text-slate-800 dark:text-white shadow-2xs flex items-center gap-1.5 cursor-pointer';
+        if (btnHistory) btnHistory.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-800 dark:hover:text-white flex items-center gap-1.5 cursor-pointer';
       } else {
         upcomingView?.classList.add('hidden');
         historyView?.classList.remove('hidden');
-        if (btnHistory) btnHistory.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-pink-500 text-white shadow-xs flex items-center gap-1.5';
-        if (btnUpcoming) btnUpcoming.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5';
+        if (btnHistory) btnHistory.className = 'px-3 py-1 rounded-lg text-xs font-bold transition-all bg-white dark:bg-gray-700 text-slate-800 dark:text-white shadow-2xs flex items-center gap-1.5 cursor-pointer';
+        if (btnUpcoming) btnUpcoming.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-800 dark:hover:text-white flex items-center gap-1.5 cursor-pointer';
       }
     }
 
