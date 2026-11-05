@@ -3,6 +3,9 @@
   "version": "2.11.14",
   "description": "Collaborative, real-time social jukebox & karaoke hub for house parties and hangouts",
   "main": "server.js",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "start": "node server.js",
     "host": "node scripts/start-host.js",

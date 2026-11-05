@@ -6,3 +6,4 @@ bin/
 .env
 oauth-credentials.json
 .vercel
+.env*

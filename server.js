@@ -49,8 +49,9 @@ app.use(express.static(path.join(__dirname, 'public'), {
   }
 }));
 
-// Persisted Data Storage
-const DATA_DIR = path.join(__dirname, 'data');
+// Persisted Data Storage (/tmp for Vercel Serverless environment, local dir otherwise)
+const IS_VERCEL = Boolean(process.env.VERCEL);
+const DATA_DIR = IS_VERCEL ? path.join('/tmp', 'data') : path.join(__dirname, 'data');
 if (!fs.existsSync(DATA_DIR)) {
   try { fs.mkdirSync(DATA_DIR, { recursive: true }); } catch (e) {}
 }
@@ -276,7 +277,7 @@ function persistPlayedHistory() {
 
 // Standalone Web Player Mode (Pure Web - No desktop companion needed)
 isYtmConnected = false;
-let preferredEngineMode = 'standalone';
+let preferredEngineMode = IS_VERCEL ? 'youtube' : 'standalone';
 
 function isUsingYtmDesktop() {
   return false;
@@ -1414,10 +1415,12 @@ app.post('/api/auth/logout', (req, res) => {
 app.get('/api/version', (req, res) => {
   res.json({
     version: APP_VERSION,
+    isVercel: IS_VERCEL,
     name: 'Party Jukebox',
-    playbackEngine: isUsingYtmDesktop() ? 'ytm_desktop' : 'standalone',
-    preferredEngineMode,
-    ytmCompanionOnline: isYtmConnected
+    playbackEngine: isUsingYtmDesktop() ? 'ytm_desktop' : (IS_VERCEL ? 'youtube' : 'standalone'),
+    preferredEngineMode: IS_VERCEL ? 'youtube' : preferredEngineMode,
+    ytmCompanionOnline: isYtmConnected,
+    isVercel: IS_VERCEL
   });
 });
 
@@ -1657,6 +1660,7 @@ app.get('/api/status', async (req, res) => {
     preferredEngineMode,
     ytmCompanionOnline: isYtmConnected,
     version: APP_VERSION,
+    isVercel: IS_VERCEL,
     host: {
       ip: currentIp,
       url: `http://${currentIp}:${PORT}`,
@@ -2617,18 +2621,22 @@ getSystemVolume().then(v => {
   currentVolume = v;
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  const localUrl = `http://${localIp}:${PORT}`;
-  console.log('\n======================================================');
-  console.log('🎵  PARTY JUKEBOX STANDALONE (DUAL ENGINE & MULTI-ROOM)!');
-  console.log('======================================================');
-  console.log(`📡 Local Network / Hotspot: ${localUrl}`);
-  console.log(`💻 Host URL:                http://localhost:${PORT}`);
-  if (dynamicPublicUrl) {
-    console.log(`🌐 Public Tunnel URL:      ${dynamicPublicUrl}`);
-  }
-  console.log('======================================================');
-  console.log('📲 SCAN WITH PHONE TO OPEN:');
-  qrcode.generate(dynamicPublicUrl || localUrl, { small: true });
-  console.log('======================================================\n');
-});
+if (require.main === module) {
+  app.listen(PORT, '0.0.0.0', () => {
+    const localUrl = `http://${localIp}:${PORT}`;
+    console.log('\n======================================================');
+    console.log('🎵  PARTY JUKEBOX STANDALONE (DUAL ENGINE & MULTI-ROOM)!');
+    console.log('======================================================');
+    console.log(`📡 Local Network / Hotspot: ${localUrl}`);
+    console.log(`💻 Host URL:                http://localhost:${PORT}`);
+    if (dynamicPublicUrl) {
+      console.log(`🌐 Public Tunnel URL:      ${dynamicPublicUrl}`);
+    }
+    console.log('======================================================');
+    console.log('📲 SCAN WITH PHONE TO OPEN:');
+    qrcode.generate(dynamicPublicUrl || localUrl, { small: true });
+    console.log('======================================================\n');
+  });
+}
+
+module.exports = app;

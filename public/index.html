@@ -2847,6 +2847,7 @@
     let currentNativeAudioVideoId = '';
 
     function isUseNativeAudioEngine() {
+      if (window.isVercelEnvironment || window.location.hostname.includes('vercel.app')) return false;
       const pref = localStorage.getItem('jukebox_audio_engine');
       if (pref === 'youtube') return false;
       return true; // Default: Native Audio Engine for Desktop & Mobile (enables flawless background autoplay & no iframe throttling)
@@ -4637,6 +4638,10 @@
     // Update UI from Status
     function updateUI(status) {
       if (!status) return;
+
+      if (status.isVercel) {
+        window.isVercelEnvironment = true;
+      }
 
       // Auto-Update Version Watchdog: Detect new builds and prompt/auto-refresh
       if (status.version && isNewerVersion(status.version, CLIENT_VERSION)) {
