@@ -9,7 +9,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.11.8';
+const APP_VERSION = '2.11.9';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -960,36 +960,65 @@ async function validateYouTubeMusicTrack(videoId) {
   };
 }
 
-// Direct YouTube Music Search via Innertube WEB_REMIX API
-async function searchYouTubeMusic(query) {
+// Direct YouTube Music Search via Innertube WEB_REMIX API (with Infinite Pagination & Continuation)
+async function searchYouTubeMusic(query, continuationToken = null) {
   try {
-    const res = await fetch('https://music.youtube.com/youtubei/v1/search?prettyPrint=false', {
+    let url = 'https://music.youtube.com/youtubei/v1/search?prettyPrint=false';
+    let body = {
+      context: {
+        client: {
+          clientName: 'WEB_REMIX',
+          clientVersion: '1.20231204.01.00',
+          hl: 'id',
+          gl: 'ID'
+        }
+      }
+    };
+
+    if (continuationToken) {
+      url = `https://music.youtube.com/youtubei/v1/search?continuation=${encodeURIComponent(continuationToken)}&ctoken=${encodeURIComponent(continuationToken)}&prettyPrint=false`;
+    } else {
+      body.query = query;
+      // Filter by Songs by default to get clean song entries + continuation tokens
+      body.params = 'EgWKAQIIAWoSEAUQAxAEEAkQChAVEBAQDhAR';
+    }
+
+    const res = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
       },
-      body: JSON.stringify({
-        context: {
-          client: {
-            clientName: 'WEB_REMIX',
-            clientVersion: '1.20231204.01.00',
-            hl: 'id',
-            gl: 'ID'
-          }
-        },
-        query: query
-      }),
-      signal: AbortSignal.timeout(6000)
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(7000)
     });
 
-    if (!res.ok) return [];
+    if (!res.ok) return { results: [], continuationToken: null, hasMore: false };
     const data = await res.json();
-    const tabs = data?.contents?.tabbedSearchResultsRenderer?.tabs;
-    const sectionList = tabs?.[0]?.tabRenderer?.content?.sectionListRenderer?.contents || [];
 
     const results = [];
     const seenIds = new Set();
+    let nextContinuationToken = null;
+
+    function parseDurationSec(runs, accessibilityLabel) {
+      if (accessibilityLabel) {
+        const minMatch = accessibilityLabel.match(/(\d+)\s*(?:menit|minutes?|min)/i);
+        const secMatch = accessibilityLabel.match(/(\d+)\s*(?:detik|seconds?|sec)/i);
+        if (minMatch || secMatch) {
+          return (minMatch ? parseInt(minMatch[1], 10) * 60 : 0) + (secMatch ? parseInt(secMatch[1], 10) : 0);
+        }
+      }
+      if (Array.isArray(runs)) {
+        for (let i = runs.length - 1; i >= 0; i--) {
+          const txt = runs[i]?.text?.trim();
+          const m = txt?.match(/^(\d+):(\d+)$/) || txt?.match(/^(\d+)\.(\d+)$/);
+          if (m) {
+            return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+          }
+        }
+      }
+      return 0;
+    }
 
     function addItem(item) {
       if (!item) return;
@@ -997,48 +1026,92 @@ async function searchYouTubeMusic(query) {
       const title = flex[0]?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.[0]?.text;
       const subtitleRuns = flex[1]?.musicResponsiveListItemFlexColumnRenderer?.text?.runs || [];
       const artist = subtitleRuns.map(r => r.text).join('');
+      const accessLabel = flex[1]?.musicResponsiveListItemFlexColumnRenderer?.text?.accessibility?.accessibilityData?.label || '';
+      const songDuration = parseDurationSec(subtitleRuns, accessLabel);
 
       const videoId = item.overlay?.musicItemThumbnailOverlayRenderer?.content?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint?.videoId
         || flex[0]?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.[0]?.navigationEndpoint?.watchEndpoint?.videoId;
 
       const thumbnails = item.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails || [];
-      const thumbnail = thumbnails[thumbnails.length - 1]?.url || '';
+      const thumbnail = thumbnails[thumbnails.length - 1]?.url || (videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : '');
 
       if (videoId && title && !seenIds.has(videoId)) {
         seenIds.add(videoId);
-        results.push({ videoId, title, artist, thumbnail });
+        results.push({ videoId, title, artist, thumbnail, songDuration });
       }
     }
 
-    for (const section of sectionList) {
-      if (section.musicCardShelfRenderer) {
-        const card = section.musicCardShelfRenderer;
-        const title = card.title?.runs?.[0]?.text;
-        const artist = card.subtitle?.runs?.map(r => r.text).join('');
-        const videoId = card.title?.runs?.[0]?.navigationEndpoint?.watchEndpoint?.videoId
-          || card.buttons?.[0]?.buttonRenderer?.command?.watchEndpoint?.videoId;
-        const thumbnails = card.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails || [];
-        const thumbnail = thumbnails[thumbnails.length - 1]?.url || '';
-        if (videoId && title && !seenIds.has(videoId)) {
-          seenIds.add(videoId);
-          results.push({ videoId, title, artist, thumbnail });
-        }
-      }
-      if (section.itemSectionRenderer?.contents) {
-        for (const c of section.itemSectionRenderer.contents) {
+    if (continuationToken) {
+      // Continuation response
+      const shelfCont = data?.continuationContents?.musicShelfContinuation;
+      if (shelfCont?.contents) {
+        for (const c of shelfCont.contents) {
           if (c.musicResponsiveListItemRenderer) addItem(c.musicResponsiveListItemRenderer);
         }
       }
-      if (section.musicShelfRenderer?.contents) {
-        for (const c of section.musicShelfRenderer.contents) {
-          if (c.musicResponsiveListItemRenderer) addItem(c.musicResponsiveListItemRenderer);
+      nextContinuationToken = shelfCont?.continuations?.[0]?.nextContinuationData?.continuation || null;
+    } else {
+      // Initial search response
+      const tabs = data?.contents?.tabbedSearchResultsRenderer?.tabs;
+      const sectionList = tabs?.[0]?.tabRenderer?.content?.sectionListRenderer?.contents || [];
+
+      for (const section of sectionList) {
+        if (section.musicShelfRenderer) {
+          if (section.musicShelfRenderer.contents) {
+            for (const c of section.musicShelfRenderer.contents) {
+              if (c.musicResponsiveListItemRenderer) addItem(c.musicResponsiveListItemRenderer);
+            }
+          }
+          if (section.musicShelfRenderer.continuations?.[0]?.nextContinuationData?.continuation) {
+            nextContinuationToken = section.musicShelfRenderer.continuations[0].nextContinuationData.continuation;
+          }
         }
+        if (section.itemSectionRenderer?.contents) {
+          for (const c of section.itemSectionRenderer.contents) {
+            if (c.musicResponsiveListItemRenderer) addItem(c.musicResponsiveListItemRenderer);
+          }
+        }
+      }
+
+      // If filtered search returned nothing, fallback to general search without params
+      if (results.length === 0) {
+        try {
+          const fallbackRes = await fetch('https://music.youtube.com/youtubei/v1/search?prettyPrint=false', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            },
+            body: JSON.stringify({
+              context: { client: { clientName: 'WEB_REMIX', clientVersion: '1.20231204.01.00', hl: 'id', gl: 'ID' } },
+              query: query
+            }),
+            signal: AbortSignal.timeout(6000)
+          });
+          if (fallbackRes.ok) {
+            const fallbackData = await fallbackRes.json();
+            const fTabs = fallbackData?.contents?.tabbedSearchResultsRenderer?.tabs;
+            const fSections = fTabs?.[0]?.tabRenderer?.content?.sectionListRenderer?.contents || [];
+            for (const section of fSections) {
+              if (section.musicShelfRenderer?.contents) {
+                for (const c of section.musicShelfRenderer.contents) {
+                  if (c.musicResponsiveListItemRenderer) addItem(c.musicResponsiveListItemRenderer);
+                }
+              }
+              if (section.itemSectionRenderer?.contents) {
+                for (const c of section.itemSectionRenderer.contents) {
+                  if (c.musicResponsiveListItemRenderer) addItem(c.musicResponsiveListItemRenderer);
+                }
+              }
+            }
+          }
+        } catch (e) {}
       }
     }
 
-    return results.slice(0, 20);
+    return { results, continuationToken: nextContinuationToken, hasMore: Boolean(nextContinuationToken) };
   } catch (err) {
-    return [];
+    return { results: [], continuationToken: null, hasMore: false };
   }
 }
 
@@ -1417,14 +1490,18 @@ app.get('/api/status', async (req, res) => {
   });
 });
 
-// 2. Direct Search
+// 2. Direct Search with Infinite Pagination Support
 app.post('/api/search', async (req, res) => {
-  const { query } = req.body || {};
-  if (!query || typeof query !== 'string' || !query.trim()) {
-    return res.json({ results: [] });
+  const { query, continuationToken } = req.body || {};
+  if (!continuationToken && (!query || typeof query !== 'string' || !query.trim())) {
+    return res.json({ results: [], continuationToken: null, hasMore: false });
   }
-  const results = await searchYouTubeMusic(query.trim());
-  res.json({ results });
+  const data = await searchYouTubeMusic((query || '').trim(), continuationToken || null);
+  res.json({
+    results: data.results,
+    continuationToken: data.continuationToken,
+    hasMore: data.hasMore
+  });
 });
 
 // 2.5 Playlist Extraction & Confirmation Endpoints

@@ -359,9 +359,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.8)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.9)"
                     class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-colors cursor-pointer active:scale-95">
-              v2.11.8
+              v2.11.9
             </button>
           </div>
           <div id="connection-btn" class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
@@ -930,7 +930,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.8</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.9</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -941,10 +941,23 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.11.8 -->
+        <!-- v2.11.9 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.11.8 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.11.9 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">🔍 Pencarian Lagu Tanpa Batas (Infinite Scroll & Load More):</strong> Menghilangkan batas pencarian 20 lagu. Kini mendukung paginasi pencarian tanpa batas menggunakan YouTube Music continuation tokens: pengguna dapat terus menggulir (infinite scroll otomatis via IntersectionObserver) atau menekan tombol interaktif "⬇️ Muat Lebih Banyak Lagu (+20)".</li>
+            <li><strong class="text-slate-800 dark:text-white">⏱️ Format Durasi Presisi pada Hasil Pencarian:</strong> Hasil pencarian kini mengekstrak durasi lagu secara presisi pada setiap thumbnail lagu.</li>
+            <li><strong class="text-slate-800 dark:text-white">⚡ Caching & Pre-Warm Terintegrasi:</strong> Setiap item pencarian tambahan otomatis mendukung pre-warming instan saat disentuh atau diarahkan kursor (hover/touch).</li>
+          </ul>
+        </div>
+
+        <!-- v2.11.8 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-800/40 border border-slate-200 dark:border-gray-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-600">v2.11.8</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -1639,7 +1652,7 @@
 
       <!-- Section 5: Version & Release Notes -->
       <div class="pt-1 flex items-center justify-between text-xs text-slate-400">
-        <span>Party Jukebox v2.11.8</span>
+        <span>Party Jukebox v2.11.9</span>
         <button onclick="openChangelogModal(); closeSettingsModal();" class="font-bold text-pink-600 dark:text-pink-400 hover:underline">
           Lihat Catatan Rilis 🚀
         </button>
@@ -2154,7 +2167,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.11.8';
+    const CLIENT_VERSION = '2.11.9';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -5643,6 +5656,14 @@
 
     // Clear Search Input
     function clearSearch() {
+      if (searchInfiniteScrollObserver) {
+        searchInfiniteScrollObserver.disconnect();
+        searchInfiniteScrollObserver = null;
+      }
+      currentSearchQuery = '';
+      currentSearchLabel = '';
+      currentSearchResults = [];
+      currentSearchContinuation = null;
       currentActiveCategoryKeyword = null;
       const input = document.getElementById('search-input');
       input.value = '';
@@ -5714,10 +5735,27 @@
       }, 350);
     });
 
+    // Infinite Search State
+    let currentSearchQuery = '';
+    let currentSearchLabel = '';
+    let currentSearchResults = [];
+    let currentSearchContinuation = null;
+    let isSearchLoadingMore = false;
+    let searchInfiniteScrollObserver = null;
+
     async function executeSearch(query, label = '') {
       let finalQuery = query;
       if (currentFilterCountry && !finalQuery.includes(currentFilterCountry)) finalQuery += ` ${currentFilterCountry}`;
       if (currentFilterGenre && !finalQuery.includes(currentFilterGenre)) finalQuery += ` ${currentFilterGenre}`;
+
+      currentSearchQuery = finalQuery;
+      currentSearchLabel = label || (currentActiveCategoryKeyword ? query : '');
+      currentSearchResults = [];
+      currentSearchContinuation = null;
+      if (searchInfiniteScrollObserver) {
+        searchInfiniteScrollObserver.disconnect();
+        searchInfiniteScrollObserver = null;
+      }
 
       document.getElementById('search-spinner').classList.remove('hidden');
       try {
@@ -5727,17 +5765,75 @@
           body: JSON.stringify({ query: finalQuery })
         });
         const data = await res.json();
-        renderSearchResults(data.results || [], label || (currentActiveCategoryKeyword ? query : ''));
+        currentSearchResults = data.results || [];
+        currentSearchContinuation = data.continuationToken || null;
+        renderSearchResults();
       } catch (err) {
-        console.error(err);
+        console.error('Search error:', err);
       } finally {
         document.getElementById('search-spinner').classList.add('hidden');
       }
     }
 
-    function renderSearchResults(results, label = '') {
+    async function loadMoreSearchResults() {
+      if (isSearchLoadingMore || !currentSearchContinuation) return;
+      isSearchLoadingMore = true;
+
+      const btn = document.getElementById('search-load-more-btn');
+      const spinner = document.getElementById('search-more-spinner');
+      const btnText = document.getElementById('search-more-text');
+      if (spinner) spinner.classList.remove('hidden');
+      if (btnText) btnText.textContent = 'Memuat Lagu Tambahan...';
+      if (btn) btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: currentSearchQuery, continuationToken: currentSearchContinuation })
+        });
+        const data = await res.json();
+        const newItems = data.results || [];
+        if (newItems.length > 0) {
+          currentSearchResults = currentSearchResults.concat(newItems);
+        }
+        currentSearchContinuation = data.continuationToken || null;
+        renderSearchResults();
+      } catch (err) {
+        console.error('Error loading more search items:', err);
+        showToast('Gagal memuat lagu tambahan');
+      } finally {
+        isSearchLoadingMore = false;
+        if (spinner) spinner.classList.add('hidden');
+        if (btnText) btnText.textContent = '⬇️ Muat Lebih Banyak Lagu (+20)';
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    function setupSearchInfiniteScroll() {
+      if (searchInfiniteScrollObserver) {
+        searchInfiniteScrollObserver.disconnect();
+        searchInfiniteScrollObserver = null;
+      }
+      const trigger = document.getElementById('search-load-more-btn');
+      if (!trigger || !currentSearchContinuation) return;
+
+      searchInfiniteScrollObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && !isSearchLoadingMore && currentSearchContinuation) {
+            loadMoreSearchResults();
+          }
+        });
+      }, { rootMargin: '350px 0px' });
+
+      searchInfiniteScrollObserver.observe(trigger);
+    }
+
+    function renderSearchResults() {
       const container = document.getElementById('search-results');
-      if (results.length === 0) {
+      if (!container) return;
+
+      if (currentSearchResults.length === 0) {
         container.innerHTML = `
           <div class="p-6 text-center text-xs text-slate-400 dark:text-gray-500 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800 space-y-2">
             <p>Tidak ada lagu yang ditemukan untuk pencarian ini.</p>
@@ -5749,14 +5845,14 @@
         return;
       }
 
-      const queryText = document.getElementById('search-input')?.value?.trim() || label || 'Pencarian';
+      const queryText = document.getElementById('search-input')?.value?.trim() || currentSearchLabel || 'Pencarian';
 
       container.innerHTML = `
         <div class="pt-1 pb-2 space-y-2">
           <!-- Search Header -->
           <div class="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-gray-300 px-1 mb-1">
             <span class="flex items-center gap-1.5 text-pink-600 dark:text-pink-400 truncate">
-              <span>🔍</span> Hasil Pencarian: <strong class="truncate">"${escapeHtml(queryText)}"</strong> (${results.length} lagu)
+              <span>🔍</span> Hasil Pencarian: <strong class="truncate">"${escapeHtml(queryText)}"</strong> (${currentSearchResults.length} lagu dimuat)
             </span>
             <button onclick="clearSearch()" class="shrink-0 px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 text-slate-500 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 cursor-pointer transition-all active:scale-95">
               ✕ Reset
@@ -5764,8 +5860,8 @@
           </div>
 
           <!-- ONE COLUMN SEARCH LIST (Full Width Rows) -->
-          <div class="flex flex-col gap-2">
-            ${results.map(item => `
+          <div class="flex flex-col gap-2" id="search-list-items">
+            ${currentSearchResults.map(item => `
               <div class="group relative flex items-center justify-between gap-3 p-2.5 rounded-xl bg-slate-50 dark:bg-gray-900/80 border border-slate-200 dark:border-gray-800 hover:border-pink-500/50 shadow-2xs hover:shadow-md transition-all active:scale-[0.99]"
                    onmouseenter="triggerPrewarm('${item.videoId}')"
                    ontouchstart="triggerPrewarm('${item.videoId}')">
@@ -5786,8 +5882,33 @@
               </div>
             `).join('')}
           </div>
+
+          <!-- Load More & Infinite Scroll Section -->
+          ${currentSearchContinuation ? `
+            <div id="search-load-more-container" class="pt-3 pb-1 flex flex-col items-center justify-center">
+              <button id="search-load-more-btn" onclick="loadMoreSearchResults()"
+                      class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-pink-500/10 hover:bg-pink-500 text-pink-600 dark:text-pink-400 hover:text-white border border-pink-500/30 hover:border-pink-500 text-xs font-bold transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer shadow-xs">
+                <svg id="search-more-spinner" class="w-3.5 h-3.5 animate-spin hidden text-current" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span id="search-more-text">⬇️ Muat Lebih Banyak Lagu (+20)</span>
+              </button>
+              <p class="text-[10px] text-slate-400 dark:text-gray-500 mt-1.5 flex items-center gap-1">
+                <span>💡</span> Gulir ke bawah atau klik untuk mencari terus tanpa batas
+              </p>
+            </div>
+          ` : `
+            <div class="pt-3 pb-1 text-center text-[11px] font-medium text-slate-400 dark:text-gray-500">
+              ✓ Semua hasil pencarian telah dimuat (${currentSearchResults.length} lagu)
+            </div>
+          `}
         </div>
       `;
+
+      if (currentSearchContinuation) {
+        setupSearchInfiniteScroll();
+      }
     }
 
     // Queue Song (With safe JSON decode helper)
