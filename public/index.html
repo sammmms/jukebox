@@ -359,9 +359,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.9)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.10)"
                     class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-colors cursor-pointer active:scale-95">
-              v2.11.9
+              v2.11.10
             </button>
           </div>
           <div id="connection-btn" class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
@@ -930,7 +930,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.9</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.10</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -941,10 +941,22 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.11.9 -->
+        <!-- v2.11.10 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.11.9 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.11.10 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">🎯 Deteksi Pintar YouTube Mix/Radio vs Playlist Asli:</strong> Memperbaiki kesalahan deteksi di mana link lagu dengan parameter YouTube Radio/Mix (seperti <code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">&list=RD...</code> atau <code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">&start_radio=1</code>) keliru dideteksi sebagai playlist. Link ini kini langsung dikenali sebagai lagu tunggal dan seketika dimasukkan ke antrean.</li>
+            <li><strong class="text-slate-800 dark:text-white">🔀 Dialog Pilihan untuk Link Hybrid:</strong> Jika pengguna menempel link yang memiliki video spesifik dan playlist buatan pengguna (misal <code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">watch?v=...&list=PL...</code>), sistem menyediakan dialog konfirmasi untuk memilih antara memutar 1 lagu tersebut atau membuka seluruh daftar playlist.</li>
+          </ul>
+        </div>
+
+        <!-- v2.11.9 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-800/40 border border-slate-200 dark:border-gray-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-600">v2.11.9</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -1652,7 +1664,7 @@
 
       <!-- Section 5: Version & Release Notes -->
       <div class="pt-1 flex items-center justify-between text-xs text-slate-400">
-        <span>Party Jukebox v2.11.9</span>
+        <span>Party Jukebox v2.11.10</span>
         <button onclick="openChangelogModal(); closeSettingsModal();" class="font-bold text-pink-600 dark:text-pink-400 hover:underline">
           Lihat Catatan Rilis 🚀
         </button>
@@ -2167,7 +2179,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.11.9';
+    const CLIENT_VERSION = '2.11.10';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -5951,12 +5963,40 @@
       }
     }
 
+    function extractVideoId(input) {
+      if (!input || typeof input !== 'string') return null;
+      input = input.trim();
+      if (/^[a-zA-Z0-9_-]{11}$/.test(input)) return input;
+      const vMatch = input.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+      if (vMatch) return vMatch[1];
+      const shortMatch = input.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+      if (shortMatch) return shortMatch[1];
+      const embedMatch = input.match(/youtube\.com\/(?:embed|shorts|v)\/([a-zA-Z0-9_-]{11})/);
+      if (embedMatch) return embedMatch[1];
+      return null;
+    }
+
+    function isRadioOrMixPlaylist(playlistId, input = '') {
+      if (!playlistId) return false;
+      if (/^(?:RD|UL)/i.test(playlistId)) return true;
+      if (input && /[?&]start_radio=1/i.test(input)) return true;
+      return false;
+    }
+
     function extractPlaylistId(input) {
       if (!input || typeof input !== 'string') return null;
       input = input.trim();
       const match = input.match(/[?&]list=([a-zA-Z0-9_-]+)/);
-      if (match) return match[1];
-      if (/^(?:PL|RD|OLAK5uy)[a-zA-Z0-9_-]{10,}$/.test(input)) return input;
+      if (match) {
+        const listId = match[1];
+        // If it's a YouTube Mix / Radio (starts with RD, UL, or has start_radio=1):
+        // It is an algorithmic radio based on that song, NOT an importable playlist!
+        if (isRadioOrMixPlaylist(listId, input) || /^RD/i.test(listId)) {
+          return null;
+        }
+        return listId;
+      }
+      if (/^(?:PL|OLAK5uy)[a-zA-Z0-9_-]{10,}$/.test(input)) return input;
       return null;
     }
 
@@ -6106,8 +6146,24 @@
       const submitBtn = document.getElementById('paste-submit-btn');
       const originalHtml = submitBtn ? submitBtn.innerHTML : '';
 
+      const videoId = extractVideoId(input);
+      let playlistId = extractPlaylistId(input);
+
+      // If URL contains BOTH a single video and a real playlist (e.g. watch?v=...&list=PL...):
+      if (videoId && playlistId) {
+        const wantPlaylist = await customConfirm(
+          'Link YouTube ini berisi 1 lagu spesifik dan juga sebuah Playlist.\n\nApakah Anda ingin membuka seluruh isi Playlist?',
+          'Lagu atau Playlist? 🎵📑',
+          '📑',
+          'Buka Playlist 📑',
+          'Putar 1 Lagu Saja 🎵'
+        );
+        if (!wantPlaylist) {
+          playlistId = null; // Proceed with single track flow
+        }
+      }
+
       // Check if input is a playlist link
-      const playlistId = extractPlaylistId(input);
       if (playlistId) {
         if (submitBtn) {
           submitBtn.disabled = true;
@@ -6168,7 +6224,7 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            input,
+            input: videoId || input,
             user: currentUser
           })
         });

@@ -9,7 +9,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.11.9';
+const APP_VERSION = '2.11.10';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -854,8 +854,8 @@ function extractVideoId(input) {
   if (!input || typeof input !== 'string') return null;
   input = input.trim();
   if (/^[a-zA-Z0-9_-]{11}$/.test(input)) return input;
-  const watchMatch = input.match(/(?:music\.)?youtube\.com\/watch\?(?:.*&)?v=([a-zA-Z0-9_-]{11})/);
-  if (watchMatch) return watchMatch[1];
+  const vMatch = input.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+  if (vMatch) return vMatch[1];
   const shortMatch = input.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
   if (shortMatch) return shortMatch[1];
   const embedMatch = input.match(/youtube\.com\/(?:embed|shorts|v)\/([a-zA-Z0-9_-]{11})/);
@@ -863,12 +863,29 @@ function extractVideoId(input) {
   return null;
 }
 
+function isRadioOrMixPlaylist(playlistId, input = '') {
+  if (!playlistId) return false;
+  // YouTube Mixes & Endless Radios always start with RD (e.g. RD..., RDAMVM..., RDCLAK...) or UL (Uploads mix)
+  if (/^(?:RD|UL)/i.test(playlistId)) return true;
+  if (input && /[?&]start_radio=1/i.test(input)) return true;
+  return false;
+}
+
 function extractPlaylistId(input) {
   if (!input || typeof input !== 'string') return null;
   input = input.trim();
+  const hasVideoId = extractVideoId(input);
   const match = input.match(/[?&]list=([a-zA-Z0-9_-]+)/);
-  if (match) return match[1];
-  if (/^(?:PL|RD|OLAK5uy)[a-zA-Z0-9_-]{10,}$/.test(input)) return input;
+  if (match) {
+    const listId = match[1];
+    // If it's a YouTube Mix / Radio (starts with RD, UL, or has start_radio=1):
+    // It is an algorithmic radio based on that song, NOT an importable playlist!
+    if (isRadioOrMixPlaylist(listId, input) || /^RD/i.test(listId)) {
+      return null;
+    }
+    return listId;
+  }
+  if (/^(?:PL|OLAK5uy)[a-zA-Z0-9_-]{10,}$/.test(input)) return input;
   return null;
 }
 
