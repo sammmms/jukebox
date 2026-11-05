@@ -9,7 +9,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.11.7';
+const APP_VERSION = '2.11.8';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -464,6 +464,7 @@ async function advanceNextTrack(skippedByUser = null) {
       imageSrc: nextItem.thumbnail || '',
       songDuration: dur,
       elapsedSeconds: 0,
+      currentElapsed: 0,
       isPaused: false,
       addedBy: nextItem.addedBy || 'Host',
       startedAt: Date.now()
@@ -479,6 +480,7 @@ async function advanceNextTrack(skippedByUser = null) {
       imageSrc: autoTrack.thumbnail || '',
       songDuration: autoTrack.songDuration || 240,
       elapsedSeconds: 0,
+      currentElapsed: 0,
       isPaused: false,
       addedBy: autoTrack.addedBy || 'Autoplay / YouTube Algorithm',
       startedAt: Date.now()
@@ -1401,8 +1403,10 @@ app.get('/api/status', async (req, res) => {
     current: {
       ...liveCurrent,
       currentElapsed: getCalculatedElapsed(),
-      isPaused: playbackTracker.isPaused
+      isPaused: playbackTracker.isPaused,
+      isAudioCached: directAudioCache.has(liveCurrent?.videoId || '')
     },
+    cachedTrackIds: Array.from(directAudioCache.keys()),
     queue,
     selectedIndex,
     partyHost: getPartyHostInfo(),
@@ -1645,6 +1649,10 @@ app.post('/api/queue', async (req, res) => {
   addActivity(songUser, 'add', songTitle);
   persistPartyQueue();
   broadcastUpdate();
+
+  // Instant Proactive Pre-Warm: immediately resolve stream in background so it's 100% ready when played!
+  fetchDirectAudioUrl(queueItem.videoId).catch(() => {});
+  setTimeout(prewarmUpcomingTracks, 50);
 
   if (!queueItem.songDuration || queueItem.songDuration <= 0) {
     fetchDirectAudioUrl(queueItem.videoId).then(info => {
@@ -1925,6 +1933,12 @@ app.post('/api/player/sync', (req, res) => {
   }
   if (videoId && currentSong.videoId === videoId) {
     if (typeof elapsed === 'number' && elapsed >= 0) {
+      const trackAgeSec = (Date.now() - (currentSong.startedAt || 0)) / 1000;
+      // Stale Elapsed Guard: Reject residual currentTime from previous track while new track is buffering
+      if (trackAgeSec < 8 && elapsed > 8) {
+        console.warn(`[Sync Guard] Rejected stale elapsed of ${elapsed}s for freshly started track "${currentSong.title}" (track age: ${trackAgeSec.toFixed(1)}s)`);
+        return res.json({ success: true, rejected: 'stale_track_elapsed' });
+      }
       playbackTracker.elapsed = elapsed;
       currentSong.elapsedSeconds = elapsed;
       playbackTracker.lastUpdated = Date.now();
@@ -2023,6 +2037,19 @@ async function prewarmUpcomingTracks() {
   }
 }
 setInterval(prewarmUpcomingTracks, 25000);
+
+// Fast Pre-warm Endpoint (Triggered on search/recommendation hover or click)
+app.post('/api/audio/prewarm/:videoId', (req, res) => {
+  const { videoId } = req.params;
+  if (videoId && /^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+    const isAlreadyCached = directAudioCache.has(videoId);
+    if (!isAlreadyCached) {
+      fetchDirectAudioUrl(videoId).catch(() => {});
+    }
+    return res.json({ success: true, videoId, cached: isAlreadyCached });
+  }
+  res.status(400).json({ error: 'Invalid videoId' });
+});
 
 app.get('/api/audio/stream/:videoId', async (req, res) => {
   const { videoId } = req.params;
@@ -2173,8 +2200,10 @@ async function broadcastUpdate() {
     current: {
       ...liveCurrent,
       currentElapsed: getCalculatedElapsed(),
-      isPaused: playbackTracker.isPaused
+      isPaused: playbackTracker.isPaused,
+      isAudioCached: directAudioCache.has(liveCurrent?.videoId || '')
     },
+    cachedTrackIds: Array.from(directAudioCache.keys()),
     queue,
     selectedIndex,
     standalone: !isUsingYtmDesktop(),

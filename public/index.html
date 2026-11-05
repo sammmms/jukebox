@@ -296,6 +296,18 @@
     .dark .view-mobile .dashboard-card + .dashboard-card {
       border-top: 1px solid rgba(31, 41, 55, 0.8) !important;
     }
+
+    @keyframes progressShimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .progress-bar-loading {
+      background: linear-gradient(90deg, #ec4899 0%, #f43f5e 25%, #f59e0b 50%, #f43f5e 75%, #ec4899 100%) !important;
+      background-size: 200% 100% !important;
+      animation: progressShimmer 1.5s infinite linear !important;
+      width: 100% !important;
+      opacity: 0.95;
+    }
   </style>
 </head>
 <body class="bg-slate-50 dark:bg-[#0a0c10] text-slate-800 dark:text-gray-100 min-h-screen pb-24 selection:bg-pink-500 selection:text-white transition-colors duration-200 view-auto">
@@ -347,9 +359,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.7)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.8)"
                     class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-colors cursor-pointer active:scale-95">
-              v2.11.7
+              v2.11.8
             </button>
           </div>
           <div id="connection-btn" class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
@@ -513,6 +525,7 @@
               <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 uppercase tracking-wider shrink-0 border border-indigo-300/40 dark:border-indigo-500/30">Up Next</span>
               <span id="up-next-title" class="text-slate-800 dark:text-gray-200 font-bold truncate">Song Title</span>
               <span id="up-next-badge" class="text-[10px] text-slate-500 dark:text-gray-400 shrink-0 font-medium"></span>
+              <span id="up-next-prewarm-badge" class="hidden text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shrink-0">⚡ Ready</span>
             </div>
             <button onclick="skipNext()" class="text-xs text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300 font-bold flex items-center gap-1 shrink-0 ml-2 active:scale-95 transition-transform cursor-pointer">
               <span>Play Now ⏭️</span>
@@ -917,7 +930,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.7</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.8</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -928,10 +941,24 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.11.7 -->
+        <!-- v2.11.8 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.11.7 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.11.8 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">⚡ Indikator Real-Time Proses Lagu (Audio Loading State):</strong> Menyediakan feedback visual yang sangat jelas saat lagu sedang diproses/dibuffer ("⚡ Menyiapkan Audio..." / "Buffering Stream..."), animasi shimmering gradien pada progress bar, dan spinner pada tombol Play sehingga pengguna tahu dengan pasti status lagu dan tidak menunggu dalam kegelapan.</li>
+            <li><strong class="text-slate-800 dark:text-white">🛡️ Eliminasi Total Bug Forward Jump 3 Menit:</strong> Menyelidiki tuntas dan memperbaiki masalah di mana lagu baru tiba-tiba melompat ke menit 3 (180 detik). Disebabkan oleh retensi residual `currentTime` elemen audio HTML5 saat transisi lagu yang terkirim ke server heartbeat. Diperbaiki dengan Server Stale Elapsed Guard, Client Zero-Reset, dan 6s Heartbeat Suppressor.</li>
+            <li><strong class="text-slate-800 dark:text-white">🚀 Akselerasi Pre-Warming Instan (Hover & On-Queue):</strong> Cache audio YouTube langsung diselesaikan di background saat kursor mengarahkan (hover/touch) pada kartu lagu di rekomendasi atau hasil pencarian via endpoint `/api/audio/prewarm/:videoId`, serta otomatis pre-warm seketika lagu ditambahkan ke antrean (0ms stream lookup saat mulai diputar).</li>
+            <li><strong class="text-slate-800 dark:text-white">✨ Badge Kesiapan Lagu ("⚡ Ready"):</strong> Indikator status visual pada banner "Up Next" yang menunjukkan apakah lagu berikutnya sudah siap di-cache dan bisa langsung diputar tanpa jeda.</li>
+          </ul>
+        </div>
+
+        <!-- v2.11.7 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-800/40 border border-slate-200 dark:border-gray-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-600">v2.11.7</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -1612,7 +1639,7 @@
 
       <!-- Section 5: Version & Release Notes -->
       <div class="pt-1 flex items-center justify-between text-xs text-slate-400">
-        <span>Party Jukebox v2.11.7</span>
+        <span>Party Jukebox v2.11.8</span>
         <button onclick="openChangelogModal(); closeSettingsModal();" class="font-bold text-pink-600 dark:text-pink-400 hover:underline">
           Lihat Catatan Rilis 🚀
         </button>
@@ -1755,8 +1782,16 @@
           <!-- Title, Artist, & Added By -->
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-1.5 flex-wrap">
-              <span class="px-1.5 py-0.2 rounded text-[9px] font-black tracking-wide bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30 uppercase shrink-0">
+              <span id="player-playing-badge" class="px-1.5 py-0.2 rounded text-[9px] font-black tracking-wide bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30 uppercase shrink-0">
                 Playing
+              </span>
+              <!-- Audio Resolving & Loading Badge -->
+              <span id="audio-loading-badge" class="hidden inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 animate-pulse shrink-0">
+                <svg class="w-3 h-3 animate-spin text-amber-500" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span id="audio-loading-text">Menyiapkan Audio...</span>
               </span>
               <span id="now-added-by" class="text-[10px] text-slate-500 dark:text-gray-400 truncate font-semibold"></span>
             </div>
@@ -1779,8 +1814,12 @@
         </button>
 
         <!-- Play / Pause Button -->
-        <button onclick="togglePlay()" title="Play / Pause (Space / K)"
+        <button onclick="togglePlay()" id="play-pause-btn" title="Play / Pause (Space / K)"
                 class="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 text-white flex items-center justify-center shadow-lg shadow-pink-500/30 hover:scale-105 active:scale-95 transition-all cursor-pointer">
+          <svg id="play-loading-spinner" class="w-5 h-5 animate-spin hidden text-white" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
           <svg id="play-icon" class="w-5 h-5 translate-x-0.5" fill="currentColor" viewBox="0 0 24 24">
             <path d="M8 5v14l11-7z"/>
           </svg>
@@ -2115,10 +2154,53 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.11.7';
+    const CLIENT_VERSION = '2.11.8';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
+
+    // Real-Time Audio Loading State & Pre-warm Trigger
+    let isAudioStreamLoading = false;
+
+    function updateLoadingState(isLoading, label = 'Menyiapkan Audio...') {
+      isAudioStreamLoading = Boolean(isLoading);
+      const loadingBadge = document.getElementById('audio-loading-badge');
+      const playingBadge = document.getElementById('player-playing-badge');
+      const loadingText = document.getElementById('audio-loading-text');
+      const spinner = document.getElementById('play-loading-spinner');
+      const playIcon = document.getElementById('play-icon');
+      const pauseIcon = document.getElementById('pause-icon');
+      const progressBar = document.getElementById('progress-bar');
+      const elapsedEl = document.getElementById('time-elapsed');
+
+      if (isAudioStreamLoading) {
+        if (loadingBadge) loadingBadge.classList.remove('hidden');
+        if (playingBadge) playingBadge.classList.add('hidden');
+        if (loadingText) loadingText.textContent = label;
+        if (spinner) spinner.classList.remove('hidden');
+        if (playIcon) playIcon.classList.add('hidden');
+        if (pauseIcon) pauseIcon.classList.add('hidden');
+        if (progressBar) progressBar.classList.add('progress-bar-loading');
+        if (elapsedEl && currentElapsed === 0) elapsedEl.textContent = '⏳ Loading';
+      } else {
+        if (loadingBadge) loadingBadge.classList.add('hidden');
+        if (playingBadge) playingBadge.classList.remove('hidden');
+        if (spinner) spinner.classList.add('hidden');
+        if (isPlaying) {
+          if (playIcon) playIcon.classList.add('hidden');
+          if (pauseIcon) pauseIcon.classList.remove('hidden');
+        } else {
+          if (playIcon) playIcon.classList.remove('hidden');
+          if (pauseIcon) pauseIcon.classList.add('hidden');
+        }
+        if (progressBar) progressBar.classList.remove('progress-bar-loading');
+      }
+    }
+
+    function triggerPrewarm(videoId) {
+      if (!videoId || !/^[a-zA-Z0-9_-]{11}$/.test(videoId)) return;
+      fetch(`/api/audio/prewarm/${videoId}`, { method: 'POST' }).catch(() => {});
+    }
 
     // Web Audio GainNode for universal iOS Safari & Android software volume control
     let audioCtx = null;
@@ -2674,7 +2756,7 @@
             const durationEl = document.getElementById('time-duration');
             if (durationEl) durationEl.textContent = formatTime(songDuration);
             renderTimeline(currentElapsed);
-            if (isMeHost()) {
+            if (isMeHost() && !isAudioStreamLoading && !hostAudio.paused) {
               fetch('/api/player/sync', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -2689,9 +2771,28 @@
         }
       }
 
+      hostAudio.addEventListener('loadstart', () => {
+        updateLoadingState(true, 'Menyiapkan Audio...');
+        try { hostAudio.currentTime = 0; } catch (e) {}
+        currentElapsed = 0;
+        lastHostSyncTime = Date.now() + 5000;
+      });
+
+      hostAudio.addEventListener('waiting', () => {
+        updateLoadingState(true, 'Buffering Stream...');
+      });
+
+      hostAudio.addEventListener('canplay', () => {
+        updateLoadingState(false);
+        updateNativeAudioDuration();
+      });
+
+      hostAudio.addEventListener('playing', () => {
+        updateLoadingState(false);
+      });
+
       hostAudio.addEventListener('loadedmetadata', updateNativeAudioDuration);
       hostAudio.addEventListener('durationchange', updateNativeAudioDuration);
-      hostAudio.addEventListener('canplay', updateNativeAudioDuration);
 
       hostAudio.addEventListener('play', () => {
         isHostSpeakerActive = true;
@@ -2702,6 +2803,7 @@
         requestScreenWakeLock();
         updateNativeAudioDuration();
         isPlaying = true;
+        updateLoadingState(false);
         document.getElementById('vinyl-disc')?.classList.remove('paused');
         document.getElementById('play-icon')?.classList.add('hidden');
         document.getElementById('pause-icon')?.classList.remove('hidden');
@@ -2913,13 +3015,24 @@
           try { ytPlayer.pauseVideo(); } catch (e) {}
         }
 
-        if (currentSongData.videoId !== currentNativeAudioVideoId || !hostAudio.src.includes(`/api/audio/stream/${currentSongData.videoId}`)) {
+        const isNewTrack = (currentSongData.videoId !== currentNativeAudioVideoId);
+        if (isNewTrack || !hostAudio.src.includes(`/api/audio/stream/${currentSongData.videoId}`)) {
           currentNativeAudioVideoId = currentSongData.videoId;
           const targetUrl = `/api/audio/stream/${currentSongData.videoId}`;
           if (!hostAudio.src.includes(targetUrl)) {
+            updateLoadingState(true, 'Menyiapkan Audio...');
+            try { hostAudio.pause(); } catch (e) {}
+            try { hostAudio.currentTime = 0; } catch (e) {}
+            currentElapsed = 0;
+            renderTimeline(0);
+            lastHostSyncTime = Date.now() + 6000;
             hostAudio.src = targetUrl;
-            try { hostAudio.currentTime = targetSec; } catch (e) {}
-            if (targetSec > 0) {
+
+            // Stale Forward-Jump Guard: Only seek if this is NOT a fresh track transition
+            // (e.g. user joined or reconnected mid-song where startedAt was > 10s ago)
+            const isMidSongJoin = targetSec > 10 && currentSongData.startedAt && (Date.now() - currentSongData.startedAt > 10000);
+            const shouldSeek = (!isNewTrack && targetSec > 0) || isMidSongJoin;
+            if (shouldSeek) {
               const seekInitial = () => {
                 try { hostAudio.currentTime = targetSec; } catch (e) {}
                 hostAudio.removeEventListener('loadedmetadata', seekInitial);
@@ -2928,7 +3041,7 @@
             }
           }
           if (!currentSongData.isPaused) {
-            playNativeAudio(targetSec);
+            playNativeAudio(0);
           } else {
             hostAudio.pause();
           }
@@ -4309,6 +4422,9 @@
           songDuration = song.songDuration || 0;
           lastTickTimestamp = Date.now();
           loadLyricsForSong(song);
+          if (!song.isAudioCached) {
+            updateLoadingState(true, 'Menyiapkan Audio...');
+          }
           if (isMeHost()) {
             syncHostAudioEngine();
           }
@@ -4370,13 +4486,20 @@
         const vinyl = document.getElementById('vinyl-disc');
         const playIcon = document.getElementById('play-icon');
         const pauseIcon = document.getElementById('pause-icon');
+        const spinner = document.getElementById('play-loading-spinner');
 
-        if (!isPlaying) {
+        if (isAudioStreamLoading) {
+          if (spinner) spinner.classList.remove('hidden');
+          if (playIcon) playIcon.classList.add('hidden');
+          if (pauseIcon) pauseIcon.classList.add('hidden');
+        } else if (!isPlaying) {
           vinyl.classList.add('paused');
+          if (spinner) spinner.classList.add('hidden');
           playIcon.classList.remove('hidden');
           pauseIcon.classList.add('hidden');
         } else {
           vinyl.classList.remove('paused');
+          if (spinner) spinner.classList.add('hidden');
           playIcon.classList.add('hidden');
           pauseIcon.classList.remove('hidden');
         }
@@ -4453,6 +4576,11 @@
 
     // Client Ticker (with 0ms frame-perfect Host Audio Engine sync)
     function tickPlayback() {
+      // Freeze timeline and suppress sync heartbeats while audio stream is loading
+      if (isAudioStreamLoading) {
+        return;
+      }
+
       // 1. If THIS device is Host and playing via Native HTML5 Audio:
       const hostAudio = document.getElementById('host-native-audio');
       if (isMeHost() && isUseNativeAudioEngine() && hostAudio && hostAudio.src) {
@@ -4484,8 +4612,8 @@
             }
           }
 
-          // Broadcast sync heartbeat to server every 2 seconds
-          if (Date.now() - lastHostSyncTime > 2000) {
+          // Broadcast sync heartbeat to server every 2 seconds (only when physically playing and ready)
+          if (!hostAudio.paused && hostAudio.readyState >= 2 && (Date.now() - lastHostSyncTime > 2000)) {
             lastHostSyncTime = Date.now();
             const hostTok = localStorage.getItem('jukebox_host_token');
             fetch('/api/player/sync', {
@@ -4890,13 +5018,23 @@
       const upNextBanner = document.getElementById('up-next-banner');
       const upNextTitle = document.getElementById('up-next-title');
       const upNextBadge = document.getElementById('up-next-badge');
+      const upNextPrewarmBadge = document.getElementById('up-next-prewarm-badge');
 
       if (upcoming.length > 0) {
         if (upNextBanner) upNextBanner.classList.remove('hidden');
         if (upNextTitle) upNextTitle.textContent = upcoming[0].title;
         if (upNextBadge) upNextBadge.textContent = upcoming[0].addedBy ? `(by ${upcoming[0].addedBy})` : '✨ Autoplay YouTube';
+        if (upNextPrewarmBadge) {
+          const isCached = Array.isArray(status.cachedTrackIds) && status.cachedTrackIds.includes(upcoming[0].videoId);
+          if (isCached) {
+            upNextPrewarmBadge.classList.remove('hidden');
+          } else {
+            upNextPrewarmBadge.classList.add('hidden');
+          }
+        }
       } else {
         if (upNextBanner) upNextBanner.classList.add('hidden');
+        if (upNextPrewarmBadge) upNextPrewarmBadge.classList.add('hidden');
       }
 
       const emptyHtml = `
@@ -5390,7 +5528,9 @@
           <!-- 3x3 RECTANGULAR HORIZONTAL GRID (Space-Efficient Compact Layout) -->
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-2.5">
             ${pageItems.map(item => `
-              <div class="group relative flex items-center gap-2.5 p-2 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800/80 hover:border-pink-500/50 shadow-2xs hover:shadow-md transition-all active:scale-[0.99]">
+              <div class="group relative flex items-center gap-2.5 p-2 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800/80 hover:border-pink-500/50 shadow-2xs hover:shadow-md transition-all active:scale-[0.99]"
+                   onmouseenter="triggerPrewarm('${item.videoId}')"
+                   ontouchstart="triggerPrewarm('${item.videoId}')">
                 <!-- Left: Thumbnail (Rectangle / Compact, Not huge 1:1) -->
                 <div class="relative w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden shrink-0 bg-slate-200 dark:bg-gray-800">
                   <img src="${item.thumbnail}" onerror="this.onerror=null;this.src='https://placehold.co/150x150/1e293b/white?text=🎵';" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
@@ -5626,7 +5766,9 @@
           <!-- ONE COLUMN SEARCH LIST (Full Width Rows) -->
           <div class="flex flex-col gap-2">
             ${results.map(item => `
-              <div class="group relative flex items-center justify-between gap-3 p-2.5 rounded-xl bg-slate-50 dark:bg-gray-900/80 border border-slate-200 dark:border-gray-800 hover:border-pink-500/50 shadow-2xs hover:shadow-md transition-all active:scale-[0.99]">
+              <div class="group relative flex items-center justify-between gap-3 p-2.5 rounded-xl bg-slate-50 dark:bg-gray-900/80 border border-slate-200 dark:border-gray-800 hover:border-pink-500/50 shadow-2xs hover:shadow-md transition-all active:scale-[0.99]"
+                   onmouseenter="triggerPrewarm('${item.videoId}')"
+                   ontouchstart="triggerPrewarm('${item.videoId}')">
                 <div class="flex items-center gap-3 min-w-0 flex-1">
                   <div class="relative w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-slate-200 dark:bg-gray-800">
                     <img src="${item.thumbnail || 'https://via.placeholder.com/60'}" onerror="this.onerror=null;this.src='https://placehold.co/150x150/1e293b/white?text=🎵';" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
@@ -6034,6 +6176,8 @@
 
     async function skipNext() {
       try {
+        updateLoadingState(true, 'Menyiapkan Audio...');
+        lastHostSyncTime = Date.now() + 6000;
         const res = await fetch('/api/control/next', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
