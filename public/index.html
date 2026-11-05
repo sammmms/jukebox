@@ -359,9 +359,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.11)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.12)"
                     class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-colors cursor-pointer active:scale-95">
-              v2.11.11
+              v2.11.12
             </button>
           </div>
           <div id="connection-btn" class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
@@ -930,7 +930,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.11</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.12</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -941,10 +941,24 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.11.11 -->
+        <!-- v2.11.12 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.11.11 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.11.12 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">🛡️ Perbaikan Tambah Antrean (Apostrof / Single-Quote Safe):</strong> Mengatasi kegagalan klik tombol <em>+ Queue</em> pada hasil pencarian, filter genre, dan riwayat jika judul lagu atau nama artis mengandung tanda kutip satu (misal <em>Can't, Don't, It's, Let's</em>). Sistem kini menggunakan registri kartu lagu terisolasi (<code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">songCardRegistry</code>) berbasis Video ID yang 100% kebal terhadap konflik escaping HTML/JS.</li>
+            <li><strong class="text-slate-800 dark:text-white">🔄 Anti-Reset Progres Lagu Pasca Buffering:</strong> Menghapus reset paksa <code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">currentTime = 0</code> dari event native audio. Saat terjadi jeda buffering, reconnect stream, atau underrun jaringan, posisi pemutaran lagu kini tetap terjaga pada detik sebenarnya tanpa kembali ke awal (0:00).</li>
+            <li><strong class="text-slate-800 dark:text-white">🚀 Worker Queue & Debounce Pre-Warm (Beban CPU Minimal):</strong> Mengganti proses spawn yt-dlp bebas tanpa batas dengan sistem <em>Single-Worker FIFO Queue</em> (<code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">concurrency = 1</code>, antrean maksimal 3) dan debounce 400ms saat kursor mengarah ke kartu lagu. Mencegah penumpukan puluhan proses yt-dlp di background dan menjaga CPU tetap stabil & dingin.</li>
+            <li><strong class="text-slate-800 dark:text-white">🧩 Perbaikan Auto-Recovery Antrean Server:</strong> Memperbaiki bug <code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">searchResults is not iterable</code> pada mekanisme auto-recovery server saat memproses penambahan lagu YouTube Music.</li>
+          </ul>
+        </div>
+
+        <!-- v2.11.11 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-800/40 border border-slate-200 dark:border-gray-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-600">v2.11.11</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -1677,7 +1691,7 @@
 
       <!-- Section 5: Version & Release Notes -->
       <div class="pt-1 flex items-center justify-between text-xs text-slate-400">
-        <span>Party Jukebox v2.11.11</span>
+        <span>Party Jukebox v2.11.12</span>
         <button onclick="openChangelogModal(); closeSettingsModal();" class="font-bold text-pink-600 dark:text-pink-400 hover:underline">
           Lihat Catatan Rilis 🚀
         </button>
@@ -2192,7 +2206,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.11.11';
+    const CLIENT_VERSION = '2.11.12';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -2286,13 +2300,37 @@
         if (progressBar) {
           progressBar.classList.remove('progress-bar-loading');
         }
-        renderTimeline(currentElapsed);
+        const hostAudioEl = document.getElementById('host-native-audio');
+        const effectiveElapsed = (hostAudioEl && !isNaN(hostAudioEl.currentTime) && hostAudioEl.currentTime > 0)
+          ? hostAudioEl.currentTime
+          : currentElapsed;
+        renderTimeline(effectiveElapsed);
+      }
+    }
+
+    // Debounced Pre-Warm with 400ms delay & mouseleave cancellation
+    // Protects CPU & network by ignoring accidental/fast cursor sweeps across recommendation cards
+    const prewarmTimers = new Map();
+
+    function triggerPrewarmDebounced(videoId) {
+      if (!videoId || !/^[a-zA-Z0-9_-]{11}$/.test(videoId)) return;
+      if (prewarmTimers.has(videoId)) return;
+      const t = setTimeout(() => {
+        prewarmTimers.delete(videoId);
+        fetch(`/api/audio/prewarm/${videoId}`, { method: 'POST' }).catch(() => {});
+      }, 400);
+      prewarmTimers.set(videoId, t);
+    }
+
+    function cancelPrewarmDebounced(videoId) {
+      if (prewarmTimers.has(videoId)) {
+        clearTimeout(prewarmTimers.get(videoId));
+        prewarmTimers.delete(videoId);
       }
     }
 
     function triggerPrewarm(videoId) {
-      if (!videoId || !/^[a-zA-Z0-9_-]{11}$/.test(videoId)) return;
-      fetch(`/api/audio/prewarm/${videoId}`, { method: 'POST' }).catch(() => {});
+      triggerPrewarmDebounced(videoId);
     }
 
     // Web Audio GainNode for universal iOS Safari & Android software volume control
@@ -2866,8 +2904,6 @@
 
       hostAudio.addEventListener('loadstart', () => {
         updateLoadingState(true, 'Menyiapkan Audio...');
-        try { hostAudio.currentTime = 0; } catch (e) {}
-        currentElapsed = 0;
         lastHostSyncTime = Date.now() + 5000;
       });
 
@@ -3115,9 +3151,13 @@
           if (!hostAudio.src.includes(targetUrl)) {
             updateLoadingState(true, 'Menyiapkan Audio...');
             try { hostAudio.pause(); } catch (e) {}
-            try { hostAudio.currentTime = 0; } catch (e) {}
-            currentElapsed = 0;
-            renderTimeline(0);
+            if (isNewTrack && targetSec <= 2) {
+              try { hostAudio.currentTime = 0; } catch (e) {}
+              currentElapsed = 0;
+            } else {
+              currentElapsed = targetSec;
+            }
+            renderTimeline(currentElapsed);
             lastHostSyncTime = Date.now() + 6000;
             hostAudio.src = targetUrl;
 
@@ -3134,7 +3174,7 @@
             }
           }
           if (!currentSongData.isPaused) {
-            playNativeAudio(0);
+            playNativeAudio(targetSec > 2 ? targetSec : 0);
           } else {
             hostAudio.pause();
           }
@@ -5620,10 +5660,13 @@
 
           <!-- 3x3 RECTANGULAR HORIZONTAL GRID (Space-Efficient Compact Layout) -->
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-2.5">
-            ${pageItems.map(item => `
+            ${pageItems.map(item => {
+              registerSongCard(item);
+              return `
               <div class="group relative flex items-center gap-2.5 p-2 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800/80 hover:border-pink-500/50 shadow-2xs hover:shadow-md transition-all active:scale-[0.99]"
-                   onmouseenter="triggerPrewarm('${item.videoId}')"
-                   ontouchstart="triggerPrewarm('${item.videoId}')">
+                   onmouseenter="triggerPrewarmDebounced('${item.videoId}')"
+                   onmouseleave="cancelPrewarmDebounced('${item.videoId}')"
+                   ontouchstart="triggerPrewarmDebounced('${item.videoId}')">
                 <!-- Left: Thumbnail (Rectangle / Compact, Not huge 1:1) -->
                 <div class="relative w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden shrink-0 bg-slate-200 dark:bg-gray-800">
                   <img src="${item.thumbnail}" onerror="this.onerror=null;this.src='https://placehold.co/150x150/1e293b/white?text=🎵';" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
@@ -5636,14 +5679,15 @@
                     <p class="text-[10px] font-medium text-slate-500 dark:text-gray-400 truncate">${escapeHtml(item.artist)}</p>
                   </div>
                   <div class="flex items-center justify-between gap-1 pt-0.5">
-                    <button onclick="queueTrackEncoded('${encodeURIComponent(JSON.stringify(item))}')"
+                    <button onclick="queueTrackById('${item.videoId}')"
                             class="py-0.5 px-2 rounded-md bg-pink-500/15 group-hover:bg-pink-500 text-pink-600 dark:text-pink-400 group-hover:text-white border border-pink-500/30 text-[10px] font-bold transition-all flex items-center gap-1 active:scale-95 cursor-pointer">
                       <span>+ Queue</span>
                     </button>
                   </div>
                 </div>
               </div>
-            `).join('')}
+            `;
+            }).join('')}
           </div>
 
           <!-- Bottom Infinite Pagination Window -->
@@ -5941,10 +5985,13 @@
 
           <!-- ONE COLUMN SEARCH LIST (Full Width Rows) -->
           <div class="flex flex-col gap-2" id="search-list-items">
-            ${currentSearchResults.map(item => `
+            ${currentSearchResults.map(item => {
+              registerSongCard(item);
+              return `
               <div class="group relative flex items-center justify-between gap-3 p-2.5 rounded-xl bg-slate-50 dark:bg-gray-900/80 border border-slate-200 dark:border-gray-800 hover:border-pink-500/50 shadow-2xs hover:shadow-md transition-all active:scale-[0.99]"
-                   onmouseenter="triggerPrewarm('${item.videoId}')"
-                   ontouchstart="triggerPrewarm('${item.videoId}')">
+                   onmouseenter="triggerPrewarmDebounced('${item.videoId}')"
+                   onmouseleave="cancelPrewarmDebounced('${item.videoId}')"
+                   ontouchstart="triggerPrewarmDebounced('${item.videoId}')">
                 <div class="flex items-center gap-3 min-w-0 flex-1">
                   <div class="relative w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-slate-200 dark:bg-gray-800">
                     <img src="${item.thumbnail || 'https://via.placeholder.com/60'}" onerror="this.onerror=null;this.src='https://placehold.co/150x150/1e293b/white?text=🎵';" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
@@ -5955,12 +6002,13 @@
                     <p class="text-[11px] font-medium text-slate-500 dark:text-gray-400 truncate">${escapeHtml(item.artist)}</p>
                   </div>
                 </div>
-                <button onclick="queueTrackEncoded('${encodeURIComponent(JSON.stringify(item))}')"
+                <button onclick="queueTrackById('${item.videoId}')"
                         class="px-3.5 py-1.5 rounded-lg bg-pink-500/15 group-hover:bg-pink-500 text-pink-600 dark:text-pink-400 group-hover:text-white border border-pink-500/30 text-xs font-bold active:scale-95 transition-all flex items-center gap-1 cursor-pointer shrink-0">
                   <span>+ Queue</span>
                 </button>
               </div>
-            `).join('')}
+            `;
+            }).join('')}
           </div>
 
           <!-- Load More & Infinite Scroll Section -->
@@ -5991,7 +6039,26 @@
       }
     }
 
-    // Queue Song (With safe JSON decode helper)
+    // Global Song Card Registry (Bypasses inline string escaping issues like apostrophes/single quotes)
+    const songCardRegistry = new Map();
+
+    function registerSongCard(item) {
+      if (item && item.videoId) {
+        songCardRegistry.set(item.videoId, item);
+      }
+      return item ? item.videoId : '';
+    }
+
+    function queueTrackById(videoId) {
+      if (!videoId) return;
+      const item = songCardRegistry.get(videoId);
+      if (item) {
+        return queueTrack(item);
+      }
+      return queueTrack({ videoId });
+    }
+
+    // Queue Song (With safe JSON decode helper - fallback)
     function queueTrackEncoded(encodedStr) {
       try {
         const item = JSON.parse(decodeURIComponent(encodedStr));
@@ -6604,7 +6671,9 @@
         return;
       }
 
-      const historyHtml = history.map(item => `
+      const historyHtml = history.map(item => {
+        registerSongCard(item);
+        return `
         <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-50/80 dark:bg-[#121520]/80 border border-slate-200 dark:border-gray-800/60 hover:border-slate-300 dark:hover:border-gray-700 shadow-2xs transition-colors">
           <img src="${item.thumbnail || 'https://via.placeholder.com/60'}" class="w-10 h-10 object-cover rounded-lg shrink-0 border border-slate-200 dark:border-gray-800 opacity-80 pointer-events-none">
           <div class="flex-1 min-w-0">
@@ -6615,12 +6684,13 @@
               <span class="text-[10px] text-slate-400 dark:text-gray-500">• ${timeAgo(item.playedAt)}</span>
             </div>
           </div>
-          <button onclick="queueTrackEncoded('${encodeURIComponent(JSON.stringify({ videoId: item.videoId, title: item.title, artist: item.artist, thumbnail: item.thumbnail }))}')"
+          <button onclick="queueTrackById('${item.videoId}')"
                   class="px-2.5 py-1.5 rounded-lg bg-slate-200/80 dark:bg-gray-800/80 hover:bg-pink-500/20 text-slate-700 dark:text-gray-300 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-300 dark:border-gray-700/60 text-[11px] font-bold active:scale-95 transition-all flex items-center gap-1 shrink-0 cursor-pointer">
             <span>+ Putar Lagi</span>
           </button>
         </div>
-      `).join('');
+      `;
+      }).join('');
 
       if (container) container.innerHTML = historyHtml;
       if (mobileContainer) mobileContainer.innerHTML = historyHtml;

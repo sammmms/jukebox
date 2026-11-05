@@ -9,7 +9,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.11.11';
+const APP_VERSION = '2.11.12';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -406,8 +406,9 @@ async function getAutoplayNextTrack(prevSong) {
       const cleanArtist = (prevSong.artist || '').replace(/^(?:Video|Lagu)\s*•\s*/i, '').replace(/\s*•.*$/, '').trim();
       const cleanTitle = cleanSongTitle(prevSong.title, prevSong.artist);
       const searchKeyword = cleanArtist ? `${cleanArtist} popular songs` : `${cleanTitle} mix`;
-      const searchResults = await searchYouTubeMusic(searchKeyword);
-      const candidates = (searchResults || []).filter(r => r.videoId && !recentVideoIds.has(r.videoId) && r.videoId !== prevSong?.videoId);
+      const searchData = await searchYouTubeMusic(searchKeyword);
+      const searchResults = Array.isArray(searchData) ? searchData : (searchData?.results || []);
+      const candidates = searchResults.filter(r => r.videoId && !recentVideoIds.has(r.videoId) && r.videoId !== prevSong?.videoId);
       if (candidates.length > 0) {
         const picked = candidates[Math.floor(Math.random() * Math.min(candidates.length, 6))];
         return {
@@ -1607,7 +1608,8 @@ app.post('/api/queue', async (req, res) => {
       try {
         const cleanQuery = `${title || ''} ${artist || ''}`.replace(/\([^)]*\)/g, ' ').trim();
         console.log(`[Queue Auto-Recovery] Searching YouTube Music for: "${cleanQuery}"`);
-        const searchResults = await searchYouTubeMusic(cleanQuery);
+        const searchData = await searchYouTubeMusic(cleanQuery);
+        const searchResults = Array.isArray(searchData) ? searchData : (searchData?.results || []);
         for (const candidate of searchResults) {
           if (candidate.videoId) {
             const candidateValidation = await validateYouTubeMusicTrack(candidate.videoId);
@@ -1745,9 +1747,8 @@ app.post('/api/queue', async (req, res) => {
   persistPartyQueue();
   broadcastUpdate();
 
-  // Instant Proactive Pre-Warm: immediately resolve stream in background so it's 100% ready when played!
-  fetchDirectAudioUrl(queueItem.videoId).catch(() => {});
-  setTimeout(prewarmUpcomingTracks, 50);
+  // Controlled Proactive Pre-Warm via FIFO queue
+  enqueuePrewarm(queueItem.videoId);
 
   if (!queueItem.songDuration || queueItem.songDuration <= 0) {
     fetchDirectAudioUrl(queueItem.videoId).then(info => {
@@ -2048,6 +2049,7 @@ app.post('/api/player/sync', (req, res) => {
 
 // --- NATIVE AUDIO STREAMING (FOR 100% BACKGROUND PLAYBACK ON IOS SAFARI & ANDROID) ---
 const directAudioCache = new Map();
+const inFlightDirectAudio = new Map();
 
 function findYtDlpBinary() {
   const localBin = path.join(__dirname, 'bin', 'yt-dlp');
@@ -2070,14 +2072,18 @@ function extractDurationFromGoogleUrl(url) {
 }
 
 function fetchDirectAudioUrl(videoId, forceFresh = false) {
-  return new Promise((resolve, reject) => {
-    if (!forceFresh) {
-      const cached = directAudioCache.get(videoId);
-      if (cached && Date.now() < cached.expiresAt) {
-        return resolve(cached);
-      }
+  if (!forceFresh) {
+    const cached = directAudioCache.get(videoId);
+    if (cached && Date.now() < cached.expiresAt) {
+      return Promise.resolve(cached);
     }
+    // Deduplicate concurrent in-flight requests for the exact same track
+    if (inFlightDirectAudio.has(videoId)) {
+      return inFlightDirectAudio.get(videoId);
+    }
+  }
 
+  const p = new Promise((resolve, reject) => {
     const ytdlBin = findYtDlpBinary();
     execFile(ytdlBin, [
       '--js-runtimes', 'node',
@@ -2087,6 +2093,7 @@ function fetchDirectAudioUrl(videoId, forceFresh = false) {
       '--no-playlist',
       `https://www.youtube.com/watch?v=${videoId}`
     ], { timeout: 15000 }, (err, stdout, stderr) => {
+      inFlightDirectAudio.delete(videoId);
       if (err) {
         console.error('yt-dlp error fetching audio URL:', err.message);
         return reject(err);
@@ -2106,30 +2113,63 @@ function fetchDirectAudioUrl(videoId, forceFresh = false) {
       resolve(entry);
     });
   });
+
+  inFlightDirectAudio.set(videoId, p);
+  return p;
 }
 
-// Background Proactive Audio Stream Pre-Warming
-// Pre-resolves direct audio URLs for the next songs in partyQueue so that track transitions happen with 0ms delay!
-let isPrewarming = false;
-async function prewarmUpcomingTracks() {
-  if (isPrewarming || partyQueue.length === 0) return;
-  isPrewarming = true;
+// Background Pre-Warming FIFO Queue with Strict Concurrency = 1
+// Ensures speculative hover pre-warming NEVER floods the CPU or starves live audio playback!
+const prewarmQueue = [];
+let isPrewarmWorkerActive = false;
+const MAX_PREWARM_QUEUE = 3;
+
+function enqueuePrewarm(videoId) {
+  if (!videoId || typeof videoId !== 'string') return;
+  const cleanId = videoId.trim();
+  if (!/^[a-zA-Z0-9_-]{11}$/.test(cleanId)) return;
+  if (directAudioCache.has(cleanId) || inFlightDirectAudio.has(cleanId)) return;
+  if (prewarmQueue.includes(cleanId)) return;
+
+  // Drop older speculative items to keep queue small and responsive
+  if (prewarmQueue.length >= MAX_PREWARM_QUEUE) {
+    prewarmQueue.shift();
+  }
+  prewarmQueue.push(cleanId);
+  processNextPrewarm();
+}
+
+async function processNextPrewarm() {
+  if (isPrewarmWorkerActive || prewarmQueue.length === 0) return;
+  isPrewarmWorkerActive = true;
+  const nextVideoId = prewarmQueue.shift();
+
   try {
-    const nextItem = partyQueue[0];
-    if (nextItem && nextItem.videoId && !directAudioCache.has(nextItem.videoId)) {
-      console.log(`[PreWarm] Pre-resolving direct audio stream for next track: "${nextItem.title}" (${nextItem.videoId})...`);
-      await fetchDirectAudioUrl(nextItem.videoId).catch(() => {});
-    }
-    if (partyQueue.length > 1) {
-      const nextItem2 = partyQueue[1];
-      if (nextItem2 && nextItem2.videoId && !directAudioCache.has(nextItem2.videoId)) {
-        await new Promise(r => setTimeout(r, 2000));
-        await fetchDirectAudioUrl(nextItem2.videoId).catch(() => {});
-      }
+    if (!directAudioCache.has(nextVideoId)) {
+      console.log(`[PreWarm Worker] Resolving stream for: ${nextVideoId}...`);
+      await fetchDirectAudioUrl(nextVideoId);
     }
   } catch (e) {
+    // Ignore pre-warm failures silently
   } finally {
-    isPrewarming = false;
+    isPrewarmWorkerActive = false;
+    // Small delay between pre-warm jobs to guarantee CPU stays idle for other tasks
+    setTimeout(processNextPrewarm, 200);
+  }
+}
+
+// Background Proactive Audio Stream Pre-Warming for Upcoming Tracks
+async function prewarmUpcomingTracks() {
+  if (partyQueue.length === 0) return;
+  const nextItem = partyQueue[0];
+  if (nextItem && nextItem.videoId && !directAudioCache.has(nextItem.videoId)) {
+    enqueuePrewarm(nextItem.videoId);
+  }
+  if (partyQueue.length > 1) {
+    const nextItem2 = partyQueue[1];
+    if (nextItem2 && nextItem2.videoId && !directAudioCache.has(nextItem2.videoId)) {
+      enqueuePrewarm(nextItem2.videoId);
+    }
   }
 }
 setInterval(prewarmUpcomingTracks, 25000);
@@ -2140,7 +2180,7 @@ app.post('/api/audio/prewarm/:videoId', (req, res) => {
   if (videoId && /^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
     const isAlreadyCached = directAudioCache.has(videoId);
     if (!isAlreadyCached) {
-      fetchDirectAudioUrl(videoId).catch(() => {});
+      enqueuePrewarm(videoId);
     }
     return res.json({ success: true, videoId, cached: isAlreadyCached });
   }
