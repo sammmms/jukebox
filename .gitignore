@@ -3,3 +3,6 @@ node_modules/
 data/
 *.log
 bin/
+.env
+oauth-credentials.json
+.vercel

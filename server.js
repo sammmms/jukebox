@@ -58,11 +58,43 @@ const PARTY_QUEUE_FILE = path.join(DATA_DIR, 'party_queue.json');
 const SOCIAL_QUEUE_FILE = path.join(DATA_DIR, 'social_queue.json');
 const PLAYED_HISTORY_FILE = path.join(DATA_DIR, 'played_history.json');
 const PARTY_HOST_FILE = path.join(DATA_DIR, 'party_host.json');
+const DJ_PROFILES_FILE = path.join(DATA_DIR, 'dj_profiles.json');
+
+// Google OAuth Configuration (Loaded securely from env or local external config)
+let GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
+let GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
+
+const EXTERNAL_OAUTH_FILE = '/Users/sam/Documents/Others/CLIENT SECRET OAUTH.json';
+const LOCAL_OAUTH_FILE = path.join(__dirname, 'oauth-credentials.json');
+
+try {
+  const targetFile = fs.existsSync(LOCAL_OAUTH_FILE) ? LOCAL_OAUTH_FILE : (fs.existsSync(EXTERNAL_OAUTH_FILE) ? EXTERNAL_OAUTH_FILE : null);
+  if (targetFile) {
+    const raw = JSON.parse(fs.readFileSync(targetFile, 'utf8'));
+    const cfg = raw.web || raw.installed || raw;
+    if (!GOOGLE_CLIENT_ID && cfg.client_id) GOOGLE_CLIENT_ID = cfg.client_id;
+    if (!GOOGLE_CLIENT_SECRET && cfg.client_secret) GOOGLE_CLIENT_SECRET = cfg.client_secret;
+  }
+} catch (e) {}
 
 // --- INTERNAL MASTER QUEUE & STATE ---
 let partyQueue = [];
 const socialQueue = new Map();
 const upvotes = new Map();
+const djProfiles = new Map();
+
+// Idle Resource Saver Mode (Standby after 15m inactivity)
+let lastActiveActivityTimestamp = Date.now();
+let isRoomSleeping = false;
+
+function updateActivityTimestamp() {
+  lastActiveActivityTimestamp = Date.now();
+  if (isRoomSleeping) {
+    isRoomSleeping = false;
+    console.log('[Idle Saver] ⚡ Aktivitas terdeteksi. Room kembali aktif!');
+    broadcastUpdate();
+  }
+}
 
 let currentSong = {
   videoId: '',
@@ -278,6 +310,23 @@ try {
 function persistPartyHost() {
   try {
     fs.writeFileSync(PARTY_HOST_FILE, JSON.stringify(partyHost, null, 2));
+  } catch (e) {}
+}
+
+try {
+  if (fs.existsSync(DJ_PROFILES_FILE)) {
+    const raw = JSON.parse(fs.readFileSync(DJ_PROFILES_FILE, 'utf8'));
+    for (const [k, v] of Object.entries(raw)) {
+      djProfiles.set(k, v);
+      knownDJs.add(k);
+    }
+  }
+} catch (e) {}
+
+function persistDjProfiles() {
+  try {
+    const obj = Object.fromEntries(djProfiles);
+    fs.writeFileSync(DJ_PROFILES_FILE, JSON.stringify(obj, null, 2));
   } catch (e) {}
 }
 
@@ -1239,6 +1288,128 @@ async function getUnifiedQueue() {
 
 // --- API ROUTES ---
 
+// --- GOOGLE OAUTH 2.0 ROUTES ---
+app.get('/auth/google', (req, res) => {
+  updateActivityTimestamp();
+  const host = req.get('host');
+  const proto = req.protocol === 'https' || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
+  const redirectUri = `${proto}://${host}/auth/callback`;
+  const state = Math.random().toString(36).slice(2);
+
+  const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+  authUrl.searchParams.set('client_id', GOOGLE_CLIENT_ID);
+  authUrl.searchParams.set('redirect_uri', redirectUri);
+  authUrl.searchParams.set('response_type', 'code');
+  authUrl.searchParams.set('scope', 'openid profile email');
+  authUrl.searchParams.set('prompt', 'select_account');
+  authUrl.searchParams.set('state', state);
+
+  res.redirect(authUrl.toString());
+});
+
+app.get('/auth/callback', async (req, res) => {
+  updateActivityTimestamp();
+  const { code, error } = req.query;
+  if (error || !code) {
+    return res.redirect(`/?auth_error=${encodeURIComponent(error || 'Izin Google dibatalkan')}`);
+  }
+
+  const host = req.get('host');
+  const proto = req.protocol === 'https' || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
+  const redirectUri = `${proto}://${host}/auth/callback`;
+
+  try {
+    const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        code,
+        client_id: GOOGLE_CLIENT_ID,
+        client_secret: GOOGLE_CLIENT_SECRET,
+        redirect_uri: redirectUri,
+        grant_type: 'authorization_code'
+      })
+    });
+
+    const tokenData = await tokenRes.json();
+    if (!tokenRes.ok || !tokenData.access_token) {
+      console.error('[OAuth] Token exchange error:', tokenData);
+      return res.redirect(`/?auth_error=${encodeURIComponent(tokenData.error_description || 'Gagal autentikasi Google')}`);
+    }
+
+    const userRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: { Authorization: `Bearer ${tokenData.access_token}` }
+    });
+
+    const userData = await userRes.json();
+    if (!userRes.ok || !userData.name) {
+      return res.redirect('/?auth_error=Gagal+mengambil+profil+Google');
+    }
+
+    const djName = userData.name.trim().slice(0, 25);
+    const djProfile = {
+      name: djName,
+      email: userData.email || '',
+      avatar: userData.picture || '',
+      googleId: userData.id || '',
+      loggedInAt: Date.now()
+    };
+
+    djProfiles.set(djName, djProfile);
+    knownDJs.add(djName);
+    persistDjProfiles();
+
+    addActivity(djName, 'login_google', 'masuk dengan akun Google');
+    broadcastUpdate();
+
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Berhasil Masuk</title>
+        <style>
+          body { background: #0b0d14; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+          .card { background: #131722; padding: 2rem; border-radius: 1rem; border: 1px solid rgba(255,255,255,0.1); text-align: center; max-width: 340px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); }
+          .avatar { width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 1rem; border: 2px solid #ec4899; }
+          h2 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+          p { margin: 0; font-size: 0.85rem; color: #94a3b8; }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <img src="${djProfile.avatar || 'https://via.placeholder.com/64'}" class="avatar">
+          <h2>Selamat datang, ${djName}!</h2>
+          <p>Mengarahkan ke Party Jukebox...</p>
+        </div>
+        <script>
+          try {
+            localStorage.setItem('jukebox_user', ${JSON.stringify(djName)});
+            localStorage.setItem('jukebox_user_profile', ${JSON.stringify(JSON.stringify(djProfile))});
+          } catch(e) {}
+          setTimeout(function() {
+            window.location.href = '/';
+          }, 600);
+        </script>
+      </body>
+      </html>
+    `);
+  } catch (err) {
+    console.error('[OAuth] Callback error:', err);
+    res.redirect('/?auth_error=' + encodeURIComponent(err.message));
+  }
+});
+
+app.post('/api/auth/logout', (req, res) => {
+  const { user } = req.body || {};
+  if (user) {
+    addActivity(user, 'logout', 'keluar dari sesi pesta');
+    broadcastUpdate();
+  }
+  res.json({ success: true });
+});
+
 // 0. Version Endpoint
 app.get('/api/version', (req, res) => {
   res.json({
@@ -1503,6 +1674,8 @@ app.get('/api/status', async (req, res) => {
     selectedIndex,
     partyHost: getPartyHostInfo(),
     djs: Array.from(knownDJs),
+    djProfiles: Object.fromEntries(djProfiles),
+    isRoomSleeping,
     volume: { state: currentVolume, isMuted },
     activity: activityLogs.slice(0, 30),
     history: playedHistory.slice(0, 30)
@@ -2355,6 +2528,8 @@ async function getFullSsePayload() {
     },
     partyHost: getPartyHostInfo(),
     djs: Array.from(knownDJs),
+    djProfiles: Object.fromEntries(djProfiles),
+    isRoomSleeping,
     volume: { state: currentVolume, isMuted },
     activity: activityLogs.slice(0, 30),
     history: playedHistory.slice(0, 30)
