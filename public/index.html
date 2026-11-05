@@ -305,7 +305,7 @@
       background: linear-gradient(90deg, #ec4899 0%, #f43f5e 25%, #f59e0b 50%, #f43f5e 75%, #ec4899 100%) !important;
       background-size: 200% 100% !important;
       animation: progressShimmer 1.5s infinite linear !important;
-      width: 100% !important;
+      transition: width 0.25s ease-out !important;
       opacity: 0.95;
     }
   </style>
@@ -359,9 +359,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.10)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.11)"
                     class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-colors cursor-pointer active:scale-95">
-              v2.11.10
+              v2.11.11
             </button>
           </div>
           <div id="connection-btn" class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
@@ -930,7 +930,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.10</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.11</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -941,10 +941,23 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.11.10 -->
+        <!-- v2.11.11 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.11.10 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.11.11 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">📊 Indikator Persentase & Timer Detik Riil (Anti-Ngestuck):</strong> Mengubah tampilan status audio saat loading dari yang sebelumnya statis menjadi dinamis dan informatif secara real-time. Dilengkapi penghitung detik berjalan <code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">(1s... 4s...)</code>, persentase progres yang aktif bertambah, dan progress bar yang bergerak dinamis.</li>
+            <li><strong class="text-slate-800 dark:text-white">🔄 Tahapan Proses Multi-Stage Transparan:</strong> Menampilkan micro-status bertahap: <em>⚡ Menghubungkan Stream</em> → <em>🔐 Membuka Enkripsi YouTube</em> → <em>📡 Mengunduh Buffer Audio</em> → <em>🎵 Menyiapkan Pemutar</em> sehingga pengguna mengetahui persis apa yang sedang dikerjakan sistem di latar belakang.</li>
+            <li><strong class="text-slate-800 dark:text-white">⚡ Akselerasi Ekstraksi Audio Node.js:</strong> Mengintegrasikan runtime Node.js ke dalam mesin ekstraksi audio server untuk mempercepat deobfuscation signature YouTube.</li>
+          </ul>
+        </div>
+
+        <!-- v2.11.10 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-800/40 border border-slate-200 dark:border-gray-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-600">v2.11.10</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -1664,7 +1677,7 @@
 
       <!-- Section 5: Version & Release Notes -->
       <div class="pt-1 flex items-center justify-between text-xs text-slate-400">
-        <span>Party Jukebox v2.11.10</span>
+        <span>Party Jukebox v2.11.11</span>
         <button onclick="openChangelogModal(); closeSettingsModal();" class="font-bold text-pink-600 dark:text-pink-400 hover:underline">
           Lihat Catatan Rilis 🚀
         </button>
@@ -2179,13 +2192,37 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.11.10';
+    const CLIENT_VERSION = '2.11.11';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
 
-    // Real-Time Audio Loading State & Pre-warm Trigger
+    // Real-Time Audio Loading State & Progressive Dynamic Stage Engine
     let isAudioStreamLoading = false;
+    let audioLoadingInterval = null;
+    let audioLoadingStartTime = 0;
+
+    function calculateEstimatedProgress(sec) {
+      if (sec <= 0) return 10;
+      if (sec < 2) return Math.min(35, Math.round(10 + (sec / 2) * 25));
+      if (sec < 4.5) return Math.min(65, Math.round(35 + ((sec - 2) / 2.5) * 30));
+      if (sec < 7.5) return Math.min(85, Math.round(65 + ((sec - 4.5) / 3) * 20));
+      if (sec < 12) return Math.min(95, Math.round(85 + ((sec - 7.5) / 4.5) * 10));
+      return Math.min(98, Math.round(95 + Math.min(3, (sec - 12) * 0.5)));
+    }
+
+    function getLoadingStageText(sec, pct) {
+      const s = Math.floor(sec);
+      if (sec < 2) {
+        return `⚡ Menghubungkan Stream (${s}s • ${pct}%)`;
+      } else if (sec < 4.5) {
+        return `🔐 Membuka Enkripsi YouTube (${s}s • ${pct}%)`;
+      } else if (sec < 7.5) {
+        return `📡 Mengunduh Buffer Audio (${s}s • ${pct}%)`;
+      } else {
+        return `🎵 Menyiapkan Pemutar... (${s}s • ${pct}%)`;
+      }
+    }
 
     function updateLoadingState(isLoading, label = 'Menyiapkan Audio...') {
       isAudioStreamLoading = Boolean(isLoading);
@@ -2199,18 +2236,45 @@
       const elapsedEl = document.getElementById('time-elapsed');
 
       if (isAudioStreamLoading) {
+        if (!audioLoadingStartTime) {
+          audioLoadingStartTime = Date.now();
+        }
+
         if (loadingBadge) loadingBadge.classList.remove('hidden');
         if (playingBadge) playingBadge.classList.add('hidden');
-        if (loadingText) loadingText.textContent = label;
         if (spinner) spinner.classList.remove('hidden');
         if (playIcon) playIcon.classList.add('hidden');
         if (pauseIcon) pauseIcon.classList.add('hidden');
         if (progressBar) progressBar.classList.add('progress-bar-loading');
-        if (elapsedEl && currentElapsed === 0) elapsedEl.textContent = '⏳ Loading';
+
+        // Start progressive real-time timer if not already active
+        if (!audioLoadingInterval) {
+          const tickLoadingProgress = () => {
+            if (!isAudioStreamLoading) return;
+            const elapsedSec = (Date.now() - audioLoadingStartTime) / 1000;
+            const pct = calculateEstimatedProgress(elapsedSec);
+            const stageText = getLoadingStageText(elapsedSec, pct);
+
+            if (loadingText) loadingText.textContent = stageText;
+            if (progressBar) progressBar.style.width = `${pct}%`;
+            if (elapsedEl) elapsedEl.textContent = `⏳ ${pct}% (${Math.floor(elapsedSec)}s)`;
+          };
+
+          tickLoadingProgress();
+          audioLoadingInterval = setInterval(tickLoadingProgress, 200);
+        }
       } else {
+        // Audio stream is ready or loaded
+        if (audioLoadingInterval) {
+          clearInterval(audioLoadingInterval);
+          audioLoadingInterval = null;
+        }
+        audioLoadingStartTime = 0;
+
         if (loadingBadge) loadingBadge.classList.add('hidden');
         if (playingBadge) playingBadge.classList.remove('hidden');
         if (spinner) spinner.classList.add('hidden');
+
         if (isPlaying) {
           if (playIcon) playIcon.classList.add('hidden');
           if (pauseIcon) pauseIcon.classList.remove('hidden');
@@ -2218,7 +2282,11 @@
           if (playIcon) playIcon.classList.remove('hidden');
           if (pauseIcon) pauseIcon.classList.add('hidden');
         }
-        if (progressBar) progressBar.classList.remove('progress-bar-loading');
+
+        if (progressBar) {
+          progressBar.classList.remove('progress-bar-loading');
+        }
+        renderTimeline(currentElapsed);
       }
     }
 

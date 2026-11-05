@@ -9,7 +9,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.11.10';
+const APP_VERSION = '2.11.11';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -894,6 +894,7 @@ function fetchPlaylistInfo(playlistId) {
     const ytdlBin = findYtDlpBinary();
     const url = `https://www.youtube.com/playlist?list=${playlistId}`;
     execFile(ytdlBin, [
+      '--js-runtimes', 'node',
       '--flat-playlist',
       '--dump-single-json',
       '--playlist-items', '1-50', // Max 50 tracks for party speed and safety
@@ -2079,6 +2080,7 @@ function fetchDirectAudioUrl(videoId, forceFresh = false) {
 
     const ytdlBin = findYtDlpBinary();
     execFile(ytdlBin, [
+      '--js-runtimes', 'node',
       '--extractor-args', 'youtube:player_client=visionos',
       '-g',
       '-f', 'ba[ext=m4a]/ba',
