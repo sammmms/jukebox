@@ -34,11 +34,11 @@
           },
           colors: {
             brand: {
-              50: '#fdf2f8',
-              100: '#fce7f3',
-              500: '#ec4899',
-              600: '#db2777',
-              700: '#be185d',
+              50: '#fff1f2',
+              100: '#ffe4e6',
+              500: '#f43f5e',
+              600: '#e11d48',
+              700: '#be123c',
             }
           }
         }
@@ -88,19 +88,19 @@
 
     /* Sliders */
     html.dark input[type=range]::-webkit-slider-runnable-track {
-      background: #272a38;
+      background: #27272a;
     }
     html:not(.dark) input[type=range]::-webkit-slider-runnable-track {
-      background: #e2e8f0;
+      background: #e4e4e7;
     }
     input[type=range]::-webkit-slider-thumb {
       -webkit-appearance: none;
-      height: 14px;
-      width: 14px;
+      height: 12px;
+      width: 12px;
       border-radius: 50%;
       background: #ffffff;
       cursor: pointer;
-      box-shadow: 0 0 8px rgba(236, 72, 153, 0.6);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
       margin-top: -3px;
     }
 
@@ -302,7 +302,7 @@
       100% { background-position: 200% 0; }
     }
     .progress-bar-loading {
-      background: linear-gradient(90deg, #ec4899 0%, #f43f5e 25%, #f59e0b 50%, #f43f5e 75%, #ec4899 100%) !important;
+      background: linear-gradient(90deg, #f43f5e 0%, #fb7185 50%, #f43f5e 100%) !important;
       background-size: 200% 100% !important;
       animation: progressShimmer 1.5s infinite linear !important;
       transition: width 0.25s ease-out !important;
@@ -310,7 +310,7 @@
     }
   </style>
 </head>
-<body class="bg-slate-50 dark:bg-[#0a0c10] text-slate-800 dark:text-gray-100 min-h-screen pb-24 selection:bg-pink-500 selection:text-white transition-colors duration-200 view-auto">
+<body class="bg-zinc-50 dark:bg-[#090a0f] text-zinc-900 dark:text-zinc-100 min-h-screen pb-24 selection:bg-rose-500 selection:text-white transition-colors duration-200 view-auto font-sans">
 
   <!-- Native HTML5 Audio Player for True 100% Background Playback on Mobile iOS & Android -->
   <audio id="host-native-audio" preload="auto" playsinline></audio>
@@ -327,45 +327,45 @@
   </div>
 
   <!-- Floating Banner to unlock audio autoplay on Mobile Host -->
-  <div id="host-speaker-activation-banner" class="hidden fixed top-3 inset-x-3 sm:inset-x-auto sm:right-6 z-50 p-3.5 rounded-2xl bg-gradient-to-r from-pink-600 via-rose-600 to-indigo-600 text-white shadow-2xl flex items-center justify-between gap-3 border border-pink-400/40 animate-pulse">
+  <div id="host-speaker-activation-banner" class="hidden fixed top-3 inset-x-3 sm:inset-x-auto sm:right-6 z-50 p-3 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-xl flex items-center justify-between gap-3 border border-zinc-700 dark:border-zinc-300">
     <div class="flex items-center gap-2.5">
-      <span class="text-2xl">🔊</span>
+      <div class="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-500 flex items-center justify-center font-bold text-sm shrink-0">🔊</div>
       <div>
-        <div class="text-xs font-extrabold uppercase tracking-wider">Perangkat Ini Adalah Host Audio</div>
-        <div class="text-[11px] text-pink-100">Tap untuk mulai membunyikan musik ke speaker pesta</div>
+        <div class="text-xs font-semibold">Perangkat Ini Host Audio</div>
+        <div class="text-[11px] text-zinc-400 dark:text-zinc-600">Ketuk untuk mengaktifkan pemutaran speaker</div>
       </div>
     </div>
-    <button onclick="activateHostSpeaker()" class="px-3.5 py-1.5 rounded-xl bg-white text-pink-600 font-extrabold text-xs shadow-md active:scale-95 transition-all shrink-0 cursor-pointer">
-      Mulai Suara ▶
+    <button onclick="activateHostSpeaker()" class="px-3 py-1.5 rounded-lg bg-rose-500 hover:bg-rose-600 text-white font-medium text-xs shadow-xs active:scale-95 transition-all shrink-0 cursor-pointer">
+      Mulai Suara
     </button>
   </div>
 
   <!-- ============================================================
        TOP HEADER & CONTROLS BAR (Mobile Optimized & Tablet/Desktop Full)
        ============================================================ -->
-  <header id="main-header" class="sticky top-0 z-30 bg-white/90 dark:bg-[#0e1118]/90 backdrop-blur-md border-b border-slate-200/80 dark:border-gray-800/60 px-3.5 sm:px-4 py-2 sm:py-2.5 transition-colors duration-200 shadow-xs">
-    <div class="max-w-7xl mx-auto flex items-center justify-between gap-2.5">
+  <header id="main-header" class="sticky top-0 z-30 bg-white/95 dark:bg-[#0c0e14]/95 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800/80 px-4 py-2.5 transition-colors duration-200">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
       
       <!-- Brand & Connection Status -->
-      <div class="flex items-center gap-2 sm:gap-2.5">
-        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-tr from-pink-500 via-rose-500 to-indigo-600 flex items-center justify-center shadow-md shadow-pink-500/25 text-white font-extrabold text-xs sm:text-sm">
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-900 dark:bg-rose-500 flex items-center justify-center text-white font-bold text-xs sm:text-sm shrink-0">
           ♫
         </div>
         <div>
-          <div class="flex items-center gap-1.5 sm:gap-2">
-            <h1 class="text-sm sm:text-base font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 dark:from-white dark:via-gray-200 dark:to-gray-400 bg-clip-text text-transparent">
+          <div class="flex items-center gap-2">
+            <h1 class="text-sm sm:text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
               Party Jukebox
             </h1>
-            <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
+            <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
               Auto
             </span>
             <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.14)"
-                    class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-colors cursor-pointer active:scale-95">
+                    class="px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer">
               v2.11.14
             </button>
           </div>
-          <div id="connection-btn" class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
-            <span id="connection-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <div id="connection-btn" class="flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+            <span id="connection-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
             <span id="connection-text">Web Player Aktif</span>
           </div>
         </div>
@@ -373,20 +373,16 @@
 
       <!-- Mobile Right Actions (< md:) -->
       <div class="flex md:hidden items-center gap-1.5">
-        <!-- Shortcuts Modal Button (Mobile) -->
-        <button onclick="openShortcutsModal()" title="Keyboard Shortcuts (?)" class="p-2 rounded-xl bg-slate-100 dark:bg-gray-800/80 hover:bg-slate-200 dark:hover:bg-gray-800 text-slate-600 dark:text-gray-300 transition-colors active:scale-90 text-xs">
-          ⌨️
+        <button onclick="openShortcutsModal()" title="Keyboard Shortcuts (?)" class="p-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-400 transition-colors text-xs">
+          ⌨
         </button>
-        <!-- Quick Refresh -->
-        <button onclick="handleManualRefresh(this)" title="Refresh Status" class="p-2 rounded-xl bg-slate-100 dark:bg-gray-800/80 hover:bg-slate-200 dark:hover:bg-gray-800 text-slate-600 dark:text-gray-300 transition-colors active:scale-90">
-          <svg class="refresh-icon w-4 h-4 transition-transform duration-300 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button onclick="handleManualRefresh(this)" title="Refresh" class="p-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-400 transition-colors">
+          <svg class="refresh-icon w-4 h-4 text-zinc-600 dark:text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
           </svg>
         </button>
-        <!-- Mobile Configuration & Room Menu Button -->
         <button onclick="openSettingsModal()" id="mobile-settings-btn" title="Pengaturan & Room Party"
-                class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-800/90 hover:bg-slate-200 dark:hover:bg-gray-700 border border-slate-200 dark:border-gray-700/80 text-slate-800 dark:text-gray-100 text-xs font-bold active:scale-95 transition-all shadow-2xs cursor-pointer">
-          <span class="text-xs">⚙️</span>
+                class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs font-medium cursor-pointer">
           <span id="mobile-header-user-name" class="max-w-[75px] truncate text-[11px]">DJ Sam</span>
         </button>
       </div>
@@ -394,70 +390,62 @@
       <!-- Segmented Controls: View Modes + System Theme + Refresh (Desktop/Tablet >= md:) -->
       <div class="hidden md:flex items-center justify-end gap-2 text-xs">
         
-        <!-- CUSTOM SEGMENTED CONTROL: VIEW SWITCHER -->
-        <div class="flex items-center gap-0.5 bg-slate-100 dark:bg-gray-900/90 p-1 rounded-xl border border-slate-200/90 dark:border-gray-800 font-semibold shadow-2xs">
-          <button onclick="setView('auto')" id="view-btn-auto" title="Auto Responsive (Mobile on phone, Desktop on PC)"
-                  class="view-pill px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 text-[11px] font-bold bg-white dark:bg-gray-800 text-pink-600 dark:text-pink-400 shadow-xs">
-            <span>⚡</span>
-            <span class="inline">Auto</span>
+        <!-- View Switcher -->
+        <div class="flex items-center gap-0.5 bg-zinc-100 dark:bg-zinc-900 p-0.5 rounded-lg border border-zinc-200/80 dark:border-zinc-800 font-medium">
+          <button onclick="setView('auto')" id="view-btn-auto" title="Auto Responsive"
+                  class="view-pill px-2.5 py-1 rounded-md transition-all text-[11px] font-medium bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-2xs">
+            Auto
           </button>
-          <button onclick="setView('mobile')" id="view-btn-mobile" title="Mobile View (Compact single column phone)"
-                  class="view-pill px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 text-[11px] text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white">
-            <span>📱</span>
-            <span class="inline">Mobile</span>
+          <button onclick="setView('mobile')" id="view-btn-mobile" title="Mobile View"
+                  class="view-pill px-2.5 py-1 rounded-md transition-all text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100">
+            Mobile
           </button>
-          <button onclick="setView('desktop')" id="view-btn-desktop" title="Desktop Widescreen View (2-Column Dashboard)"
-                  class="view-pill px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 text-[11px] text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white">
-            <span>💻</span>
-            <span class="inline">Desktop</span>
+          <button onclick="setView('desktop')" id="view-btn-desktop" title="Desktop View"
+                  class="view-pill px-2.5 py-1 rounded-md transition-all text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100">
+            Desktop
           </button>
         </div>
 
-        <!-- CUSTOM SEGMENTED CONTROL: THEME SWITCHER -->
-        <div class="flex items-center gap-0.5 bg-slate-100 dark:bg-gray-900/90 p-1 rounded-xl border border-slate-200/90 dark:border-gray-800 font-semibold shadow-2xs">
-          <button onclick="setTheme('system')" id="theme-btn-system" title="Match System Theme (macOS / iOS / Android)"
-                  class="theme-pill px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 text-[11px] font-bold bg-white dark:bg-gray-800 text-pink-600 dark:text-pink-400 shadow-xs">
-            <span>🌓</span>
-            <span class="hidden sm:inline">System</span>
+        <!-- Theme Switcher -->
+        <div class="flex items-center gap-0.5 bg-zinc-100 dark:bg-zinc-900 p-0.5 rounded-lg border border-zinc-200/80 dark:border-zinc-800 font-medium">
+          <button onclick="setTheme('system')" id="theme-btn-system" title="System Theme"
+                  class="theme-pill px-2.5 py-1 rounded-md transition-all text-[11px] font-medium bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-2xs">
+            System
           </button>
           <button onclick="setTheme('light')" id="theme-btn-light" title="Light Mode"
-                  class="theme-pill px-2 py-1 rounded-lg transition-all flex items-center gap-1 text-[11px] text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white">
-            <span>☀️</span>
-            <span class="hidden sm:inline">Light</span>
+                  class="theme-pill px-2 py-1 rounded-md transition-all text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100">
+            Light
           </button>
           <button onclick="setTheme('dark')" id="theme-btn-dark" title="Dark Mode"
-                  class="theme-pill px-2 py-1 rounded-lg transition-all flex items-center gap-1 text-[11px] text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white">
-            <span>🌙</span>
-            <span class="hidden sm:inline">Dark</span>
+                  class="theme-pill px-2 py-1 rounded-md transition-all text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100">
+            Dark
           </button>
         </div>
 
         <!-- Shortcuts Help Button -->
         <button onclick="openShortcutsModal()" title="Keyboard Shortcuts (?)"
-                class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-800/80 hover:bg-slate-200 dark:hover:bg-gray-800 text-slate-700 dark:text-gray-200 transition-all font-semibold active:scale-95 shadow-2xs border border-slate-200 dark:border-gray-700/60 cursor-pointer">
-          <span>⌨️</span>
-          <span class="text-[11px] font-bold hidden lg:inline">Shortcuts</span>
-          <kbd class="px-1 py-0.2 rounded bg-slate-200 dark:bg-gray-700 text-[9px] font-mono font-bold text-slate-500 dark:text-gray-400">?</kbd>
+                class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 transition-all font-medium border border-zinc-200/80 dark:border-zinc-800 cursor-pointer">
+          <span class="text-[11px]">Shortcuts</span>
+          <kbd class="px-1 py-0.2 rounded bg-zinc-200 dark:bg-zinc-800 text-[9px] font-mono text-zinc-500 dark:text-zinc-400 border border-zinc-300 dark:border-zinc-700">?</kbd>
         </button>
 
-        <!-- Desktop Refresh Button (Enhanced with tactile spin & feedback) -->
-        <button onclick="handleManualRefresh(this)" id="refresh-btn-desktop" title="Refresh Status & Reconnect"
-                class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-800/80 hover:bg-slate-200 dark:hover:bg-gray-800 text-slate-700 dark:text-gray-200 transition-all font-semibold active:scale-95 shadow-2xs border border-slate-200 dark:border-gray-700/60 cursor-pointer">
-          <svg class="refresh-icon w-3.5 h-3.5 transition-transform duration-300 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <!-- Desktop Refresh Button -->
+        <button onclick="handleManualRefresh(this)" id="refresh-btn-desktop" title="Refresh"
+                class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 transition-all font-medium border border-zinc-200/80 dark:border-zinc-800 cursor-pointer">
+          <svg class="refresh-icon w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
           </svg>
-          <span class="text-[11px] font-bold">Refresh</span>
+          <span class="text-[11px]">Refresh</span>
         </button>
 
       </div>
     </div>
 
     <!-- Mobile Host Sub-Bar (< md: flex, hidden md:) -->
-    <div class="flex md:hidden items-center justify-between gap-2 pt-1.5 mt-1.5 border-t border-slate-100 dark:border-gray-800/60 text-xs">
+    <div class="flex md:hidden items-center justify-between gap-2 pt-1.5 mt-1.5 border-t border-zinc-100 dark:border-zinc-800/60 text-xs">
       <div class="flex items-center gap-1.5 min-w-0">
-        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-gray-500">Host:</span>
-        <div id="mobile-host-badge" class="flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 truncate max-w-[140px]">
-          <span>👑</span>
+        <span class="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Host:</span>
+        <div id="mobile-host-badge" class="flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 truncate max-w-[140px]">
           <span id="mobile-host-name">Memuat Host...</span>
         </div>
       </div>
@@ -467,28 +455,26 @@
     </div>
 
     <!-- Host & Guest Profile Bar (Desktop/Tablet only: >= md: block) -->
-    <div class="hidden md:block max-w-7xl mx-auto mt-2.5 pt-2 border-t border-slate-200/60 dark:border-gray-800/60">
+    <div class="hidden md:block max-w-7xl mx-auto mt-2 pt-2 border-t border-zinc-200/60 dark:border-zinc-800/60">
       <div class="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar py-0.5">
         
-        <!-- LEFT: 👑 HOST STATUS (Read-Only for Guests, Auto-Vacant & Claimable) -->
+        <!-- LEFT: HOST STATUS -->
         <div class="flex items-center gap-2 shrink-0">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">Host:</span>
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Host:</span>
           <div id="host-status-container" class="flex items-center gap-1.5">
-            <!-- Rendered dynamically via updateHostUI() -->
-            <div class="flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 border border-slate-200 dark:border-gray-700">
-              <span>👑</span>
+            <div class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
               <span id="host-name-placeholder">Memuat Host...</span>
             </div>
           </div>
         </div>
 
-        <!-- RIGHT: 👤 GUEST PROFILE (Your Requester Nickname) -->
+        <!-- RIGHT: GUEST PROFILE -->
         <div class="flex items-center gap-1.5 ml-auto shrink-0">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400">👤 Kamu:</span>
-          <button id="guest-profile-badge" onclick="openGuestModal(false)" title="Klik untuk edit nama panggilan kamu"
-                  class="flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-800 text-slate-800 dark:text-gray-200 hover:border-pink-500 shadow-2xs active:scale-95 transition-all cursor-pointer">
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Kamu:</span>
+          <button id="guest-profile-badge" onclick="openGuestModal(false)" title="Ubah nama kamu"
+                  class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 hover:border-zinc-400 dark:hover:border-zinc-700 transition-all cursor-pointer">
             <span id="guest-name-text">DJ Sam</span>
-            <span class="text-slate-400 dark:text-gray-500 text-[10px]">✏️</span>
+            <span class="text-zinc-400 dark:text-zinc-500 text-[10px]">✎</span>
           </button>
         </div>
 
@@ -508,19 +494,19 @@
       <div class="col-left space-y-4 sm:space-y-5">
 
         <!-- DESKTOP-ONLY: PARTY STATUS & UP NEXT CARD -->
-        <div class="desktop-only rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-3.5 sm:p-4 shadow-sm dark:shadow-md transition-colors duration-200 space-y-2.5">
-          <div class="flex items-center justify-between">
+        <div class="desktop-only rounded-xl bg-white dark:bg-[#11131a] border border-zinc-200/90 dark:border-zinc-800/80 p-4 shadow-xs transition-colors duration-200 space-y-3">
+          <div class="flex items-center justify-between pb-1">
             <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span class="text-xs font-black text-slate-900 dark:text-white tracking-tight">Party Playback Live</span>
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">Party Playback</span>
             </div>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-500/10 text-pink-600 dark:text-pink-400 border border-pink-500/20">
-              Synced Timeline ⚡
+            <span class="text-[10px] font-mono text-zinc-400 dark:text-zinc-500">
+              Live
             </span>
           </div>
 
           <!-- UP NEXT PREVIEW BANNER -->
-          <div id="up-next-banner" class="p-2.5 rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/30 border border-indigo-200 dark:border-indigo-800/50 flex items-center justify-between text-xs hidden">
+          <div id="up-next-banner" class="p-2.5 rounded-lg bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between text-xs hidden">
             <div class="flex items-center gap-2 min-w-0">
               <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 uppercase tracking-wider shrink-0 border border-indigo-300/40 dark:border-indigo-500/30">Up Next</span>
               <span id="up-next-title" class="text-slate-800 dark:text-gray-200 font-bold truncate">Song Title</span>
@@ -538,15 +524,15 @@
           <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-gray-800">
             <div class="flex items-center gap-2">
               <span class="text-base">🎤</span>
-              <h3 class="text-xs font-bold uppercase tracking-wider text-pink-600 dark:text-pink-400" id="desktop-lyrics-badge">Karaoke Real-Time</h3>
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400" id="desktop-lyrics-badge">Lyrics</h3>
             </div>
             <div class="flex items-center gap-2">
               <button id="pinyin-toggle-desktop-btn" onclick="togglePinyinDisplay()" title="Toggle Pinyin / Romaji"
-                      class="text-[10px] font-bold px-2 py-0.5 rounded-lg border border-pink-500/30 bg-pink-500/10 text-pink-600 dark:text-pink-400 hover:bg-pink-500/20 active:scale-95 transition-all">
-                🀄 Pinyin
+                      class="text-[10px] font-medium px-2 py-0.5 rounded-md border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 active:scale-95 transition-all">
+                Pinyin
               </button>
-              <button onclick="openLyrics()" class="text-[11px] font-bold text-pink-600 dark:text-pink-400 hover:underline flex items-center gap-1">
-                <span>⛶ Fullscreen</span>
+              <button onclick="openLyrics()" class="text-[11px] font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white flex items-center gap-1 transition-colors">
+                <span>Fullscreen ↗</span>
               </button>
             </div>
           </div>
@@ -559,19 +545,19 @@
         </div>
 
         <!-- DESKTOP-ONLY: QUEUE & PLAYED HISTORY TABS CARD (Sticky in Left Column) -->
-        <div id="desktop-queue-card" class="dashboard-card desktop-only rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-4 shadow-md dark:shadow-xl space-y-3 transition-colors duration-200">
+        <div id="desktop-queue-card" class="dashboard-card desktop-only rounded-xl bg-white dark:bg-[#11131a] border border-zinc-200/90 dark:border-zinc-800/80 p-4 shadow-xs space-y-3 transition-colors duration-200">
           <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-gray-800/80 gap-2">
             <!-- Modern Segmented Pill Control -->
-            <div class="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-gray-800/70 border border-slate-200/50 dark:border-gray-700/50 shrink-0">
+            <div class="inline-flex p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 shrink-0 font-medium">
               <button onclick="switchQueueTab('upcoming')" id="tab-btn-upcoming"
-                      class="px-3 py-1 rounded-lg text-xs font-bold transition-all bg-white dark:bg-gray-700 text-slate-800 dark:text-white shadow-2xs flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
+                      class="px-3 py-1 rounded-md text-xs font-medium transition-all bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-2xs flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
                 <span>Antrean</span>
-                <span id="queue-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-pink-500/15 text-pink-600 dark:text-pink-400 font-extrabold">0</span>
+                <span id="queue-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 font-mono font-medium">0</span>
               </button>
               <button onclick="switchQueueTab('history')" id="tab-btn-history"
-                      class="px-3 py-1 rounded-lg text-xs font-semibold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-800 dark:hover:text-white flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
-                <span>Sudah Diputar</span>
-                <span id="history-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200/70 dark:bg-gray-800 text-slate-600 dark:text-gray-400 font-bold">0</span>
+                      class="px-3 py-1 rounded-md text-xs font-medium transition-all text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
+                <span>Riwayat</span>
+                <span id="history-count" class="px-1.5 py-0.2 rounded-full text-[10px] bg-zinc-200/70 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 font-mono font-medium">0</span>
               </button>
             </div>
             <div class="flex items-center gap-2 shrink-0">
@@ -631,19 +617,19 @@
       <div class="col-right space-y-5">
 
         <!-- SEARCH & PASTE SECTION -->
-        <div class="dashboard-card rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-4 shadow-md dark:shadow-xl transition-colors duration-200">
+        <div class="dashboard-card rounded-xl bg-white dark:bg-[#11131a] border border-zinc-200/90 dark:border-zinc-800/80 p-4 shadow-xs transition-colors duration-200">
           
           <!-- Tabs: Search vs Paste -->
-          <div class="flex rounded-xl bg-slate-100 dark:bg-gray-900/80 p-1 border border-slate-200 dark:border-gray-800">
-            <button onclick="switchTab('search')" id="tab-search" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-white dark:bg-gray-800 text-slate-900 dark:text-white shadow-xs flex items-center justify-center gap-1.5">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          <div class="flex rounded-lg bg-zinc-100 dark:bg-zinc-900 p-0.5 border border-zinc-200/80 dark:border-zinc-800 font-medium">
+            <button onclick="switchTab('search')" id="tab-search" class="flex-1 py-1.5 rounded-md text-xs font-medium transition-all bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-2xs flex items-center justify-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
               </svg>
               Search YouTube Music
             </button>
-            <button onclick="switchTab('paste')" id="tab-paste" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center gap-1.5">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+            <button onclick="switchTab('paste')" id="tab-paste" class="flex-1 py-1.5 rounded-md text-xs font-medium transition-all text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center justify-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
               </svg>
               Paste YouTube Link
             </button>
@@ -655,7 +641,7 @@
             <!-- CUSTOM SEARCH INPUT COMPONENT (With Clear button & Keyboard hotkey) -->
             <div class="relative">
               <input type="text" id="search-input" placeholder="Cari lagu / penyanyi (e.g. 周杰伦, Bernadya, JJ Lin, Coldplay)..."
-                     class="w-full bg-slate-50 dark:bg-[#121520] border border-slate-200 dark:border-gray-800 rounded-xl px-4 py-2.5 pl-10 pr-20 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition-all">
+                     class="w-full bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 rounded-lg px-3.5 py-2 pl-9 pr-16 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all">
               <svg class="w-4 h-4 text-slate-400 dark:text-gray-500 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
               </svg>
@@ -809,7 +795,7 @@
               <input type="text" id="paste-input" placeholder="https://music.youtube.com/watch?v=... or https://youtu.be/..."
                      class="w-full bg-white dark:bg-gray-900 border border-slate-300 dark:border-gray-700/80 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 focus:outline-none focus:border-pink-500"
                      onkeydown="if(event.key==='Enter'){event.preventDefault(); submitPaste();}">
-              <button id="paste-submit-btn" onclick="submitPaste()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-indigo-600 text-white text-xs font-bold shadow-md hover:opacity-90 active:scale-[0.99] transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+              <button id="paste-submit-btn" onclick="submitPaste()" class="w-full py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-900 text-xs font-medium active:scale-[0.99] transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                 </svg>
@@ -819,52 +805,34 @@
           </div>
         </div>
 
-        <!-- HOST & ROOM WI-FI QR CODE CARD (With 1-click copy link) -->
-        <div class="dashboard-card rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-4 shadow-md dark:shadow-xl space-y-3 transition-colors duration-200">
-          <div class="flex items-center justify-between text-xs font-bold text-slate-800 dark:text-gray-200">
-            <div class="flex items-center gap-1.5">
-              <span>📱</span>
-              <span>Scan untuk Request Lagu dari Smartphone</span>
-            </div>
-            <button onclick="copyHostUrl()" id="copy-host-btn" class="px-2 py-0.5 rounded-lg bg-pink-500/10 hover:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30 text-[10px] font-bold flex items-center gap-1 transition-all active:scale-95">
-              <span id="copy-host-icon">📋</span>
+        <!-- INVITE GUESTS / QR CODE CARD -->
+        <div class="dashboard-card rounded-xl bg-white dark:bg-[#11131a] border border-zinc-200/90 dark:border-zinc-800/80 p-4 shadow-xs space-y-3 transition-colors duration-200">
+          <div class="flex items-center justify-between pb-1">
+            <h3 class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
+              Undang Teman
+            </h3>
+            <button onclick="copyHostUrl()" id="copy-host-btn" class="px-2.5 py-1 rounded-md bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 text-xs font-medium flex items-center gap-1 transition-all active:scale-95 cursor-pointer">
               <span id="copy-host-text">Salin Link</span>
             </button>
           </div>
-          <div class="flex items-center gap-4 bg-slate-100/80 dark:bg-gray-900/60 p-3 rounded-xl border border-slate-200/80 dark:border-gray-800">
-            <img id="host-qr-img" src="" alt="Scan QR" class="w-20 h-20 rounded-lg bg-white p-1 border border-slate-200 shrink-0">
-            <div class="min-w-0 text-xs space-y-1 flex-1">
-              <div class="flex items-center justify-between gap-1">
-                <p id="host-network-badge" class="font-bold text-slate-900 dark:text-white flex items-center gap-1">
-                  <span>📶</span>
-                  <span>Wi-Fi / Hotspot Room</span>
-                </p>
-                <span id="tunnel-status-badge" class="hidden text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-                  🌐 Internet Publik
-                </span>
-              </div>
-              <p class="text-[11px] text-slate-500 dark:text-gray-400">Buka kamera HP atau kunjungi:</p>
-              <p id="host-url-text" class="text-[11px] font-mono font-bold text-pink-600 dark:text-pink-400 truncate"></p>
-              <div class="pt-0.5 flex items-center gap-2">
-                <button onclick="toggleQuickTunnel()" id="tunnel-toggle-btn"
-                        class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-pink-500/10 hover:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30 active:scale-95 transition-all flex items-center gap-1 cursor-pointer">
-                  <span id="tunnel-toggle-icon">🌐</span>
-                  <span id="tunnel-toggle-label">Buka Link Publik (Kuota HP)</span>
-                </button>
-              </div>
+          <div class="flex items-center gap-4 bg-zinc-50 dark:bg-zinc-900/50 p-3 rounded-lg border border-zinc-200/80 dark:border-zinc-800">
+            <img id="host-qr-img" src="" alt="Scan QR" class="w-20 h-20 rounded-md bg-white p-1 border border-zinc-200 dark:border-zinc-700 shrink-0">
+            <div class="min-w-0 text-xs space-y-1.5 flex-1">
+              <p class="font-medium text-zinc-900 dark:text-zinc-100">Scan QR atau buka link:</p>
+              <p id="host-url-text" class="text-xs font-mono font-medium text-rose-500 truncate"></p>
+              <p class="text-[11px] text-zinc-500 dark:text-zinc-400">Tamu dapat langsung mencari dan menambahkan lagu dari smartphone mereka.</p>
             </div>
           </div>
         </div>
 
         <!-- ROOM ACTIVITY FEED / HISTORY CARD -->
-        <div class="dashboard-card rounded-2xl bg-gradient-to-b from-white to-slate-50 dark:from-[#181c28] dark:to-[#121520] border border-slate-200/90 dark:border-gray-800/80 p-4 shadow-md dark:shadow-xl space-y-3 transition-colors duration-200">
+        <div class="dashboard-card rounded-xl bg-white dark:bg-[#11131a] border border-zinc-200/90 dark:border-zinc-800/80 p-4 shadow-xs space-y-3 transition-colors duration-200">
           <div class="flex items-center justify-between pb-1">
             <div class="flex items-center gap-2">
-              <h3 class="text-sm font-bold text-slate-800 dark:text-gray-200 tracking-wide flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-pink-500"></span>
-                Room Activity Feed
+              <h3 class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
+                Activity Feed
               </h3>
-              <span class="text-[11px] text-slate-400 dark:text-gray-500 font-medium">(Who did what)</span>
+              <span class="text-[11px] text-zinc-400 dark:text-zinc-500">Live</span>
             </div>
           </div>
 
@@ -1390,7 +1358,7 @@
       </button>
 
       <div class="text-center mb-4">
-        <div id="dj-modal-icon" class="w-13 h-13 mx-auto mb-2.5 rounded-2xl bg-gradient-to-tr from-pink-500 via-rose-500 to-amber-500 flex items-center justify-center shadow-lg shadow-pink-500/25 text-white text-2xl font-black">
+        <div id="dj-modal-icon" class="w-12 h-12 mx-auto mb-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center text-xl font-semibold border border-zinc-200 dark:border-zinc-700">
           🎉
         </div>
         <h3 id="dj-modal-title" class="text-lg font-black text-slate-900 dark:text-white tracking-tight">Selamat Datang di Party Jukebox!</h3>
@@ -1457,7 +1425,7 @@
           <div id="known-djs-pills" class="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto no-scrollbar"></div>
         </div>
 
-        <button type="button" id="dj-submit-btn" onclick="submitDJName()" class="w-full py-2.5 px-4 rounded-xl font-extrabold text-sm bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 hover:opacity-95 text-white shadow-lg shadow-pink-500/25 active:scale-95 transition-all cursor-pointer">
+        <button type="button" id="dj-submit-btn" onclick="submitDJName()" class="w-full py-2 px-4 rounded-lg font-medium text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-900 active:scale-95 transition-colors cursor-pointer">
           Masuk ke Party 🎵
         </button>
 
@@ -1533,7 +1501,7 @@
       <!-- Circular Countdown Loading Indicator -->
       <div class="relative w-36 h-36 flex items-center justify-center my-1">
         <!-- Glowing ambient backlight -->
-        <div class="absolute inset-2 rounded-full bg-gradient-to-tr from-pink-500/25 to-amber-500/20 blur-xl pointer-events-none"></div>
+        
 
         <svg class="w-36 h-36 -rotate-90 transform" viewBox="0 0 100 100">
           <!-- Background track circle -->
@@ -1633,7 +1601,7 @@
           </button>
         </div>
         <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-pink-500 to-indigo-500 text-white font-extrabold text-sm flex items-center justify-center shadow-xs shrink-0">
+          <div class="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium text-sm flex items-center justify-center border border-zinc-200 dark:border-zinc-700 shrink-0">
             <span id="settings-avatar-letter">S</span>
           </div>
           <div class="min-w-0 flex-1">
@@ -1755,8 +1723,8 @@
       
       <!-- Icon with soft glow pill -->
       <div class="relative mx-auto w-16 h-16 flex items-center justify-center">
-        <div class="absolute inset-0 rounded-2xl bg-gradient-to-tr from-pink-500/30 to-rose-500/10 blur-lg"></div>
-        <div id="custom-dialog-icon" class="relative w-16 h-16 rounded-2xl bg-gradient-to-b from-pink-500/15 to-rose-500/25 dark:from-pink-500/20 dark:to-rose-500/30 text-pink-600 dark:text-pink-400 border border-pink-500/30 flex items-center justify-center text-3xl font-black shadow-inner">
+        
+        <div id="custom-dialog-icon" class="relative w-12 h-12 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-xl font-medium">
           ✨
         </div>
       </div>
@@ -1781,7 +1749,7 @@
           Batal
         </button>
         <button type="button" id="custom-dialog-confirm-btn"
-                class="flex-1 py-3 px-4 rounded-xl font-black text-xs sm:text-sm bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 hover:opacity-95 text-white shadow-lg shadow-pink-500/30 transition-all cursor-pointer active:scale-95 border border-white/20">
+                class="flex-1 py-2 px-4 rounded-lg font-medium text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-900 transition-colors cursor-pointer active:scale-95">
           Konfirmasi
         </button>
       </div>
@@ -1797,7 +1765,7 @@
       <!-- Header -->
       <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-gray-800 shrink-0">
         <div class="flex items-center gap-2.5 min-w-0 flex-1">
-          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-600 text-white flex items-center justify-center text-lg font-bold shadow-md shadow-pink-500/20 shrink-0">
+          <div class="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center text-sm font-medium border border-zinc-200 dark:border-zinc-700 shrink-0">
             📑
           </div>
           <div class="min-w-0 flex-1">
@@ -1839,7 +1807,7 @@
         <button type="button" onclick="closePlaylistModal()" class="py-2.5 px-4 rounded-xl text-xs font-bold bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:bg-slate-200 active:scale-95 transition-all cursor-pointer">
           Batal
         </button>
-        <button type="button" id="playlist-submit-btn" onclick="submitPlaylistQueue()" class="flex-1 py-2.5 px-4 rounded-xl text-xs font-black bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 text-white shadow-md shadow-pink-500/25 hover:opacity-95 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+        <button type="button" id="playlist-submit-btn" onclick="submitPlaylistQueue()" class="flex-1 py-2 px-4 rounded-lg text-xs font-medium bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-900 active:scale-95 transition-colors cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed">
           <span>+ Tambahkan</span>
           <span id="playlist-submit-btn-count">0 Lagu</span>
           <span>ke Antrean</span>
@@ -1852,14 +1820,14 @@
   <!-- ============================================================
        FROZEN BOTTOM PLAYER BAR (ALWAYS VISIBLE / PERSISTENT DOCK)
        ============================================================ -->
-  <div id="sticky-bottom-player" class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#0f121d]/95 backdrop-blur-xl border-t border-slate-200/90 dark:border-gray-800 shadow-[0_-10px_35px_rgba(0,0,0,0.08)] dark:shadow-[0_-10px_35px_rgba(0,0,0,0.6)] transition-all duration-300">
+  <div id="sticky-bottom-player" class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#0c0e14]/95 backdrop-blur-xl border-t border-zinc-200 dark:border-zinc-800 shadow-md transition-all duration-300">
     
     <!-- Ultra-Sleek Synced Timeline Progress Bar at the Top Edge -->
     <div class="relative w-full bg-slate-200/80 dark:bg-gray-800/80 h-1.5 select-none overflow-visible group cursor-pointer"
          title="Synced Real-Time Timeline">
-      <div id="progress-bar" class="bg-gradient-to-r from-pink-500 via-rose-500 to-indigo-500 h-1.5 relative transition-all duration-300" style="width: 0%">
-        <!-- Glowing playhead dot -->
-        <div class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-3.5 h-3.5 rounded-full bg-white shadow-md shadow-pink-500/80 border-2 border-pink-500 opacity-90 group-hover:scale-125 transition-transform"></div>
+      <div id="progress-bar" class="bg-rose-500 h-1 relative transition-all duration-300" style="width: 0%">
+        <!-- Playhead dot -->
+        <div class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2.5 h-2.5 rounded-full bg-white border border-rose-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
       </div>
     </div>
 
@@ -1881,11 +1849,11 @@
           <!-- Title, Artist, & Added By -->
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-1.5 flex-wrap">
-              <span id="player-playing-badge" class="px-1.5 py-0.2 rounded text-[9px] font-black tracking-wide bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30 uppercase shrink-0">
+              <span id="player-playing-badge" class="px-1.5 py-0.2 rounded text-[9px] font-mono font-medium uppercase tracking-wider bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 shrink-0">
                 Playing
               </span>
               <!-- Audio Resolving & Loading Badge -->
-              <span id="audio-loading-badge" class="hidden inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 animate-pulse shrink-0">
+              <span id="audio-loading-badge" class="hidden inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 shrink-0">
                 <svg class="w-3 h-3 animate-spin text-amber-500" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -1914,7 +1882,7 @@
 
         <!-- Play / Pause Button -->
         <button onclick="togglePlay()" id="play-pause-btn" title="Play / Pause (Space / K)"
-                class="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 text-white flex items-center justify-center shadow-lg shadow-pink-500/30 hover:scale-105 active:scale-95 transition-all cursor-pointer">
+                class="w-10 h-10 rounded-full bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-900 flex items-center justify-center shadow-xs transition-transform active:scale-95 cursor-pointer">
           <svg id="play-loading-spinner" class="w-5 h-5 animate-spin hidden text-white" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -2021,7 +1989,7 @@
         <button onclick="toggleMuteQuick()" id="mobile-mute-btn" class="flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-gray-800 hover:bg-slate-200 text-slate-800 dark:text-gray-200 text-xs font-bold border border-slate-200 dark:border-gray-700 transition-all flex items-center justify-center gap-1.5 active:scale-95">
           <span>🔇</span> Mute / Unmute
         </button>
-        <button onclick="closeMobileVolumeModal()" class="flex-1 py-2.5 rounded-xl bg-pink-500 text-white text-xs font-bold shadow-md shadow-pink-500/30 hover:bg-pink-600 transition-all active:scale-95">
+        <button onclick="closeMobileVolumeModal()" class="flex-1 py-2 rounded-lg bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-xs font-medium hover:opacity-90 transition-all active:scale-95">
           Tutup
         </button>
       </div>
@@ -2206,7 +2174,7 @@
       </div>
 
       <div class="pt-2">
-        <button onclick="closeShortcutsModal()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-indigo-600 text-white text-xs font-bold shadow-md hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer">
+        <button onclick="closeShortcutsModal()" class="w-full py-2 rounded-lg bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-xs font-medium hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer">
           Mengerti, Siap Nge-DJ! 🎧
         </button>
       </div>
@@ -2219,7 +2187,7 @@
   </div>
 
   <!-- Auto-Update Version Banner (Real-time detection bila server/build baru dirilis) -->
-  <div id="update-banner" class="hidden fixed top-5 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-2xl bg-gradient-to-r from-pink-600 via-rose-600 to-indigo-600 text-white shadow-2xl flex items-center gap-3 border border-white/25 transition-all duration-300 transform -translate-y-4 opacity-0 max-w-sm w-[92%] sm:w-auto">
+  <div id="update-banner" class="hidden fixed top-5 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-xl flex items-center gap-3 border border-zinc-700 dark:border-zinc-300 transition-all duration-300 transform -translate-y-4 opacity-0 max-w-sm w-[92%] sm:w-auto">
     <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-base shrink-0 animate-pulse">
       🚀
     </div>
@@ -2273,16 +2241,7 @@
     }
 
     function getLoadingStageText(sec, pct) {
-      const s = Math.floor(sec);
-      if (sec < 2) {
-        return `⚡ Menghubungkan Stream (${s}s • ${pct}%)`;
-      } else if (sec < 4.5) {
-        return `🔐 Membuka Enkripsi YouTube (${s}s • ${pct}%)`;
-      } else if (sec < 7.5) {
-        return `📡 Mengunduh Buffer Audio (${s}s • ${pct}%)`;
-      } else {
-        return `🎵 Menyiapkan Pemutar... (${s}s • ${pct}%)`;
-      }
+      return 'Menyiapkan audio...';
     }
 
     function updateLoadingState(isLoading, label = 'Menyiapkan Audio...') {
@@ -2316,9 +2275,8 @@
             const pct = calculateEstimatedProgress(elapsedSec);
             const stageText = getLoadingStageText(elapsedSec, pct);
 
-            if (loadingText) loadingText.textContent = stageText;
+            if (loadingText) loadingText.textContent = 'Menyiapkan audio...';
             if (progressBar) progressBar.style.width = `${pct}%`;
-            if (elapsedEl) elapsedEl.textContent = `⏳ ${pct}% (${Math.floor(elapsedSec)}s)`;
           };
 
           tickLoadingProgress();
@@ -3383,15 +3341,15 @@
 
     // Deterministic 9-Color Vibrant Palette for Dynamic DJs (v2.2.0)
     const DJ_PALETTES = [
-      { dot: 'bg-pink-500', bg: 'bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30', pill: 'border-pink-500 bg-pink-500/15 text-pink-700 dark:text-pink-300 shadow-pink-500/20' },
-      { dot: 'bg-indigo-500', bg: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30', pill: 'border-indigo-500 bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 shadow-indigo-500/20' },
-      { dot: 'bg-emerald-500', bg: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30', pill: 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 shadow-emerald-500/20' },
-      { dot: 'bg-amber-500', bg: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30', pill: 'border-amber-500 bg-amber-500/15 text-amber-700 dark:text-amber-300 shadow-amber-500/20' },
-      { dot: 'bg-cyan-500', bg: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30', pill: 'border-cyan-500 bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 shadow-cyan-500/20' },
-      { dot: 'bg-purple-500', bg: 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30', pill: 'border-purple-500 bg-purple-500/15 text-purple-700 dark:text-purple-300 shadow-purple-500/20' },
-      { dot: 'bg-rose-500', bg: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30', pill: 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300 shadow-rose-500/20' },
-      { dot: 'bg-teal-500', bg: 'bg-teal-500/15 text-teal-600 dark:text-teal-400 border border-teal-500/30', pill: 'border-teal-500 bg-teal-500/15 text-teal-700 dark:text-teal-300 shadow-teal-500/20' },
-      { dot: 'bg-orange-500', bg: 'bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-500/30', pill: 'border-orange-500 bg-orange-500/15 text-orange-700 dark:text-orange-300 shadow-orange-500/20' }
+      { dot: 'bg-zinc-400', bg: 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700', pill: 'border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300' },
+      { dot: 'bg-rose-500', bg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20', pill: 'border-rose-500/30 text-rose-600 dark:text-rose-400' },
+      { dot: 'bg-indigo-500', bg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20', pill: 'border-indigo-500/30 text-indigo-600 dark:text-indigo-400' },
+      { dot: 'bg-emerald-500', bg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20', pill: 'border-emerald-500/30 text-emerald-600 dark:text-emerald-400' },
+      { dot: 'bg-amber-500', bg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20', pill: 'border-amber-500/30 text-amber-600 dark:text-amber-400' },
+      { dot: 'bg-cyan-500', bg: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20', pill: 'border-cyan-500/30 text-cyan-600 dark:text-cyan-400' },
+      { dot: 'bg-purple-500', bg: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20', pill: 'border-purple-500/30 text-purple-600 dark:text-purple-400' },
+      { dot: 'bg-teal-500', bg: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20', pill: 'border-teal-500/30 text-teal-600 dark:text-teal-400' },
+      { dot: 'bg-orange-500', bg: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20', pill: 'border-orange-500/30 text-orange-600 dark:text-orange-400' }
     ];
 
     function getUserColor(name) {
@@ -3457,9 +3415,9 @@
         const btn = document.getElementById(`theme-btn-${t}`);
         if (!btn) return;
         if (t === theme) {
-          btn.className = 'theme-pill px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 text-[11px] font-bold bg-white dark:bg-gray-800 text-pink-600 dark:text-pink-400 shadow-xs';
+          btn.className = 'theme-pill px-2.5 py-1 rounded-md transition-all text-[11px] font-medium bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-2xs';
         } else {
-          btn.className = 'theme-pill px-2 py-1 rounded-lg transition-all flex items-center gap-1 text-[11px] text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white';
+          btn.className = 'theme-pill px-2 py-1 rounded-md transition-all text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100';
         }
       });
     }
@@ -3504,9 +3462,9 @@
         const btn = document.getElementById(`view-btn-${v}`);
         if (!btn) return;
         if (v === view) {
-          btn.className = 'view-pill px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 text-[11px] font-bold bg-white dark:bg-gray-800 text-pink-600 dark:text-pink-400 shadow-xs';
+          btn.className = 'view-pill px-2.5 py-1 rounded-md transition-all text-[11px] font-medium bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-2xs';
         } else {
-          btn.className = 'view-pill px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 text-[11px] text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white';
+          btn.className = 'view-pill px-2.5 py-1 rounded-md transition-all text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100';
         }
       });
 
@@ -3949,20 +3907,20 @@
         if (!partyHost || partyHost.isVacant || !partyHost.name) {
           mobileName.textContent = 'Vacant';
           mobileAction.innerHTML = `
-            <button onclick="claimHostPrompt()" class="px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-gradient-to-r from-amber-500 to-pink-500 text-white active:scale-95 transition-all">
-              👑 Klaim Host
+            <button onclick="claimHostPrompt()" class="px-2.5 py-0.5 rounded-md text-[10px] font-medium bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 active:scale-95 transition-all">
+              Klaim Host
             </button>
           `;
         } else {
           mobileName.textContent = partyHost.name + (meHost ? ' (Kamu)' : '');
           mobileAction.innerHTML = meHost ? `
-            <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>Speaker Aktif</span>
+            <span class="px-2 py-0.5 rounded-md text-[10px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              <span>Speaker On</span>
             </span>
           ` : `
-            <button onclick="claimHostPrompt(true)" class="px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30 active:scale-95 transition-all">
-              👑 Ambil Alih
+            <button onclick="claimHostPrompt(true)" class="px-2 py-0.5 rounded-md text-[10px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 active:scale-95 transition-all">
+              Ambil Alih
             </button>
           `;
         }
@@ -3974,14 +3932,12 @@
       if (!partyHost || partyHost.isVacant || !partyHost.name) {
         // Status: VACANT (Kosong)
         container.innerHTML = `
-          <div class="flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/25 animate-pulse">
-            <span>⚠️</span>
-            <span>Host Vacant</span>
+          <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
+            <span>Host: Vacant</span>
           </div>
-          <button id="host-claim-btn" onclick="claimHostPrompt()" title="Klaim kontrol Host pesta malam ini"
-                  class="flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 via-pink-500 to-rose-500 text-white shadow-sm hover:opacity-90 active:scale-95 transition-all cursor-pointer">
-            <span>👑</span>
-            <span>Klaim Jadi Host</span>
+          <button id="host-claim-btn" onclick="claimHostPrompt()" title="Klaim kontrol Host"
+                  class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-900 transition-colors cursor-pointer active:scale-95">
+            <span>Klaim Host</span>
           </button>
         `;
         if (hostHeartbeatTimer) {
@@ -3993,24 +3949,23 @@
         // Status: OCCUPIED (Ada Host)
         const me = isMeHost();
         container.innerHTML = `
-          <div class="flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 shadow-2xs">
-            <span>👑</span>
-            <span id="host-name-text" class="truncate max-w-[140px]">${partyHost.name}</span>
-            ${me ? '<span class="text-[9px] bg-amber-500 text-white font-extrabold px-1.5 py-0.2 rounded-full uppercase tracking-wider ml-0.5">Kamu</span>' : ''}
+          <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-700">
+            <span class="text-zinc-400 dark:text-zinc-500 text-[11px]">Host:</span>
+            <span id="host-name-text" class="truncate max-w-[140px] font-semibold">${partyHost.name}</span>
+            ${me ? '<span class="text-[9px] font-mono font-medium px-1.5 py-0.2 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300">You</span>' : ''}
           </div>
           ${me ? `
-            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shadow-2xs">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>Speaker Aktif</span>
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              <span>Speaker On</span>
             </span>
-            <button id="host-release-btn" onclick="releaseHost()" title="Lepas posisi Host agar jadi Vacant"
-                    class="px-2 py-1 rounded-lg text-[10px] font-bold bg-slate-100 hover:bg-rose-50 dark:bg-gray-800 dark:hover:bg-rose-950/40 text-slate-500 hover:text-rose-600 dark:text-gray-400 dark:hover:text-rose-400 border border-slate-200 dark:border-gray-700 transition-all cursor-pointer">
-              🔓 Lepas Host
+            <button id="host-release-btn" onclick="releaseHost()" title="Lepas posisi Host"
+                    class="px-2 py-1 rounded-md text-[10px] font-medium bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer">
+              Lepas Host
             </button>
           ` : `
-            <button id="host-takeover-btn" onclick="claimHostPrompt(true)" title="Ambil alih status Host agar musik bersuara dari perangkat kamu"
-                    class="flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold bg-pink-500/10 text-pink-600 dark:text-pink-400 hover:bg-pink-500 hover:text-white border border-pink-500/30 shadow-2xs active:scale-95 transition-all cursor-pointer">
-              <span>👑</span>
+            <button id="host-takeover-btn" onclick="claimHostPrompt(true)" title="Ambil alih status Host"
+                    class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer active:scale-95">
               <span>Ambil Alih Host</span>
             </button>
           `}
@@ -4595,13 +4550,13 @@
       if (tab === 'search') {
         document.getElementById('content-search').classList.remove('hidden');
         document.getElementById('content-paste').classList.add('hidden');
-        document.getElementById('tab-search').className = 'flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-white dark:bg-gray-800 text-slate-900 dark:text-white shadow-xs flex items-center justify-center gap-1.5';
-        document.getElementById('tab-paste').className = 'flex-1 py-2 rounded-lg text-xs font-bold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center gap-1.5';
+        document.getElementById('tab-search').className = 'flex-1 py-1.5 rounded-md text-xs font-medium transition-all bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-2xs flex items-center justify-center gap-1.5';
+        document.getElementById('tab-paste').className = 'flex-1 py-1.5 rounded-md text-xs font-medium transition-all text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center justify-center gap-1.5';
       } else {
         document.getElementById('content-search').classList.add('hidden');
         document.getElementById('content-paste').classList.remove('hidden');
-        document.getElementById('tab-paste').className = 'flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-white dark:bg-gray-800 text-slate-900 dark:text-white shadow-xs flex items-center justify-center gap-1.5';
-        document.getElementById('tab-search').className = 'flex-1 py-2 rounded-lg text-xs font-bold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center gap-1.5';
+        document.getElementById('tab-paste').className = 'flex-1 py-1.5 rounded-md text-xs font-medium transition-all bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-2xs flex items-center justify-center gap-1.5';
+        document.getElementById('tab-search').className = 'flex-1 py-1.5 rounded-md text-xs font-medium transition-all text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center justify-center gap-1.5';
       }
     }
 
@@ -5328,14 +5283,14 @@
         const userStyle = getUserColor(item.addedBy);
         const hasVoted = item.votedUsers && item.votedUsers.includes(currentUser);
         const voteBtnClass = hasVoted
-          ? 'bg-gradient-to-r from-pink-500 to-indigo-600 text-white shadow-xs'
-          : 'bg-slate-100 dark:bg-gray-800/80 hover:bg-slate-200 dark:hover:bg-gray-800 text-slate-700 dark:text-gray-300 border border-slate-200 dark:border-gray-700/60';
+          ? 'bg-rose-500 text-white shadow-xs'
+          : 'bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700/80';
         const isChecked = selectedQueueIndices.has(item.rawIndex);
 
         return `
           <div data-raw-index="${item.rawIndex}" data-idx="${idx}"
                onclick="${isQueueSelectMode ? `toggleQueueItemSelection(${item.rawIndex}, !${isChecked})` : ''}"
-               class="queue-item flex items-center gap-2.5 p-2.5 rounded-xl bg-white dark:bg-[#121520] border ${isChecked ? 'border-pink-500/60 bg-pink-50/20 dark:bg-pink-500/10' : 'border-slate-200/90 dark:border-gray-800/80'} hover:border-slate-300 dark:hover:border-gray-700 shadow-2xs transition-all select-none ${isQueueSelectMode ? 'cursor-pointer' : ''}">
+               class="queue-item flex items-center gap-2.5 p-2 rounded-lg bg-white dark:bg-[#11131a] border ${isChecked ? 'border-rose-500 bg-rose-500/5' : 'border-zinc-200/80 dark:border-zinc-800'} hover:border-zinc-300 dark:hover:border-zinc-700 shadow-2xs transition-all select-none ${isQueueSelectMode ? 'cursor-pointer' : ''}">
             
             ${isQueueSelectMode ? `
               <!-- Checklist Checkbox in Select Mode -->
@@ -5470,17 +5425,17 @@
       }
 
       const actionIcons = {
-        'add': { icon: '➕', label: 'added' },
-        'skip': { icon: '⏭️', label: 'skipped' },
-        'pause': { icon: '⏸️', label: 'paused' },
-        'play': { icon: '▶️', label: 'played' },
-        'remove': { icon: '🗑️', label: 'removed' },
-        'move': { icon: '⠿', label: '' },
-        'upvote': { icon: '🔥', label: 'upvoted' },
-        'unvote': { icon: '↩️', label: 'cancelled vote on' },
-        'volume': { icon: '🔊', label: '' },
-        'join': { icon: '🎧', label: '' },
-        'start': { icon: '🚀', label: '' }
+        'add': { icon: '+', label: 'added' },
+        'skip': { icon: '⏭', label: 'skipped' },
+        'pause': { icon: '⏸', label: 'paused' },
+        'play': { icon: '▶', label: 'played' },
+        'remove': { icon: '×', label: 'removed' },
+        'move': { icon: '↕', label: 'reordered' },
+        'upvote': { icon: '↑', label: 'upvoted' },
+        'unvote': { icon: '↓', label: 'unvoted' },
+        'volume': { icon: '◖', label: 'set volume' },
+        'join': { icon: '•', label: 'joined' },
+        'start': { icon: '•', label: 'started' }
       };
 
       container.innerHTML = logs.map(item => {
@@ -5488,7 +5443,7 @@
         const meta = actionIcons[item.action] || { icon: '•', label: item.action };
 
         return `
-          <div class="flex items-center justify-between text-xs py-1.5 px-3 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200/80 dark:border-gray-800/80 shadow-2xs">
+          <div class="flex items-center justify-between text-xs py-1.5 px-3 rounded-lg bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200/80 dark:border-zinc-800 shadow-2xs">
             <div class="flex items-center gap-2 min-w-0">
               <span class="text-sm shrink-0">${meta.icon}</span>
               <span class="px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${userStyle.bg}">
@@ -5766,8 +5721,8 @@
         container.innerHTML = `
           <div class="p-6 text-center text-xs text-slate-400 dark:text-gray-500 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800 space-y-2">
             <p>Belum ada lagu untuk filter ini.</p>
-            <button onclick="resetFilters()" class="px-3 py-1 rounded-lg text-xs font-bold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30 hover:bg-pink-500 hover:text-white cursor-pointer transition-all">
-              ✕ Reset ke Semua Rekomendasi
+            <button onclick="resetFilters()" class="px-3 py-1 rounded-md text-xs font-medium bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 cursor-pointer transition-all">
+              Reset ke Semua Rekomendasi
             </button>
           </div>
         `;
@@ -5777,26 +5732,25 @@
       container.innerHTML = `
         <div class="pt-1 pb-2">
           <!-- Header with Pagination, Filter Badge & Shuffle -->
-          <div class="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-gray-300 mb-2.5 px-1">
+          <div class="flex items-center justify-between text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-2.5 px-0.5">
             <div class="flex items-center gap-2 min-w-0">
-              <span class="flex items-center gap-1.5 text-pink-600 dark:text-pink-400 truncate">
-                <span>🔥</span> <strong class="truncate">${escapeHtml(filterBadgeText)}</strong> (Halaman ${page})
-              </span>
+              <span class="font-semibold text-zinc-900 dark:text-zinc-100 truncate">${escapeHtml(filterBadgeText)}</span>
+              <span class="text-zinc-400 dark:text-zinc-500 font-mono text-[11px]">(${page}/${totalPages})</span>
               ${isFiltered ? `
-                <button onclick="resetFilters()" title="Reset Filter" class="shrink-0 px-2 py-0.5 rounded-md text-[10px] font-bold bg-pink-500/10 text-pink-600 dark:text-pink-400 border border-pink-500/25 hover:bg-pink-500 hover:text-white transition-all active:scale-95 cursor-pointer">
-                  ✕ Reset
+                <button onclick="resetFilters()" title="Reset Filter" class="shrink-0 px-2 py-0.5 rounded-md text-[10px] font-medium bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 transition-all active:scale-95 cursor-pointer">
+                  Reset
                 </button>
               ` : ''}
             </div>
             <div class="flex items-center gap-1.5 shrink-0 ml-2">
-              <button onclick="shuffleRecommendations()" title="Acak Lagu" class="px-2 py-0.5 rounded-md text-[10px] bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-300 border border-slate-200 dark:border-gray-700 transition-all active:scale-95 cursor-pointer">
-                🎲 Acak
+              <button onclick="shuffleRecommendations()" title="Acak Lagu" class="px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 transition-all active:scale-95 cursor-pointer">
+                Shuffle
               </button>
-              <button onclick="changeRecommendationPage(${page > 1 ? page - 1 : 1})" ${page <= 1 ? 'disabled class="opacity-40 cursor-not-allowed px-2 py-0.5 rounded-md text-[10px] bg-slate-100 dark:bg-gray-800 text-slate-400 border border-slate-200 dark:border-gray-700"' : 'class="px-2 py-0.5 rounded-md text-[10px] bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-300 border border-slate-200 dark:border-gray-700 transition-all active:scale-95 cursor-pointer"'} title="Halaman Sebelumnya">
-                ◀
+              <button onclick="changeRecommendationPage(${page > 1 ? page - 1 : 1})" ${page <= 1 ? 'disabled class="opacity-40 cursor-not-allowed px-2 py-0.5 rounded-md text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-400 border border-zinc-200 dark:border-zinc-700"' : 'class="px-2 py-0.5 rounded-md text-[10px] bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 transition-all active:scale-95 cursor-pointer"'} title="Sebelumnya">
+                ‹
               </button>
-              <button onclick="changeRecommendationPage(${page + 1})" title="Halaman Berikutnya" class="px-2 py-0.5 rounded-md text-[10px] bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 text-slate-600 dark:text-gray-300 border border-slate-200 dark:border-gray-700 transition-all active:scale-95 cursor-pointer">
-                ▶
+              <button onclick="changeRecommendationPage(${page + 1})" title="Berikutnya" class="px-2 py-0.5 rounded-md text-[10px] bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 transition-all active:scale-95 cursor-pointer">
+                ›
               </button>
             </div>
           </div>
@@ -5806,7 +5760,7 @@
             ${pageItems.map(item => {
               registerSongCard(item);
               return `
-              <div class="group relative flex items-center gap-2.5 p-2 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800/80 hover:border-pink-500/50 shadow-2xs hover:shadow-md transition-all active:scale-[0.99]"
+              <div class="group relative flex items-center gap-2.5 p-2 rounded-lg bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200/80 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all active:scale-[0.99]"
                    onmouseenter="triggerPrewarmDebounced('${item.videoId}')"
                    onmouseleave="cancelPrewarmDebounced('${item.videoId}')"
                    ontouchstart="triggerPrewarmDebounced('${item.videoId}')">
@@ -5823,7 +5777,7 @@
                   </div>
                   <div class="flex items-center justify-between gap-1 pt-0.5">
                     <button onclick="queueTrackById('${item.videoId}')"
-                            class="py-0.5 px-2 rounded-md bg-pink-500/15 group-hover:bg-pink-500 text-pink-600 dark:text-pink-400 group-hover:text-white border border-pink-500/30 text-[10px] font-bold transition-all flex items-center gap-1 active:scale-95 cursor-pointer">
+                            class="py-1 px-2.5 rounded-md bg-zinc-100 hover:bg-rose-500 hover:text-white dark:bg-zinc-800 dark:hover:bg-rose-500 text-zinc-700 dark:text-zinc-200 dark:hover:text-white border border-zinc-200 dark:border-zinc-700 text-[11px] font-medium transition-colors flex items-center gap-1 active:scale-95 cursor-pointer">
                       <span>+ Queue</span>
                     </button>
                   </div>
@@ -5841,7 +5795,7 @@
             </button>
             ${pageNumbers.map(p => `
               <button onclick="changeRecommendationPage(${p})"
-                      class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all border cursor-pointer ${p === page ? 'bg-pink-500 text-white border-pink-500 shadow-sm' : 'bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-400 border-slate-200 dark:border-gray-700 hover:border-pink-500/50'}">
+                      class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all border cursor-pointer ${p === page ? 'bg-rose-500 text-white border-rose-500' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700 hover:border-zinc-400'}">
                 ${p}
               </button>
             `).join('')}
@@ -6104,8 +6058,8 @@
         container.innerHTML = `
           <div class="p-6 text-center text-xs text-slate-400 dark:text-gray-500 rounded-xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800 space-y-2">
             <p>Tidak ada lagu yang ditemukan untuk pencarian ini.</p>
-            <button onclick="clearSearch()" class="px-3 py-1 rounded-lg text-xs font-bold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30 hover:bg-pink-500 hover:text-white cursor-pointer transition-all">
-              ✕ Reset Pencarian
+            <button onclick="clearSearch()" class="px-3 py-1 rounded-md text-xs font-medium bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 cursor-pointer transition-all">
+              Reset Pencarian
             </button>
           </div>
         `;
@@ -6117,12 +6071,12 @@
       container.innerHTML = `
         <div class="pt-1 pb-2 space-y-2">
           <!-- Search Header -->
-          <div class="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-gray-300 px-1 mb-1">
-            <span class="flex items-center gap-1.5 text-pink-600 dark:text-pink-400 truncate">
-              <span>🔍</span> Hasil Pencarian: <strong class="truncate">"${escapeHtml(queryText)}"</strong> (${currentSearchResults.length} lagu dimuat)
+          <div class="flex items-center justify-between text-xs font-medium text-zinc-600 dark:text-zinc-400 px-0.5 mb-1">
+            <span class="text-zinc-700 dark:text-zinc-300 truncate font-medium">
+              Hasil: <strong class="font-semibold text-zinc-900 dark:text-zinc-100">"${escapeHtml(queryText)}"</strong> <span class="text-zinc-400 dark:text-zinc-500 font-mono text-[11px]">(${currentSearchResults.length} lagu)</span>
             </span>
-            <button onclick="clearSearch()" class="shrink-0 px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 hover:bg-slate-200 dark:bg-gray-800 text-slate-500 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 cursor-pointer transition-all active:scale-95">
-              ✕ Reset
+            <button onclick="clearSearch()" class="shrink-0 px-2 py-0.5 rounded-md text-[10px] font-medium bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 cursor-pointer transition-all active:scale-95">
+              Reset
             </button>
           </div>
 
@@ -6131,7 +6085,7 @@
             ${currentSearchResults.map(item => {
               registerSongCard(item);
               return `
-              <div class="group relative flex items-center justify-between gap-3 p-2.5 rounded-xl bg-slate-50 dark:bg-gray-900/80 border border-slate-200 dark:border-gray-800 hover:border-pink-500/50 shadow-2xs hover:shadow-md transition-all active:scale-[0.99]"
+              <div class="group relative flex items-center justify-between gap-3 p-2.5 rounded-lg bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200/80 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all active:scale-[0.99]"
                    onmouseenter="triggerPrewarmDebounced('${item.videoId}')"
                    onmouseleave="cancelPrewarmDebounced('${item.videoId}')"
                    ontouchstart="triggerPrewarmDebounced('${item.videoId}')">
@@ -6146,7 +6100,7 @@
                   </div>
                 </div>
                 <button onclick="queueTrackById('${item.videoId}')"
-                        class="px-3.5 py-1.5 rounded-lg bg-pink-500/15 group-hover:bg-pink-500 text-pink-600 dark:text-pink-400 group-hover:text-white border border-pink-500/30 text-xs font-bold active:scale-95 transition-all flex items-center gap-1 cursor-pointer shrink-0">
+                        class="px-3 py-1.5 rounded-md bg-zinc-100 hover:bg-rose-500 hover:text-white dark:bg-zinc-800 dark:hover:bg-rose-500 text-zinc-700 dark:text-zinc-200 dark:hover:text-white border border-zinc-200 dark:border-zinc-700 text-xs font-medium active:scale-95 transition-colors cursor-pointer shrink-0">
                   <span>+ Queue</span>
                 </button>
               </div>
@@ -6831,17 +6785,17 @@
       const legend = document.getElementById('queue-legend');
 
       if (tab === 'upcoming') {
-        btnUpcoming.className = 'px-3 py-1 rounded-lg text-xs font-bold transition-all bg-white dark:bg-gray-700 text-slate-800 dark:text-white shadow-2xs flex items-center gap-1.5 cursor-pointer whitespace-nowrap';
-        btnHistory.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-800 dark:hover:text-white flex items-center gap-1.5 cursor-pointer whitespace-nowrap';
+        btnUpcoming.className = 'px-3 py-1 rounded-md text-xs font-medium transition-all bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-2xs flex items-center gap-1.5 cursor-pointer whitespace-nowrap';
+        btnHistory.className = 'px-3 py-1 rounded-md text-xs font-medium transition-all text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center gap-1.5 cursor-pointer whitespace-nowrap';
         viewUpcoming.classList.remove('hidden');
         viewHistory.classList.add('hidden');
-        legend.classList.remove('hidden');
+        if (legend) legend.classList.remove('hidden');
       } else {
-        btnHistory.className = 'px-3 py-1 rounded-lg text-xs font-bold transition-all bg-white dark:bg-gray-700 text-slate-800 dark:text-white shadow-2xs flex items-center gap-1.5 cursor-pointer whitespace-nowrap';
-        btnUpcoming.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition-all text-slate-500 dark:text-gray-400 hover:text-slate-800 dark:hover:text-white flex items-center gap-1.5 cursor-pointer whitespace-nowrap';
+        btnHistory.className = 'px-3 py-1 rounded-md text-xs font-medium transition-all bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-2xs flex items-center gap-1.5 cursor-pointer whitespace-nowrap';
+        btnUpcoming.className = 'px-3 py-1 rounded-md text-xs font-medium transition-all text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center gap-1.5 cursor-pointer whitespace-nowrap';
         viewHistory.classList.remove('hidden');
         viewUpcoming.classList.add('hidden');
-        legend.classList.add('hidden');
+        if (legend) legend.classList.add('hidden');
       }
     }
 
@@ -7072,7 +7026,7 @@
           // 1. In Fullscreen Modal (ONLY scroll if modal is open, isolated to modal container!)
           const currModal = document.getElementById(`lyric-line-${activeIdx}`);
           if (currModal) {
-            currModal.className = 'lyric-line transition-all duration-300 py-2.5 px-4 rounded-xl text-pink-700 dark:text-white font-extrabold text-base sm:text-lg bg-pink-50 dark:bg-pink-500/15 border border-pink-200 dark:border-pink-500/30 shadow-md shadow-pink-500/15 scale-[1.02]';
+            currModal.className = 'lyric-line transition-all duration-300 py-2 px-3 rounded-lg text-rose-500 dark:text-rose-400 font-semibold text-base sm:text-lg bg-rose-500/10 border border-rose-500/20';
             if (isLyricsOpen) {
               const modalContainer = document.getElementById('lyrics-content-scroll');
               if (modalContainer) {
