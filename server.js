@@ -9,7 +9,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.11.12';
+const APP_VERSION = '2.11.13';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -2092,7 +2092,7 @@ function fetchDirectAudioUrl(videoId, forceFresh = false) {
       '-f', 'ba[ext=m4a]/ba',
       '--no-playlist',
       `https://www.youtube.com/watch?v=${videoId}`
-    ], { timeout: 15000 }, (err, stdout, stderr) => {
+    ], { timeout: 45000 }, (err, stdout, stderr) => {
       inFlightDirectAudio.delete(videoId);
       if (err) {
         console.error('yt-dlp error fetching audio URL:', err.message);
@@ -2211,9 +2211,16 @@ app.get('/api/audio/stream/:videoId', async (req, res) => {
       }, (proxyRes) => {
         const statusCode = proxyRes.statusCode || 200;
 
-        // Auto-Recovery: If Google CDN returns 403 Forbidden or 404, invalidate cache and retry once with fresh URL
-        if ((statusCode === 403 || statusCode === 404) && !isRetry) {
-          console.warn(`[AudioStream] Google CDN returned ${statusCode} for ${videoId}. Invalidating cache and retrying with fresh direct URL...`);
+        // Redirect Handling (e.g. Google CDN moves audio stream to a regional cache server)
+        if ([301, 302, 303, 307, 308].includes(statusCode) && proxyRes.headers.location) {
+          console.log(`[AudioStream] Google CDN redirected (${statusCode}) for ${videoId}. Following location...`);
+          proxyRes.resume();
+          return pipeStreamFromUrl(proxyRes.headers.location, durSec, isRetry);
+        }
+
+        // Auto-Recovery: If Google CDN returns any non-success status (302 without location, 403, 404, 410, 500), invalidate cache and fetch fresh URL
+        if (statusCode !== 200 && statusCode !== 206 && !isRetry) {
+          console.warn(`[AudioStream] Google CDN returned non-success ${statusCode} for ${videoId}. Invalidating cache and retrying with fresh direct URL...`);
           directAudioCache.delete(videoId);
           proxyRes.resume();
 
@@ -2270,7 +2277,13 @@ app.get('/api/audio/stream/:videoId', async (req, res) => {
   };
 
   try {
-    const audioInfo = await fetchDirectAudioUrl(videoId);
+    const isClientRetry = Boolean(req.query.retry) || req.headers['cache-control'] === 'no-cache';
+    if (isClientRetry) {
+      console.log(`[AudioStream] Client requested fresh stream (retry=${req.query.retry}) for ${videoId}. Invalidating cache...`);
+      directAudioCache.delete(videoId);
+    }
+
+    const audioInfo = await fetchDirectAudioUrl(videoId, isClientRetry);
     const audioUrl = typeof audioInfo === 'object' && audioInfo.url ? audioInfo.url : audioInfo;
     const durSec = typeof audioInfo === 'object' && audioInfo.duration ? audioInfo.duration : extractDurationFromGoogleUrl(audioUrl);
 

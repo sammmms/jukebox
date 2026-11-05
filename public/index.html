@@ -359,9 +359,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.12)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.13)"
                     class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-colors cursor-pointer active:scale-95">
-              v2.11.12
+              v2.11.13
             </button>
           </div>
           <div id="connection-btn" class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
@@ -930,7 +930,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.12</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.13</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -941,10 +941,22 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.11.12 -->
+        <!-- v2.11.13 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.11.12 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.11.13 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">🔄 Penanganan Redirect & Auto-Recovery CDN (Anti-Loop "Menghubungkan Stream"):</strong> Memperbaiki bug di mana proxy stream server tidak memproses status redirect <code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">302 Found</code> dari Google Video CDN (yang terjadi saat token sesi audio dialihkan atau kedaluwarsa). Server kini otomatis mengikuti header <code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">Location</code> dan seketika meminta link stream segar baru tanpa mengirim respon kosong ke audio player.</li>
+            <li><strong class="text-slate-800 dark:text-white">🛡️ Stream Watchdog Cerdas (Batas Retry & Auto-Skip):</strong> Menambahkan batas percobaan ulang pemutaran audio di client (maksimal 2x dengan parameter <code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">?retry=...</code> untuk memaksa server meresolusi link baru). Jika link suatu lagu benar-benar tidak dapat diputar, sistem otomatis beralih ke lagu berikutnya secara elegan sehingga pemutar tidak terjebak dalam loop sambungan tak berujung.</li>
+          </ul>
+        </div>
+
+        <!-- v2.11.12 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-800/40 border border-slate-200 dark:border-gray-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-600">v2.11.12</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -1691,7 +1703,7 @@
 
       <!-- Section 5: Version & Release Notes -->
       <div class="pt-1 flex items-center justify-between text-xs text-slate-400">
-        <span>Party Jukebox v2.11.12</span>
+        <span>Party Jukebox v2.11.13</span>
         <button onclick="openChangelogModal(); closeSettingsModal();" class="font-bold text-pink-600 dark:text-pink-400 hover:underline">
           Lihat Catatan Rilis 🚀
         </button>
@@ -2206,7 +2218,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.11.12';
+    const CLIENT_VERSION = '2.11.13';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -3013,17 +3025,38 @@
         }
       });
 
+      let nativeAudioStreamRetryCount = 0;
+      let lastStreamErrorVideoId = '';
+
       hostAudio.addEventListener('error', (e) => {
         console.warn('Native audio stream error:', hostAudio.error);
         if (isMeHost() && currentSongData && currentSongData.videoId) {
-          // Attempt retry with clean cache-buster or advance if unplayable
-          setTimeout(() => {
-            if (hostAudio.error && !currentSongData.isPaused) {
-              console.log('🔄 Retrying audio stream for', currentSongData.title);
-              hostAudio.src = `/api/audio/stream/${currentSongData.videoId}?retry=1&t=${Date.now()}`;
-              hostAudio.play().catch(() => {});
-            }
-          }, 1500);
+          const vid = currentSongData.videoId;
+          if (lastStreamErrorVideoId !== vid) {
+            lastStreamErrorVideoId = vid;
+            nativeAudioStreamRetryCount = 0;
+          }
+
+          if (nativeAudioStreamRetryCount < 2) {
+            nativeAudioStreamRetryCount++;
+            console.log(`🔄 Retrying audio stream (attempt ${nativeAudioStreamRetryCount}/2) for ${currentSongData.title}`);
+            setTimeout(() => {
+              if (hostAudio.error && !currentSongData.isPaused && currentSongData.videoId === vid) {
+                hostAudio.src = `/api/audio/stream/${vid}?retry=${nativeAudioStreamRetryCount}&t=${Date.now()}`;
+                hostAudio.play().catch(() => {});
+              }
+            }, 1200);
+          } else {
+            console.warn(`[Audio Stream Watchdog] Stream unplayable for ${currentSongData.title} after retries. Advancing track...`);
+            showToast(`⚠️ Stream "${currentSongData.title}" tidak dapat dimuat, melewati ke lagu berikutnya...`);
+            nativeAudioStreamRetryCount = 0;
+            updateLoadingState(false);
+            fetch('/api/control/next', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ user: 'System (Stream Watchdog)' })
+            }).catch(() => {});
+          }
         }
       });
     }
