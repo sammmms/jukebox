@@ -9,7 +9,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.11.14';
+const APP_VERSION = '2.12.0';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -60,6 +60,23 @@ const SOCIAL_QUEUE_FILE = path.join(DATA_DIR, 'social_queue.json');
 const PLAYED_HISTORY_FILE = path.join(DATA_DIR, 'played_history.json');
 const PARTY_HOST_FILE = path.join(DATA_DIR, 'party_host.json');
 const DJ_PROFILES_FILE = path.join(DATA_DIR, 'dj_profiles.json');
+
+const { RoomManager } = require('./roomManager');
+const roomManager = new RoomManager(DATA_DIR);
+
+// Middleware: Automatic Room Resolution for all /api endpoints
+app.use('/api', (req, res, next) => {
+  const rawId = req.headers['x-room-id'] || req.query.room || req.body?.room || 'main';
+  const roomId = String(rawId).trim().toLowerCase().replace(/[^a-z0-9_-]/g, '') || 'main';
+  req.roomId = roomId;
+  req.room = roomManager.getOrCreateRoom(roomId);
+  req.room.touch();
+  next();
+});
+
+// Backward compatibility alias for main room
+const mainRoom = roomManager.getRoom('main');
+
 
 // Google OAuth Configuration (Loaded securely from env or local external config)
 let GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
@@ -446,8 +463,9 @@ const AUTOPLAY_FALLBACK_TRACKS = [
   { videoId: 'V1Pl8CzNzCw', title: 'lovely', artist: 'Billie Eilish, Khalid', thumbnail: 'https://i.ytimg.com/vi/V1Pl8CzNzCw/hqdefault.jpg', songDuration: 200 }
 ];
 
-async function getAutoplayNextTrack(prevSong) {
-  const recentVideoIds = new Set(playedHistory.slice(0, 20).map(h => h.videoId));
+async function getAutoplayNextTrack(prevSong, historyList = null) {
+  const activeHistory = historyList || playedHistory;
+  const recentVideoIds = new Set(activeHistory.slice(0, 20).map(h => h.videoId));
   if (prevSong && prevSong.videoId) recentVideoIds.add(prevSong.videoId);
 
   // 1. Try Innertube search based on previous song's artist or title
@@ -487,27 +505,39 @@ async function getAutoplayNextTrack(prevSong) {
 
 let lastAdvanceTime = 0;
 
-async function advanceNextTrack(skippedByUser = null) {
-  const now = Date.now();
-  if (now - lastAdvanceTime < 1500 && !skippedByUser) {
-    console.log('[advanceNextTrack] Ignored rapid duplicate advance within 1.5s');
-    return currentSong;
+async function advanceNextTrack(targetRoomOrSkipped = null, skippedByUser = null) {
+  let targetRoom;
+  let skipped;
+  if (targetRoomOrSkipped && typeof targetRoomOrSkipped === 'object' && targetRoomOrSkipped.id) {
+    targetRoom = targetRoomOrSkipped;
+    skipped = skippedByUser;
+  } else {
+    targetRoom = roomManager.getRoom('main');
+    skipped = targetRoomOrSkipped;
   }
+  if (!targetRoom) return null;
+
+  const now = Date.now();
+  if (now - (targetRoom.lastAdvanceTime || 0) < 1500 && !skipped) {
+    console.log(`[advanceNextTrack][Room ${targetRoom.id}] Ignored rapid duplicate advance within 1.5s`);
+    return targetRoom.currentSong;
+  }
+  targetRoom.lastAdvanceTime = now;
   lastAdvanceTime = now;
 
-  const prevSong = currentSong;
+  const prevSong = targetRoom.currentSong;
   if (prevSong && prevSong.videoId && prevSong.title !== 'No song playing') {
-    addPlayedHistory(prevSong);
+    targetRoom.addPlayedHistory(prevSong);
   }
 
-  if (partyQueue.length > 0) {
-    const nextItem = partyQueue.shift();
+  if (targetRoom.partyQueue.length > 0) {
+    const nextItem = targetRoom.partyQueue.shift();
     let dur = nextItem.songDuration || 0;
     if (!dur) {
       const fallback = AUTOPLAY_FALLBACK_TRACKS.find(t => t.videoId === nextItem.videoId);
       if (fallback && fallback.songDuration) dur = fallback.songDuration;
     }
-    currentSong = {
+    targetRoom.currentSong = {
       videoId: nextItem.videoId,
       title: nextItem.title,
       artist: nextItem.artist || '',
@@ -522,8 +552,8 @@ async function advanceNextTrack(skippedByUser = null) {
     };
   } else {
     // AUTOPLAY: Queue is empty -> fetch YouTube recommendation automatically!
-    const autoTrack = await getAutoplayNextTrack(prevSong);
-    currentSong = {
+    const autoTrack = await getAutoplayNextTrack(prevSong, targetRoom.playedHistory);
+    targetRoom.currentSong = {
       videoId: autoTrack.videoId,
       title: autoTrack.title,
       artist: autoTrack.artist || '',
@@ -536,56 +566,67 @@ async function advanceNextTrack(skippedByUser = null) {
       addedBy: autoTrack.addedBy || 'Autoplay / YouTube Algorithm',
       startedAt: Date.now()
     };
-    addActivity('System', 'autoplay', `memutar "${autoTrack.title}" (Autoplay)`);
+    targetRoom.addActivity('System', 'autoplay', `memutar "${autoTrack.title}" (Autoplay)`);
   }
 
-  playbackTracker.videoId = currentSong.videoId;
-  playbackTracker.elapsed = 0;
-  playbackTracker.lastReportedElapsed = -1;
-  playbackTracker.isPaused = currentSong.isPaused;
-  playbackTracker.songDuration = currentSong.songDuration;
-  playbackTracker.lastUpdated = Date.now();
+  targetRoom.playbackTracker.videoId = targetRoom.currentSong.videoId;
+  targetRoom.playbackTracker.elapsed = 0;
+  targetRoom.playbackTracker.lastReportedElapsed = -1;
+  targetRoom.playbackTracker.isPaused = targetRoom.currentSong.isPaused;
+  targetRoom.playbackTracker.songDuration = targetRoom.currentSong.songDuration;
+  targetRoom.playbackTracker.lastUpdated = Date.now();
 
-  persistPartyQueue();
-  if (skippedByUser) {
-    addActivity(skippedByUser, 'skip', currentSong.title || 'song');
+  roomManager.persistRoom(targetRoom);
+  if (skipped) {
+    targetRoom.addActivity(skipped, 'skip', targetRoom.currentSong.title || 'song');
   }
-  broadcastUpdate();
-  setTimeout(prewarmUpcomingTracks, 500);
+  targetRoom.broadcastUpdate(dynamicPublicUrl);
+  setTimeout(() => prewarmUpcomingTracks(targetRoom), 500);
 
   // Asynchronously resolve song duration if still missing
-  if ((!currentSong.songDuration || currentSong.songDuration <= 0) && currentSong.videoId) {
-    fetchDirectAudioUrl(currentSong.videoId).then(info => {
-      if (info && info.duration > 0 && currentSong.videoId === info.videoId) {
-        currentSong.songDuration = info.duration;
-        playbackTracker.songDuration = info.duration;
-        persistPartyQueue();
-        broadcastUpdate();
+  if ((!targetRoom.currentSong.songDuration || targetRoom.currentSong.songDuration <= 0) && targetRoom.currentSong.videoId) {
+    fetchDirectAudioUrl(targetRoom.currentSong.videoId).then(info => {
+      if (info && info.duration > 0 && targetRoom.currentSong.videoId === info.videoId) {
+        targetRoom.currentSong.songDuration = info.duration;
+        targetRoom.playbackTracker.songDuration = info.duration;
+        roomManager.persistRoom(targetRoom);
+        targetRoom.broadcastUpdate(dynamicPublicUrl);
       }
     }).catch(() => {});
   }
-  return currentSong;
+  return targetRoom.currentSong;
 }
 
-// Server-Side Master Autoplay & Song Completion Watchdog (Never sits at end of track)
-function checkServerPlaybackAutoplay() {
-  if (isUsingYtmDesktop()) return;
-  if (!currentSong || !currentSong.videoId || currentSong.title === 'No song playing') return;
-  if (currentSong.isPaused) return;
+// Server-Side Master Autoplay & Song Completion Watchdog (Runs for all active rooms)
+function checkServerPlaybackAutoplay(room = null) {
+  const targetRoom = room || roomManager.getRoom('main');
+  if (!targetRoom) return;
 
-  const dur = (currentSong.songDuration && currentSong.songDuration > 0) ? currentSong.songDuration : 240;
+  // Resource Saver: Do not spin idle rooms with 0 listeners and no queue
+  if (targetRoom.id !== 'main' && targetRoom.clients.size === 0 && targetRoom.partyQueue.length === 0) {
+    return;
+  }
+
+  if (!targetRoom.currentSong || !targetRoom.currentSong.videoId || targetRoom.currentSong.title === 'No song playing') return;
+  if (targetRoom.playbackTracker.isPaused) return;
+
+  const dur = (targetRoom.currentSong.songDuration && targetRoom.currentSong.songDuration > 0) ? targetRoom.currentSong.songDuration : 240;
 
   const now = Date.now();
-  const delta = (now - playbackTracker.lastUpdated) / 1000;
-  const rawElapsed = (playbackTracker.elapsed || 0) + delta;
+  const delta = (now - targetRoom.playbackTracker.lastUpdated) / 1000;
+  const rawElapsed = (targetRoom.playbackTracker.elapsed || 0) + delta;
 
   // If track has reached or exceeded its duration (+ 1s buffer)
   if (rawElapsed >= dur + 1) {
-    console.log(`[Autoplay Watchdog] Track "${currentSong.title}" reached end (${rawElapsed.toFixed(1)}s / ${dur}s). Advancing track automatically...`);
-    advanceNextTrack('Autoplay Watchdog / Server');
+    console.log(`[Autoplay Watchdog][Room ${targetRoom.id}] Track "${targetRoom.currentSong.title}" reached end (${rawElapsed.toFixed(1)}s / ${dur}s). Advancing track automatically...`);
+    advanceNextTrack(targetRoom, 'Autoplay Watchdog / Server');
   }
 }
-setInterval(checkServerPlaybackAutoplay, 1000);
+setInterval(() => {
+  for (const r of roomManager.getAllRooms()) {
+    checkServerPlaybackAutoplay(r);
+  }
+}, 1000);
 
 // Volume Controls
 function getSystemVolume() {
@@ -1412,6 +1453,58 @@ app.post('/api/auth/logout', (req, res) => {
 });
 
 // 0. Version Endpoint
+
+// ==========================================
+// MULTI-PARTY ROOM MANAGEMENT ENDPOINTS
+// ==========================================
+app.get('/api/rooms', (req, res) => {
+  res.json({
+    success: true,
+    rooms: roomManager.listRooms()
+  });
+});
+
+app.post('/api/rooms', (req, res) => {
+  const { id, name, creator } = req.body || {};
+  const inputName = (name || id || '').trim();
+  if (!inputName) {
+    return res.status(400).json({ error: 'Nama party room wajib diisi.' });
+  }
+
+  let rawSlug = (id || inputName)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  if (!rawSlug || rawSlug.length < 2) {
+    rawSlug = `party-${Date.now().toString(36)}`;
+  }
+  const cleanId = rawSlug.slice(0, 30);
+  const cleanName = inputName.slice(0, 40);
+  const cleanCreator = (creator || 'DJ').trim().slice(0, 25);
+
+  const room = roomManager.getOrCreateRoom(cleanId, cleanName, cleanCreator);
+  res.json({
+    success: true,
+    room: {
+      id: room.id,
+      name: room.name,
+      creator: room.creator,
+      createdAt: room.createdAt,
+      listeners: room.clients.size,
+      queueCount: room.partyQueue.length
+    }
+  });
+});
+
+app.delete('/api/rooms/:roomId', (req, res) => {
+  const { roomId } = req.params;
+  if (!roomId || roomId === 'main') {
+    return res.status(400).json({ error: 'Room utama (main) tidak dapat dihapus.' });
+  }
+  const deleted = roomManager.deleteRoom(roomId);
+  res.json({ success: deleted });
+});
+
 app.get('/api/version', (req, res) => {
   res.json({
     version: APP_VERSION,
@@ -1442,11 +1535,12 @@ app.post('/api/host/engine', (req, res) => {
 
 // 0.1 Host Management Endpoints
 app.get('/api/host', (req, res) => {
-  res.json({ partyHost: getPartyHostInfo() });
+  res.json({ partyHost: req.room.getPartyHostInfo() });
 });
 
 app.post('/api/host/claim', (req, res) => {
-  checkHostVacant();
+  const room = req.room;
+  room.checkHostVacant();
   const { name, token, force } = req.body || {};
   if (!name || typeof name !== 'string' || !name.trim()) {
     return res.status(400).json({ error: 'Valid host name is required' });
@@ -1455,157 +1549,138 @@ app.post('/api/host/claim', (req, res) => {
   const hostToken = token || (Date.now() + '-' + Math.random().toString(36).slice(2, 8));
 
   // If host is vacant, token matches existing host, or force takeover is allowed
-  if (partyHost.name === null || partyHost.token === token || (partyHost.name.toLowerCase() === cleanName.toLowerCase() && !pendingTakeover) || force) {
-    const prevHost = partyHost.name;
-    clearPendingTakeover();
-    partyHost = {
+  if (room.partyHost.name === null || room.partyHost.token === token || (room.partyHost.name.toLowerCase() === cleanName.toLowerCase() && !room.pendingTakeover) || force) {
+    const prevHost = room.partyHost.name;
+    room.pendingTakeover = null;
+    room.partyHost = {
       name: cleanName,
       token: hostToken,
       claimedAt: Date.now(),
       lastHeartbeat: Date.now()
     };
-    persistPartyHost();
-    knownDJs.add(cleanName);
-    addActivity(cleanName, 'host_claimed', prevHost && prevHost !== cleanName ? `mengambil alih kursi Host dari ${prevHost}` : 'menjadi Host Party malam ini 👑');
-    broadcastUpdate();
-    return res.json({ success: true, partyHost: getPartyHostInfo(), token: hostToken });
+    roomManager.persistRoom(room);
+    room.knownDJs.add(cleanName);
+    room.addActivity(cleanName, 'host_claimed', prevHost && prevHost !== cleanName ? `mengambil alih kursi Host dari ${prevHost}` : 'menjadi Host Party malam ini 👑');
+    room.broadcastUpdate(dynamicPublicUrl);
+    return res.json({ success: true, partyHost: room.getPartyHostInfo(), token: hostToken });
   }
 
-  // If host is occupied by someone else: Trigger takeover approval request with 30s auto-approval!
-  clearPendingTakeover();
-
-  const takeoverId = 'tk_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
-  const expiresAt = Date.now() + 30000; // 30 seconds
-
-  pendingTakeover = {
-    id: takeoverId,
+  // If host is occupied by someone else: Trigger takeover approval request
+  room.pendingTakeover = {
+    id: 'tk_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+    requestingDJ: cleanName,
     requestedBy: cleanName,
     requestedToken: hostToken,
-    currentHost: partyHost.name,
-    expiresAt: expiresAt
+    token: hostToken,
+    currentHost: room.partyHost.name,
+    requestedAt: Date.now(),
+    expiresAt: Date.now() + 30000
   };
 
-  // Start 30s auto-approval timer
-  pendingTakeoverTimer = setTimeout(() => {
-    if (pendingTakeover && pendingTakeover.id === takeoverId) {
-      const newHost = pendingTakeover.requestedBy;
-      const newToken = pendingTakeover.requestedToken;
-      const oldHost = partyHost.name;
-
-      partyHost = {
-        name: newHost,
-        token: newToken,
-        claimedAt: Date.now(),
-        lastHeartbeat: Date.now()
-      };
-      persistPartyHost();
-      knownDJs.add(newHost);
-      addActivity(newHost, 'host_claimed', `mengambil alih kursi Host dari ${oldHost} (Auto-Approve 30 detik) 👑`);
-      clearPendingTakeover();
-      broadcastUpdate();
-    }
-  }, 30000);
-
-  addActivity(cleanName, 'takeover_request', `meminta izin mengambil alih kursi Host dari ${partyHost.name}`);
-  broadcastUpdate();
+  room.addActivity(cleanName, 'takeover_request', `meminta izin mengambil alih kursi Host dari ${room.partyHost.name}`);
+  room.broadcastUpdate(dynamicPublicUrl);
 
   return res.json({
     success: true,
     pendingApproval: true,
-    message: `Permintaan pengalihan Host dikirim ke ${partyHost.name}. Menunggu persetujuan (otomatis disetujui dalam 30 detik)...`,
-    partyHost: getPartyHostInfo(),
+    message: `Permintaan pengalihan Host dikirim ke ${room.partyHost.name}. Menunggu persetujuan (otomatis disetujui dalam 30 detik)...`,
+    partyHost: room.getPartyHostInfo(),
     token: hostToken
   });
 });
 
 app.post('/api/host/takeover/respond', (req, res) => {
+  const room = req.room;
   const { approve, token } = req.body || {};
-  if (!pendingTakeover) {
+  if (!room.pendingTakeover) {
     return res.status(400).json({ error: 'Tidak ada permintaan ambil alih yang aktif saat ini' });
   }
 
   // Verify that the responder is the current host
-  if (partyHost.token && token && partyHost.token !== token) {
+  if (room.partyHost.token && token && room.partyHost.token !== token) {
     return res.status(403).json({ error: 'Hanya Host saat ini yang dapat menyetujui atau menolak pengalihan' });
   }
 
-  const reqUser = pendingTakeover.requestedBy;
-  const reqToken = pendingTakeover.requestedToken;
-  const curHost = partyHost.name;
+  const reqUser = room.pendingTakeover.requestingDJ || room.pendingTakeover.requestedBy;
+  const reqToken = room.pendingTakeover.token || room.pendingTakeover.requestedToken;
+  const curHost = room.partyHost.name;
 
   if (approve) {
-    clearPendingTakeover();
-    partyHost = {
+    room.pendingTakeover = null;
+    room.partyHost = {
       name: reqUser,
       token: reqToken,
       claimedAt: Date.now(),
       lastHeartbeat: Date.now()
     };
-    persistPartyHost();
-    knownDJs.add(reqUser);
-    addActivity(curHost, 'takeover_approved', `menyetujui pemindahan kursi Host ke ${reqUser} 👑`);
-    broadcastUpdate();
-    return res.json({ success: true, approved: true, partyHost: getPartyHostInfo() });
+    roomManager.persistRoom(room);
+    room.knownDJs.add(reqUser);
+    room.addActivity(curHost, 'takeover_approved', `menyetujui pemindahan kursi Host ke ${reqUser} 👑`);
+    room.broadcastUpdate(dynamicPublicUrl);
+    return res.json({ success: true, approved: true, partyHost: room.getPartyHostInfo() });
   } else {
-    clearPendingTakeover();
-    addActivity(curHost, 'takeover_rejected', `menolak permintaan ambil alih Host dari ${reqUser}`);
-    broadcastUpdate();
-    return res.json({ success: true, approved: false, partyHost: getPartyHostInfo() });
+    room.pendingTakeover = null;
+    room.addActivity(curHost, 'takeover_rejected', `menolak permintaan ambil alih Host dari ${reqUser}`);
+    room.broadcastUpdate(dynamicPublicUrl);
+    return res.json({ success: true, approved: false, partyHost: room.getPartyHostInfo() });
   }
 });
 
 app.post('/api/host/takeover/cancel', (req, res) => {
+  const room = req.room;
   const { name } = req.body || {};
-  if (!pendingTakeover) {
-    return res.json({ success: true, partyHost: getPartyHostInfo() });
+  if (!room.pendingTakeover) {
+    return res.json({ success: true, partyHost: room.getPartyHostInfo() });
   }
 
-  const reqUser = pendingTakeover.requestedBy;
-  clearPendingTakeover();
-  addActivity(name || reqUser, 'takeover_cancelled', `membatalkan permintaan ambil alih Host`);
-  broadcastUpdate();
-  return res.json({ success: true, partyHost: getPartyHostInfo() });
+  const reqUser = room.pendingTakeover.requestingDJ || room.pendingTakeover.requestedBy;
+  room.pendingTakeover = null;
+  room.addActivity(name || reqUser, 'takeover_cancelled', `membatalkan permintaan ambil alih Host`);
+  room.broadcastUpdate(dynamicPublicUrl);
+  return res.json({ success: true, partyHost: room.getPartyHostInfo() });
 });
 
 app.post('/api/host/heartbeat', (req, res) => {
+  const room = req.room;
   const { token, name } = req.body || {};
-  if (partyHost.name && partyHost.token && partyHost.token === token) {
-    partyHost.lastHeartbeat = Date.now();
-    persistPartyHost();
-    return res.json({ success: true, partyHost: getPartyHostInfo() });
+  if (room.partyHost.name && room.partyHost.token && room.partyHost.token === token) {
+    room.partyHost.lastHeartbeat = Date.now();
+    roomManager.persistRoom(room);
+    return res.json({ success: true, partyHost: room.getPartyHostInfo() });
   }
 
   // AUTO-RESTORE: If host seat is vacant, re-attach returning user seamlessly
-  if ((partyHost.name === null || partyHost.isVacant) && token && name) {
+  if ((room.partyHost.name === null || room.partyHost.name === undefined) && token && name) {
     const cleanName = name.trim().slice(0, 25);
-    console.log(`[Host Auto-Restore] Re-attaching host session for ${cleanName}`);
-    partyHost = {
+    console.log(`[Host Auto-Restore][Room ${room.id}] Re-attaching host session for ${cleanName}`);
+    room.partyHost = {
       name: cleanName,
       token: token,
       claimedAt: Date.now(),
       lastHeartbeat: Date.now()
     };
-    knownDJs.add(cleanName);
-    persistPartyHost();
-    broadcastUpdate();
-    return res.json({ success: true, partyHost: getPartyHostInfo() });
+    room.knownDJs.add(cleanName);
+    roomManager.persistRoom(room);
+    room.broadcastUpdate(dynamicPublicUrl);
+    return res.json({ success: true, partyHost: room.getPartyHostInfo() });
   }
 
-  checkHostVacant();
-  res.json({ success: false, partyHost: getPartyHostInfo() });
+  room.checkHostVacant();
+  res.json({ success: false, partyHost: room.getPartyHostInfo() });
 });
 
 app.post('/api/host/release', (req, res) => {
+  const room = req.room;
   const { token } = req.body || {};
-  if (partyHost.name && (!token || partyHost.token === token)) {
-    const oldHost = partyHost.name;
-    partyHost = { name: null, token: null, claimedAt: null, lastHeartbeat: null };
-    persistPartyHost();
-    addActivity(oldHost, 'host_released', 'melepas kursi Host. Status sekarang VACANT ⚠️');
-    broadcastUpdate();
-    return res.json({ success: true, partyHost: getPartyHostInfo() });
+  if (room.partyHost.name && (!token || room.partyHost.token === token)) {
+    const oldHost = room.partyHost.name;
+    room.partyHost = { name: null, token: null, claimedAt: null, lastHeartbeat: null };
+    roomManager.persistRoom(room);
+    room.addActivity(oldHost, 'host_released', 'melepas kursi Host. Status sekarang VACANT ⚠️');
+    room.broadcastUpdate(dynamicPublicUrl);
+    return res.json({ success: true, partyHost: room.getPartyHostInfo() });
   }
-  res.json({ success: true, partyHost: getPartyHostInfo() });
+  res.json({ success: true, partyHost: room.getPartyHostInfo() });
 });
 
 // Dynamic Public Tunnel Toggles
@@ -1641,26 +1716,25 @@ app.get('/api/status', async (req, res) => {
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
 
-  const [liveCurrent, { queue, selectedIndex }, sysVol] = await Promise.all([
-    getUnifiedCurrentSong(),
-    getUnifiedQueue(),
-    getSystemVolume()
-  ]);
-
-  currentVolume = sysVol;
+  const room = req.room;
   const currentIp = getLocalIp();
-
-  // Determine active public address
   const activePublicUrl = dynamicPublicUrl || (process.env.PUBLIC_URL || (process.env.CLOUDFLARE_TUNNEL_TOKEN ? 'https://dj.wsnsam.my.id' : null));
 
   res.json({
     online: true,
-    standalone: !isUsingYtmDesktop(),
-    playbackEngine: isUsingYtmDesktop() ? 'ytm_desktop' : 'standalone',
-    preferredEngineMode,
-    ytmCompanionOnline: isYtmConnected,
+    standalone: true,
+    playbackEngine: 'standalone',
+    preferredEngineMode: 'standalone',
+    ytmCompanionOnline: false,
     version: APP_VERSION,
     isVercel: IS_VERCEL,
+    room: {
+      id: room.id,
+      name: room.name,
+      creator: room.creator,
+      listeners: room.clients.size,
+      isIdle: room.isIdle()
+    },
     host: {
       ip: currentIp,
       url: `http://${currentIp}:${PORT}`,
@@ -1668,21 +1742,21 @@ app.get('/api/status', async (req, res) => {
       isTunnelActive: Boolean(dynamicPublicUrl || process.env.CLOUDFLARE_TUNNEL_TOKEN)
     },
     current: {
-      ...liveCurrent,
-      currentElapsed: getCalculatedElapsed(),
-      isPaused: playbackTracker.isPaused,
-      isAudioCached: directAudioCache.has(liveCurrent?.videoId || '')
+      ...room.currentSong,
+      currentElapsed: room.getCalculatedElapsed(),
+      isPaused: room.playbackTracker.isPaused,
+      isAudioCached: directAudioCache.has(room.currentSong?.videoId || '')
     },
     cachedTrackIds: Array.from(directAudioCache.keys()),
-    queue,
-    selectedIndex,
-    partyHost: getPartyHostInfo(),
-    djs: Array.from(knownDJs),
-    djProfiles: Object.fromEntries(djProfiles),
-    isRoomSleeping,
-    volume: { state: currentVolume, isMuted },
-    activity: activityLogs.slice(0, 30),
-    history: playedHistory.slice(0, 30)
+    queue: room.getFormattedQueue(),
+    selectedIndex: -1,
+    partyHost: room.getPartyHostInfo(),
+    djs: Array.from(room.knownDJs),
+    djProfiles: Object.fromEntries(room.djProfiles),
+    isRoomSleeping: room.isRoomSleeping,
+    volume: { state: room.currentVolume, isMuted: room.isMuted },
+    activity: room.activityLogs.slice(0, 30),
+    history: room.playedHistory.slice(0, 30)
   });
 });
 
@@ -1860,9 +1934,10 @@ app.post('/api/queue', async (req, res) => {
     }
   }
 
-  // 2. Standalone Queue:
-  if (!currentSong.videoId || currentSong.title === 'No song playing') {
-    currentSong = {
+  // 2. Standalone Room Queue:
+  const room = req.room;
+  if (!room.currentSong.videoId || room.currentSong.title === 'No song playing') {
+    room.currentSong = {
       videoId,
       title: songTitle,
       artist: songArtist,
@@ -1874,25 +1949,25 @@ app.post('/api/queue', async (req, res) => {
       addedBy: songUser,
       startedAt: Date.now()
     };
-    playbackTracker.videoId = videoId;
-    playbackTracker.elapsed = 0;
-    playbackTracker.lastReportedElapsed = -1;
-    playbackTracker.isPaused = false;
-    playbackTracker.songDuration = duration;
-    playbackTracker.lastUpdated = Date.now();
+    room.playbackTracker.videoId = videoId;
+    room.playbackTracker.elapsed = 0;
+    room.playbackTracker.lastReportedElapsed = -1;
+    room.playbackTracker.isPaused = false;
+    room.playbackTracker.songDuration = duration;
+    room.playbackTracker.lastUpdated = Date.now();
 
-    addActivity(songUser, 'add', `memutar "${songTitle}"`);
-    persistPartyQueue();
-    broadcastUpdate();
+    room.addActivity(songUser, 'add', `memutar "${songTitle}"`);
+    roomManager.persistRoom(room);
+    room.broadcastUpdate(dynamicPublicUrl);
 
-    if (!currentSong.songDuration || currentSong.songDuration <= 0) {
-      fetchDirectAudioUrl(currentSong.videoId).then(info => {
+    if (!room.currentSong.songDuration || room.currentSong.songDuration <= 0) {
+      fetchDirectAudioUrl(room.currentSong.videoId).then(info => {
         const dur = typeof info === 'object' ? info.duration : 0;
-        if (dur > 0 && currentSong.videoId === videoId) {
-          currentSong.songDuration = dur;
-          playbackTracker.songDuration = dur;
-          persistPartyQueue();
-          broadcastUpdate();
+        if (dur > 0 && room.currentSong.videoId === videoId) {
+          room.currentSong.songDuration = dur;
+          room.playbackTracker.songDuration = dur;
+          roomManager.persistRoom(room);
+          room.broadcastUpdate(dynamicPublicUrl);
         }
       }).catch(() => {});
     }
@@ -1919,10 +1994,10 @@ app.post('/api/queue', async (req, res) => {
     votedUsers: []
   };
 
-  partyQueue.push(queueItem);
-  addActivity(songUser, 'add', songTitle);
-  persistPartyQueue();
-  broadcastUpdate();
+  room.partyQueue.push(queueItem);
+  room.addActivity(songUser, 'add', songTitle);
+  roomManager.persistRoom(room);
+  room.broadcastUpdate(dynamicPublicUrl);
 
   // Controlled Proactive Pre-Warm via FIFO queue
   enqueuePrewarm(queueItem.videoId);
@@ -1932,8 +2007,8 @@ app.post('/api/queue', async (req, res) => {
       const dur = typeof info === 'object' ? info.duration : 0;
       if (dur > 0 && (!queueItem.songDuration || queueItem.songDuration <= 0)) {
         queueItem.songDuration = dur;
-        persistPartyQueue();
-        broadcastUpdate();
+        roomManager.persistRoom(room);
+        room.broadcastUpdate(dynamicPublicUrl);
       }
     }).catch(() => {});
   }
@@ -1963,12 +2038,13 @@ app.delete('/api/queue/:index', async (req, res) => {
     } catch (e) {}
   }
 
-  if (index >= 0 && index < partyQueue.length) {
-    const removed = partyQueue.splice(index, 1)[0];
-    persistPartyQueue();
-    addActivity(user, 'remove', title || removed?.title || 'a song');
-    broadcastUpdate();
-    setTimeout(prewarmUpcomingTracks, 500);
+  const room = req.room;
+  if (index >= 0 && index < room.partyQueue.length) {
+    const removed = room.partyQueue.splice(index, 1)[0];
+    roomManager.persistRoom(room);
+    room.addActivity(user, 'remove', title || removed?.title || 'a song');
+    room.broadcastUpdate(dynamicPublicUrl);
+    setTimeout(() => prewarmUpcomingTracks(room), 500);
     return res.json({ success: true, removedIndex: index });
   }
 
@@ -2098,28 +2174,27 @@ app.post('/api/control/toggle', async (req, res) => {
     } catch (e) {}
   }
 
-  if (!currentSong.videoId) return res.json({ success: false, error: 'No song loaded' });
+  const room = req.room;
+  if (!room.currentSong.videoId) return res.json({ success: false, error: 'No song loaded' });
 
   const now = Date.now();
-  // If client provided explicit elapsed timestamp, commit it directly
   if (typeof elapsed === 'number' && elapsed >= 0) {
-    playbackTracker.elapsed = elapsed;
-    currentSong.elapsedSeconds = elapsed;
-  } else if (!playbackTracker.isPaused) {
-    // If transitioning from PLAYING -> PAUSED: commit elapsed delta so timeline freezes exactly here!
-    const delta = (now - playbackTracker.lastUpdated) / 1000;
-    const dur = playbackTracker.songDuration || currentSong.songDuration || 9999;
-    playbackTracker.elapsed = Math.min((playbackTracker.elapsed || 0) + delta, dur);
-    currentSong.elapsedSeconds = playbackTracker.elapsed;
+    room.playbackTracker.elapsed = elapsed;
+    room.currentSong.elapsedSeconds = elapsed;
+  } else if (!room.playbackTracker.isPaused) {
+    const delta = (now - room.playbackTracker.lastUpdated) / 1000;
+    const dur = room.playbackTracker.songDuration || room.currentSong.songDuration || 9999;
+    room.playbackTracker.elapsed = Math.min((room.playbackTracker.elapsed || 0) + delta, dur);
+    room.currentSong.elapsedSeconds = room.playbackTracker.elapsed;
   }
 
-  currentSong.isPaused = !currentSong.isPaused;
-  playbackTracker.isPaused = currentSong.isPaused;
-  playbackTracker.lastUpdated = now;
-  addActivity(user, currentSong.isPaused ? 'pause' : 'play', currentSong.title);
-  persistPartyQueue();
-  broadcastUpdate();
-  res.json({ success: true, isPaused: currentSong.isPaused, elapsed: getCalculatedElapsed() });
+  room.currentSong.isPaused = !room.currentSong.isPaused;
+  room.playbackTracker.isPaused = room.currentSong.isPaused;
+  room.playbackTracker.lastUpdated = now;
+  room.addActivity(user, room.currentSong.isPaused ? 'pause' : 'play', room.currentSong.title);
+  roomManager.persistRoom(room);
+  room.broadcastUpdate(dynamicPublicUrl);
+  res.json({ success: true, isPaused: room.currentSong.isPaused, elapsed: room.getCalculatedElapsed() });
 });
 
 app.post('/api/control/next', async (req, res) => {
@@ -2137,7 +2212,7 @@ app.post('/api/control/next', async (req, res) => {
     } catch (e) {}
   }
 
-  const skipped = await advanceNextTrack(user);
+  const skipped = await advanceNextTrack(req.room, user);
   res.json({ success: true, current: skipped });
 });
 
@@ -2145,23 +2220,24 @@ app.post('/api/control/ended', async (req, res) => {
   const { videoId, user } = req.body || {};
   const isRecentAdvance = (Date.now() - lastAdvanceTime < 3500);
 
-  if (!videoId || videoId === currentSong.videoId || isRecentAdvance) {
-    if (videoId && videoId !== currentSong.videoId && isRecentAdvance) {
-      // Server already advanced track within last 3.5s (e.g. from server watchdog)
+  const room = req.room;
+  const isRoomRecent = (Date.now() - (room.lastAdvanceTime || 0) < 3500);
+  if (!videoId || videoId === room.currentSong.videoId || isRoomRecent) {
+    if (videoId && videoId !== room.currentSong.videoId && isRoomRecent) {
       return res.json({
         success: true,
-        current: currentSong,
-        audioStreamUrl: currentSong && currentSong.videoId ? `/api/audio/stream/${currentSong.videoId}` : null
+        current: room.currentSong,
+        audioStreamUrl: room.currentSong && room.currentSong.videoId ? `/api/audio/stream/${room.currentSong.videoId}` : null
       });
     }
-    const next = await advanceNextTrack(user || 'Host Audio Engine');
+    const next = await advanceNextTrack(room, user || 'Host Audio Engine');
     return res.json({
       success: true,
       current: next,
       audioStreamUrl: next && next.videoId ? `/api/audio/stream/${next.videoId}` : null
     });
   }
-  res.json({ success: false, reason: 'Track mismatch', current: currentSong });
+  res.json({ success: false, reason: 'Track mismatch', current: room.currentSong });
 });
 
 let serverVolumeDebounce = null;
@@ -2173,6 +2249,7 @@ app.post('/api/control/volume', (req, res) => {
 
   const vol = Math.max(0, Math.min(100, Math.round(volume)));
   currentVolume = vol;
+  req.room.currentVolume = vol;
 
   // Immediate ACK to client with updated volume
   res.json({ success: true, volume: vol });
@@ -2195,30 +2272,31 @@ app.post('/api/control/volume', (req, res) => {
       lastVolumeActivityLogTime = now;
       addActivity(user, 'volume', `set volume to ${vol}%`);
     }
-    broadcastUpdate();
+    req.room.broadcastUpdate(dynamicPublicUrl);
   }, 120);
 });
 
 app.post('/api/player/sync', (req, res) => {
   const { videoId, elapsed, duration, token } = req.body || {};
-  if (partyHost.name && partyHost.token && token && token !== partyHost.token) {
+  const room = req.room;
+  if (room.partyHost.name && room.partyHost.token && token && token !== room.partyHost.token) {
     return res.status(403).json({ error: 'Stale host session ignored' });
   }
-  if (videoId && currentSong.videoId === videoId) {
+  if (videoId && room.currentSong.videoId === videoId) {
     if (typeof elapsed === 'number' && elapsed >= 0) {
-      const trackAgeSec = (Date.now() - (currentSong.startedAt || 0)) / 1000;
-      // Stale Elapsed Guard: Reject residual currentTime from previous track while new track is buffering
+      const trackAgeSec = (Date.now() - (room.currentSong.startedAt || 0)) / 1000;
       if (trackAgeSec < 8 && elapsed > 8) {
-        console.warn(`[Sync Guard] Rejected stale elapsed of ${elapsed}s for freshly started track "${currentSong.title}" (track age: ${trackAgeSec.toFixed(1)}s)`);
+        console.warn(`[Sync Guard][Room ${room.id}] Rejected stale elapsed of ${elapsed}s for freshly started track "${room.currentSong.title}"`);
         return res.json({ success: true, rejected: 'stale_track_elapsed' });
       }
-      playbackTracker.elapsed = elapsed;
-      currentSong.elapsedSeconds = elapsed;
-      playbackTracker.lastUpdated = Date.now();
+      room.playbackTracker.elapsed = elapsed;
+      room.currentSong.elapsedSeconds = elapsed;
+      room.playbackTracker.lastUpdated = Date.now();
     }
     if (typeof duration === 'number' && duration > 0) {
-      currentSong.songDuration = duration;
-      playbackTracker.songDuration = duration;
+      room.currentSong.songDuration = duration;
+      room.playbackTracker.songDuration = duration;
+      roomManager.persistRoom(room);
     }
   }
   res.json({ success: true });
@@ -2336,9 +2414,11 @@ async function processNextPrewarm() {
 }
 
 // Background Proactive Audio Stream Pre-Warming for Upcoming Tracks
-async function prewarmUpcomingTracks() {
-  if (partyQueue.length === 0) return;
-  const nextItem = partyQueue[0];
+async function prewarmUpcomingTracks(room = null) {
+  const targetRoom = room || roomManager.getRoom('main');
+  if (!targetRoom || targetRoom.partyQueue.length === 0) return;
+  const nextItem = targetRoom.partyQueue[0];
+  
   if (nextItem && nextItem.videoId && !directAudioCache.has(nextItem.videoId)) {
     enqueuePrewarm(nextItem.videoId);
   }
@@ -2365,6 +2445,9 @@ app.post('/api/audio/prewarm/:videoId', (req, res) => {
 });
 
 app.get('/api/audio/stream/:videoId', async (req, res) => {
+  if (IS_VERCEL) {
+    return res.status(404).json({ error: 'Audio stream proxy is disabled in Vercel serverless mode. Please use YouTube Web Player.' });
+  }
   const { videoId } = req.params;
   if (!videoId || !/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
     return res.status(400).send('Invalid videoId');
@@ -2496,7 +2579,7 @@ app.get('/api/lyrics', async (req, res) => {
 
 // 9. Played History
 app.get('/api/history', (req, res) => {
-  res.json({ history: playedHistory });
+  res.json({ history: req.room.playedHistory });
 });
 
 // 10. Server-Sent Events (Resilient Real-Time Protocol with Active Cloudflare Heartbeat)
@@ -2548,54 +2631,52 @@ app.get('/api/events', async (req, res) => {
   res.setHeader('X-Accel-Buffering', 'no');
   res.flushHeaders();
 
-  clients.add(res);
+  const room = req.room;
+  room.clients.add(res);
+  room.touch();
 
   // Send immediate connected ping
   res.write(': connected\n\n');
 
   // Immediately push fresh state snapshot to newly connected client
   try {
-    const initialPayload = await getFullSsePayload();
-    res.write(initialPayload);
+    const activePublicUrl = dynamicPublicUrl || (process.env.PUBLIC_URL || (process.env.CLOUDFLARE_TUNNEL_TOKEN ? 'https://dj.wsnsam.my.id' : null));
+    res.write(room.getFullSsePayload(activePublicUrl));
   } catch (err) {
-    console.warn('[SSE] Error sending initial payload to new client:', err.message);
+    console.warn(`[SSE][Room ${room.id}] Error sending initial payload:`, err.message);
   }
 
-  req.on('close', () => clients.delete(res));
+  req.on('close', () => room.clients.delete(res));
 });
 
-// Periodic SSE Keep-Alive Ping every 15s: Prevents Cloudflare (100s idle timeout) & NAT drops
+// Periodic SSE Keep-Alive Ping every 15s across all rooms
 setInterval(() => {
-  if (clients.size === 0) return;
-  for (const client of clients) {
-    try {
-      client.write(': ping\n\n');
-    } catch (e) {
-      clients.delete(client);
-    }
+  for (const r of roomManager.getAllRooms()) {
+    r.sendPing();
   }
 }, 15000);
 
-async function broadcastUpdate() {
-  if (clients.size === 0) return;
+// Auto-cleanup idle rooms every 60s
+setInterval(() => {
+  roomManager.cleanIdleRooms();
+}, 60000);
 
-  try {
-    const payload = await getFullSsePayload();
-    for (const client of clients) {
-      try {
-        client.write(payload);
-      } catch (e) {
-        clients.delete(client);
-      }
-    }
-  } catch (err) {
-    console.error('[SSE] Broadcast error:', err.message);
+async function broadcastUpdate(room = null) {
+  const activePublicUrl = dynamicPublicUrl || (process.env.PUBLIC_URL || (process.env.CLOUDFLARE_TUNNEL_TOKEN ? 'https://dj.wsnsam.my.id' : null));
+  if (room && room.id) {
+    room.broadcastUpdate(activePublicUrl);
+    return;
+  }
+  for (const r of roomManager.getAllRooms()) {
+    r.broadcastUpdate(activePublicUrl);
   }
 }
 
 // Background periodic cleanup / sync
 setInterval(() => {
-  checkHostVacant();
+  for (const r of roomManager.getAllRooms()) {
+    r.checkHostVacant();
+  }
 }, 5000);
 
 function getLocalIp() {
