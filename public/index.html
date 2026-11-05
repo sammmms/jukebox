@@ -359,9 +359,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-pink-500/10 dark:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.13)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.11.14)"
                     class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 dark:bg-gray-800 text-slate-500 dark:text-gray-400 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-200 dark:border-gray-700 transition-colors cursor-pointer active:scale-95">
-              v2.11.13
+              v2.11.14
             </button>
           </div>
           <div id="connection-btn" class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
@@ -930,7 +930,7 @@
           <span class="text-base">🚀</span>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.13</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.14</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs">
@@ -941,15 +941,28 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.11.13 -->
+        <!-- v2.11.14 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.11.13 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.11.14 (Latest)</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
-            <li><strong class="text-slate-800 dark:text-white">🔄 Penanganan Redirect & Auto-Recovery CDN (Anti-Loop "Menghubungkan Stream"):</strong> Memperbaiki bug di mana proxy stream server tidak memproses status redirect <code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">302 Found</code> dari Google Video CDN (yang terjadi saat token sesi audio dialihkan atau kedaluwarsa). Server kini otomatis mengikuti header <code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">Location</code> dan seketika meminta link stream segar baru tanpa mengirim respon kosong ke audio player.</li>
-            <li><strong class="text-slate-800 dark:text-white">🛡️ Stream Watchdog Cerdas (Batas Retry & Auto-Skip):</strong> Menambahkan batas percobaan ulang pemutaran audio di client (maksimal 2x dengan parameter <code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">?retry=...</code> untuk memaksa server meresolusi link baru). Jika link suatu lagu benar-benar tidak dapat diputar, sistem otomatis beralih ke lagu berikutnya secara elegan sehingga pemutar tidak terjebak dalam loop sambungan tak berujung.</li>
+            <li><strong class="text-slate-800 dark:text-white">⚡ Sinkronisasi Antrean Real-Time & Anti-Stall:</strong> Menambahkan detak jantung aktif (SSE Heartbeat Ping setiap 15 detik) dari server untuk mencegah Cloudflare Tunnel dan router seluler memutuskan koneksi idle (100s timeout). Klien kini juga dilengkapi watchdog otomatis yang mendeteksi jika koneksi senyap &gt; 25 detik dan seketika melakukan auto-heal tanpa perlu refresh manual.</li>
+            <li><strong class="text-slate-800 dark:text-white">🔄 Auto-Refresh Saat Kembali ke Tab / Buka Kunci HP:</strong> Mengatasi masalah antrean membeku ketika layar HP terkunci atau beralih aplikasi. Event <code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">visibilitychange</code>, <code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">focus</code>, dan <code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">online</code> kini otomatis memperbarui status antrean secara instan.</li>
+            <li><strong class="text-slate-800 dark:text-white">🚀 Responsif Instan Aksi Antrean (0ms Feedback):</strong> Penambahan lagu (+ Queue), paste link, hapus lagu, dan upvote kini langsung memicu pembaruan status lokal seketika setelah server mengonfirmasi sukses, menghilangkan jeda tampilan antrean bagi pengguna yang melakukan aksi.</li>
+          </ul>
+        </div>
+
+        <!-- v2.11.13 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-800/40 border border-slate-200 dark:border-gray-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-600">v2.11.13</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">🔄 Penanganan Redirect & Auto-Recovery CDN (Anti-Loop "Menghubungkan Stream"):</strong> Memperbaiki bug di mana proxy stream server tidak memproses status redirect <code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">302 Found</code> dari Google Video CDN. Server kini otomatis mengikuti header <code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">Location</code> dan seketika meminta link stream segar baru tanpa mengirim respon kosong ke audio player.</li>
+            <li><strong class="text-slate-800 dark:text-white">🛡️ Stream Watchdog Cerdas (Batas Retry & Auto-Skip):</strong> Menambahkan batas percobaan ulang pemutaran audio di client (maksimal 2x dengan parameter <code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">?retry=...</code>). Jika link suatu lagu benar-benar tidak dapat diputar, sistem otomatis beralih ke lagu berikutnya secara elegan.</li>
           </ul>
         </div>
 
@@ -1703,7 +1716,7 @@
 
       <!-- Section 5: Version & Release Notes -->
       <div class="pt-1 flex items-center justify-between text-xs text-slate-400">
-        <span>Party Jukebox v2.11.13</span>
+        <span>Party Jukebox v2.11.14</span>
         <button onclick="openChangelogModal(); closeSettingsModal();" class="font-bold text-pink-600 dark:text-pink-400 hover:underline">
           Lihat Catatan Rilis 🚀
         </button>
@@ -2218,7 +2231,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.11.13';
+    const CLIENT_VERSION = '2.11.14';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -4469,6 +4482,12 @@
 
     document.addEventListener('visibilitychange', async () => {
       if (document.visibilityState === 'visible') {
+        // Tab restored from background or phone unlocked: instantly refresh status & heal real-time events
+        fetchStatus();
+        if (!sseSource || sseSource.readyState !== 1 || (Date.now() - lastSSEMessageTime > 20000)) {
+          setupSSE();
+        }
+
         const myToken = localStorage.getItem('jukebox_host_token');
         if (myToken) {
           await sendHostHeartbeatImmediate();
@@ -4484,6 +4503,16 @@
         // Maintain active OS audio session in background via silent shield anchor
         startSilentAudioAnchor();
       }
+    });
+
+    window.addEventListener('focus', () => {
+      fetchStatus();
+    });
+
+    window.addEventListener('online', () => {
+      console.log('[Network] Online detected. Refreshing status & SSE...');
+      fetchStatus();
+      setupSSE();
     });
 
     // Tab Switching (Search vs Paste)
@@ -5165,7 +5194,8 @@
       if (selectedIndex >= 0) {
         upcoming = queue.filter(item => item.rawIndex > selectedIndex && item.videoId !== activeVideoId);
       } else {
-        upcoming = queue.filter(item => !item.selected && item.videoId !== activeVideoId);
+        // Standalone mode: partyQueue holds upcoming songs only
+        upcoming = queue.filter(item => !item.selected);
       }
 
       currentUpcomingList = upcoming;
@@ -5345,6 +5375,7 @@
           })
         });
         showToast(`✓ Moved "${movedItem.title}"`);
+        fetchStatus();
       } catch (err) {
         console.error('Drag move error:', err);
         showToast('Failed to move song');
@@ -6119,6 +6150,7 @@
         const data = await res.json();
         if (data.success) {
           showToast(`✓ "${track.title}" masuk antrean oleh ${currentUser}!`);
+          fetchStatus();
         } else {
           await customAlert(
             data.error || 'Lagu ini tidak dapat dimasukkan ke antrean.',
@@ -6400,6 +6432,7 @@
         if (data.success) {
           pasteInput.value = '';
           showToast(`✓ "${data.title || 'Lagu'}" berhasil masuk antrean!`);
+          fetchStatus();
         } else {
           await customAlert(
             data.error || 'Lagu ini tidak valid atau tidak tersedia di YouTube Music.',
@@ -6432,6 +6465,7 @@
         const data = await res.json();
         if (data.success) {
           showToast(`🗑️ "${title}" removed by ${currentUser}`);
+          fetchStatus();
         } else {
           showToast('Failed to remove song');
         }
@@ -6566,6 +6600,7 @@
         } else {
           showToast(`Vote dibatalkan.`);
         }
+        fetchStatus();
       } catch (e) {
         console.error(e);
       }
@@ -6626,22 +6661,70 @@
       }
     }
 
-    // Real-Time Events (Server-Sent Events)
+    // Real-Time Events (Server-Sent Events with Active Reconnection & Cloudflare Resiliency)
+    let lastSSEMessageTime = Date.now();
+    let sseReconnectTimer = null;
+    let sseFallbackPollInterval = null;
+
     function setupSSE() {
       if (sseSource) {
         try { sseSource.close(); } catch (e) {}
+        sseSource = null;
       }
+      if (sseReconnectTimer) {
+        clearTimeout(sseReconnectTimer);
+        sseReconnectTimer = null;
+      }
+
       sseSource = new EventSource('/api/events');
+
+      sseSource.onopen = function() {
+        lastSSEMessageTime = Date.now();
+        updateUI({ online: true });
+        if (sseFallbackPollInterval) {
+          clearInterval(sseFallbackPollInterval);
+          sseFallbackPollInterval = null;
+        }
+      };
+
       sseSource.onmessage = function(event) {
+        lastSSEMessageTime = Date.now();
         try {
           const data = JSON.parse(event.data);
           updateUI({ online: true, ...data });
         } catch (e) {}
       };
+
       sseSource.onerror = function() {
+        console.warn('[SSE] Connection lost/stalled. Initiating fallback polling & auto-reconnect...');
         updateUI({ online: false });
+        try { sseSource.close(); } catch (e) {}
+        sseSource = null;
+
+        // Start fallback polling while disconnected so user never misses queue updates
+        if (!sseFallbackPollInterval) {
+          sseFallbackPollInterval = setInterval(fetchStatus, 4000);
+        }
+
+        if (!sseReconnectTimer) {
+          sseReconnectTimer = setTimeout(() => {
+            sseReconnectTimer = null;
+            setupSSE();
+          }, 2000);
+        }
       };
     }
+
+    // Active Health Watchdog: Detect silent socket drops through Cloudflare/NAT (every 10s)
+    setInterval(() => {
+      const silenceDuration = Date.now() - lastSSEMessageTime;
+      // If no ping/message received in 25s, or sseSource is closed:
+      if (silenceDuration > 25000 || !sseSource || sseSource.readyState === 2) {
+        console.warn(`[SSE Watchdog] Silence detected (${Math.round(silenceDuration / 1000)}s). Healing connection...`);
+        fetchStatus();
+        setupSSE();
+      }
+    }, 10000);
 
     // Changelog Modal Open/Close
     function openChangelogModal() {

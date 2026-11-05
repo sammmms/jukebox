@@ -9,7 +9,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.11.13';
+const APP_VERSION = '2.11.14';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -2322,22 +2322,10 @@ app.get('/api/history', (req, res) => {
   res.json({ history: playedHistory });
 });
 
-// 10. Server-Sent Events
+// 10. Server-Sent Events (Resilient Real-Time Protocol with Active Cloudflare Heartbeat)
 const clients = new Set();
 
-app.get('/api/events', (req, res) => {
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.flushHeaders();
-
-  clients.add(res);
-  req.on('close', () => clients.delete(res));
-});
-
-async function broadcastUpdate() {
-  if (clients.size === 0) return;
-
+async function getFullSsePayload() {
   const [liveCurrent, { queue, selectedIndex }] = await Promise.all([
     getUnifiedCurrentSong(),
     getUnifiedQueue()
@@ -2345,7 +2333,7 @@ async function broadcastUpdate() {
 
   const activePublicUrl = dynamicPublicUrl || (process.env.PUBLIC_URL || (process.env.CLOUDFLARE_TUNNEL_TOKEN ? 'https://dj.wsnsam.my.id' : null));
 
-  const payload = `data: ${JSON.stringify({
+  return `data: ${JSON.stringify({
     current: {
       ...liveCurrent,
       currentElapsed: getCalculatedElapsed(),
@@ -2371,13 +2359,58 @@ async function broadcastUpdate() {
     activity: activityLogs.slice(0, 30),
     history: playedHistory.slice(0, 30)
   })}\n\n`;
+}
 
+app.get('/api/events', async (req, res) => {
+  // Required SSE headers: no-transform is critical for Cloudflare to prevent buffering/compressing chunks
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders();
+
+  clients.add(res);
+
+  // Send immediate connected ping
+  res.write(': connected\n\n');
+
+  // Immediately push fresh state snapshot to newly connected client
+  try {
+    const initialPayload = await getFullSsePayload();
+    res.write(initialPayload);
+  } catch (err) {
+    console.warn('[SSE] Error sending initial payload to new client:', err.message);
+  }
+
+  req.on('close', () => clients.delete(res));
+});
+
+// Periodic SSE Keep-Alive Ping every 15s: Prevents Cloudflare (100s idle timeout) & NAT drops
+setInterval(() => {
+  if (clients.size === 0) return;
   for (const client of clients) {
     try {
-      client.write(payload);
+      client.write(': ping\n\n');
     } catch (e) {
       clients.delete(client);
     }
+  }
+}, 15000);
+
+async function broadcastUpdate() {
+  if (clients.size === 0) return;
+
+  try {
+    const payload = await getFullSsePayload();
+    for (const client of clients) {
+      try {
+        client.write(payload);
+      } catch (e) {
+        clients.delete(client);
+      }
+    }
+  } catch (err) {
+    console.error('[SSE] Broadcast error:', err.message);
   }
 }
 
