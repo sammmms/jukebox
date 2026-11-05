@@ -56,6 +56,21 @@
       font-family: 'Plus Jakarta Sans', sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
+    .view-pill, .theme-pill {
+      display: inline-flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 0.375rem !important;
+      white-space: nowrap !important;
+      line-height: 1 !important;
+    }
+    .view-pill svg, .theme-pill svg {
+      width: 0.875rem !important;
+      height: 0.875rem !important;
+      flex-shrink: 0 !important;
+      display: inline-block !important;
+    }
     .vinyl-spin {
       animation: spin 14s linear infinite;
     }
@@ -400,32 +415,32 @@
         <!-- View Switcher -->
         <div class="flex items-center gap-0.5 bg-zinc-100 dark:bg-zinc-900 p-0.5 rounded-lg border border-zinc-200/80 dark:border-zinc-800 font-medium">
           <button onclick="setView('auto')" id="view-btn-auto" title="Auto Responsive"
-                  class="view-pill px-2.5 py-1 rounded-md transition-all text-[11px] font-medium bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-2xs flex items-center gap-1">
-            <i data-lucide="sparkles" class="w-3 h-3"></i><span>Auto</span>
+                  class="view-pill px-2.5 py-1 rounded-md transition-all text-[11px] font-medium bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-2xs inline-flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i><span>Auto</span>
           </button>
           <button onclick="setView('mobile')" id="view-btn-mobile" title="Mobile View"
-                  class="view-pill px-2.5 py-1 rounded-md transition-all text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center gap-1">
-            <i data-lucide="smartphone" class="w-3 h-3"></i><span>Mobile</span>
+                  class="view-pill px-2.5 py-1 rounded-md transition-all text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 inline-flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="smartphone" class="w-3.5 h-3.5"></i><span>Mobile</span>
           </button>
           <button onclick="setView('desktop')" id="view-btn-desktop" title="Desktop View"
-                  class="view-pill px-2.5 py-1 rounded-md transition-all text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center gap-1">
-            <i data-lucide="monitor" class="w-3 h-3"></i><span>Desktop</span>
+                  class="view-pill px-2.5 py-1 rounded-md transition-all text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 inline-flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="monitor" class="w-3.5 h-3.5"></i><span>Desktop</span>
           </button>
         </div>
 
         <!-- Theme Switcher -->
         <div class="flex items-center gap-0.5 bg-zinc-100 dark:bg-zinc-900 p-0.5 rounded-lg border border-zinc-200/80 dark:border-zinc-800 font-medium">
           <button onclick="setTheme('system')" id="theme-btn-system" title="System Theme"
-                  class="theme-pill px-2.5 py-1 rounded-md transition-all text-[11px] font-medium bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-2xs flex items-center gap-1">
-            <i data-lucide="laptop" class="w-3 h-3"></i><span>System</span>
+                  class="theme-pill px-2.5 py-1 rounded-md transition-all text-[11px] font-medium bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-2xs inline-flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="laptop" class="w-3.5 h-3.5"></i><span>System</span>
           </button>
           <button onclick="setTheme('light')" id="theme-btn-light" title="Light Mode"
-                  class="theme-pill px-2 py-1 rounded-md transition-all text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center gap-1">
-            <i data-lucide="sun" class="w-3 h-3"></i><span>Light</span>
+                  class="theme-pill px-2 py-1 rounded-md transition-all text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 inline-flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="sun" class="w-3.5 h-3.5"></i><span>Light</span>
           </button>
           <button onclick="setTheme('dark')" id="theme-btn-dark" title="Dark Mode"
-                  class="theme-pill px-2 py-1 rounded-md transition-all text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center gap-1">
-            <i data-lucide="moon" class="w-3 h-3"></i><span>Dark</span>
+                  class="theme-pill px-2 py-1 rounded-md transition-all text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 inline-flex items-center gap-1.5 cursor-pointer">
+            <i data-lucide="moon" class="w-3.5 h-3.5"></i><span>Dark</span>
           </button>
         </div>
 
@@ -3698,9 +3713,9 @@
         const btn = document.getElementById(`theme-btn-${t}`);
         if (!btn) return;
         if (t === theme) {
-          btn.className = 'theme-pill px-2.5 py-1 rounded-md transition-all text-[11px] font-medium bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-2xs';
+          btn.className = 'theme-pill px-2.5 py-1 rounded-md transition-all text-[11px] font-medium bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-2xs inline-flex items-center gap-1.5 cursor-pointer';
         } else {
-          btn.className = 'theme-pill px-2 py-1 rounded-md transition-all text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100';
+          btn.className = 'theme-pill px-2 py-1 rounded-md transition-all text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 inline-flex items-center gap-1.5 cursor-pointer';
         }
       });
     }
@@ -3763,9 +3778,9 @@
         const btn = document.getElementById(`view-btn-${v}`);
         if (!btn) return;
         if (v === view) {
-          btn.className = 'view-pill px-2.5 py-1 rounded-md transition-all text-[11px] font-medium bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-2xs';
+          btn.className = 'view-pill px-2.5 py-1 rounded-md transition-all text-[11px] font-medium bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-2xs inline-flex items-center gap-1.5 cursor-pointer';
         } else {
-          btn.className = 'view-pill px-2.5 py-1 rounded-md transition-all text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100';
+          btn.className = 'view-pill px-2.5 py-1 rounded-md transition-all text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 inline-flex items-center gap-1.5 cursor-pointer';
         }
       });
 
