@@ -2287,8 +2287,8 @@
     </div>
   </div>
 
-  <!-- Notification Toast -->
-  <div id="toast" class="fixed bottom-24 sm:bottom-28 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-slate-900/95 dark:bg-gray-900/95 border border-slate-700 dark:border-gray-700 text-white text-xs font-semibold shadow-2xl transition-all duration-300 opacity-0 pointer-events-none translate-y-4 flex items-center gap-2">
+  <!-- Notification Toast / Snackbar -->
+  <div id="toast" class="fixed bottom-24 sm:bottom-24 left-1/2 -translate-x-1/2 sm:left-auto sm:right-6 sm:translate-x-0 z-[100] max-w-sm w-[90vw] sm:w-auto px-4 py-2.5 rounded-2xl bg-zinc-900/95 dark:bg-zinc-800/95 text-white backdrop-blur-md border border-zinc-700/60 dark:border-zinc-700 shadow-2xl shadow-black/30 flex items-center gap-3 transition-all duration-300 ease-out opacity-0 pointer-events-none translate-y-3 scale-95 select-none">
     <span>Notification</span>
   </div>
 
@@ -2559,7 +2559,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.13.6';
+    const CLIENT_VERSION = '2.13.7';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -5053,8 +5053,8 @@
       return `${h}h ago`;
     }
 
-    // Toast Helper with Clean Lucide Vector Icons
-    function showToast(msg, customIcon = null) {
+    // Toast / Snackbar Helper with Clean Lucide Icons & High-Contrast Typography
+    function showToast(msg, customIcon = null, customType = null) {
       const toast = document.getElementById('toast');
       if (!toast) return;
 
@@ -5064,40 +5064,63 @@
         .trim();
 
       let iconName = customIcon || 'info';
+      let badgeStyle = 'bg-zinc-800 text-zinc-300 border-zinc-700/60';
       const lower = String(msg || '').toLowerCase();
-      if (lower.includes('berhasil') || lower.includes('disalin') || lower.includes('sukses') || String(msg).includes('✓')) {
-        iconName = 'check-circle-2';
-      } else if (lower.includes('gagal') || lower.includes('error') || lower.includes('batal')) {
-        iconName = 'x-circle';
-      } else if (lower.includes('⚠️') || lower.includes('peringatan') || lower.includes('dibatasi') || lower.includes('timeout')) {
-        iconName = 'alert-triangle';
+
+      if (customType === 'success' || lower.includes('berhasil') || lower.includes('disalin') || lower.includes('sukses') || String(msg).includes('✓')) {
+        iconName = customIcon || 'check-circle-2';
+        badgeStyle = 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+      } else if (customType === 'error' || lower.includes('gagal') || lower.includes('error') || lower.includes('batal')) {
+        iconName = customIcon || 'alert-circle';
+        badgeStyle = 'bg-rose-500/20 text-rose-400 border-rose-500/30';
+      } else if (customType === 'warning' || lower.includes('⚠️') || lower.includes('peringatan') || lower.includes('dibatasi') || lower.includes('timeout')) {
+        iconName = customIcon || 'alert-triangle';
+        badgeStyle = 'bg-amber-500/20 text-amber-400 border-amber-500/30';
       } else if (lower.includes('host') || lower.includes('👑')) {
-        iconName = 'crown';
+        iconName = customIcon || 'crown';
+        badgeStyle = 'bg-amber-500/20 text-amber-300 border-amber-500/30';
       } else if (lower.includes('hapus') || lower.includes('dihapus') || lower.includes('🗑')) {
-        iconName = 'trash-2';
-      } else if (lower.includes('antrean') || lower.includes('lagu') || lower.includes('🎵')) {
-        iconName = 'music';
-      } else if (lower.includes('volume') || lower.includes('suara') || lower.includes('🔊') || lower.includes('speaker')) {
-        iconName = 'volume-2';
+        iconName = customIcon || 'trash-2';
+        badgeStyle = 'bg-rose-500/20 text-rose-400 border-rose-500/30';
+      } else if (lower.includes('speaker') || lower.includes('volume') || lower.includes('suara') || lower.includes('🔊') || lower.includes('🔇')) {
+        const isMuted = lower.includes('senyap') || lower.includes('nonaktif');
+        iconName = customIcon || (isMuted ? 'volume-x' : 'volume-2');
+        badgeStyle = isMuted
+          ? 'bg-zinc-700/30 text-zinc-400 border-zinc-600/30'
+          : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+      } else if (lower.includes('antrean') || lower.includes('lagu') || lower.includes('🎵') || lower.includes('playlist')) {
+        iconName = customIcon || 'music';
+        badgeStyle = 'bg-violet-500/20 text-violet-400 border-violet-500/30';
       } else if (lower.includes('party') || lower.includes('room')) {
-        iconName = 'radio';
+        iconName = customIcon || 'radio';
+        badgeStyle = 'bg-sky-500/20 text-sky-400 border-sky-500/30';
       }
 
       toast.innerHTML = `
-        <div class="flex items-center gap-2">
-          <i data-lucide="${iconName}" class="w-4 h-4 shrink-0 text-rose-500"></i>
-          <span class="text-xs font-medium text-zinc-900 dark:text-zinc-100">${escapeHtml(cleanMsg)}</span>
+        <div class="flex items-center gap-2.5 w-full">
+          <div class="w-7 h-7 rounded-lg ${badgeStyle} border flex items-center justify-center shrink-0">
+            <i data-lucide="${iconName}" class="w-4 h-4"></i>
+          </div>
+          <span class="text-xs font-semibold text-white tracking-wide flex-1 leading-snug">${escapeHtml(cleanMsg)}</span>
+          <button onclick="hideToast()" class="text-zinc-400 hover:text-white p-1 rounded-md transition-colors cursor-pointer shrink-0 -mr-1">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
         </div>
       `;
       refreshLucideIcons();
 
-      toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
-      toast.classList.add('opacity-100', 'translate-y-0');
+      toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-3', 'scale-95');
+      toast.classList.add('opacity-100', 'translate-y-0', 'scale-100', 'pointer-events-auto');
+
       clearTimeout(window._toastTimer);
-      window._toastTimer = setTimeout(() => {
-        toast.classList.remove('opacity-100', 'translate-y-0');
-        toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
-      }, 2500);
+      window._toastTimer = setTimeout(hideToast, 3200);
+    }
+
+    function hideToast() {
+      const toast = document.getElementById('toast');
+      if (!toast) return;
+      toast.classList.remove('opacity-100', 'translate-y-0', 'scale-100', 'pointer-events-auto');
+      toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-3', 'scale-95');
     }
 
     // Update UI from Status
