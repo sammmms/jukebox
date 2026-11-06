@@ -9,7 +9,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.13.2';
+const APP_VERSION = '2.13.3';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -1726,17 +1726,6 @@ app.get('/api/status', async (req, res) => {
 
   const room = req.room;
   room.checkHostVacant();
-
-  // Serverless Auto-Advance Watchdog: if track completed while function was idle/frozen
-  if (!room.playbackTracker.isPaused && room.currentSong && room.currentSong.videoId && room.currentSong.title !== 'No song playing') {
-    const dur = (room.currentSong.songDuration && room.currentSong.songDuration > 0) ? room.currentSong.songDuration : 215;
-    const now = Date.now();
-    const delta = (now - room.playbackTracker.lastUpdated) / 1000;
-    const rawElapsed = (room.playbackTracker.elapsed || 0) + delta;
-    if (rawElapsed >= dur + 1) {
-      await advanceNextTrack(room, 'Serverless Auto-Advance');
-    }
-  }
 
   const currentIp = getLocalIp();
   const activePublicUrl = dynamicPublicUrl || (process.env.PUBLIC_URL || (process.env.CLOUDFLARE_TUNNEL_TOKEN ? 'https://dj.wsnsam.my.id' : null));
