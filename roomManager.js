@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const IS_VERCEL = Boolean(process.env.VERCEL);
-const APP_VERSION = '2.13.1';
+const APP_VERSION = '2.13.2';
 
 const DEFAULT_STARTER_TRACK = {
   videoId: 'bu7nU9Mhpyo',
@@ -16,6 +16,13 @@ const DEFAULT_STARTER_TRACK = {
   addedBy: 'Party Jukebox',
   startedAt: Date.now()
 };
+
+const DEFAULT_PRESET_ROOMS = [
+  { id: 'main', name: 'Main Party', creator: 'System' },
+  { id: 'karaoke', name: 'Karaoke Room 🎤', creator: 'System' },
+  { id: 'chill', name: 'Chill & Lo-Fi Lounge ☕', creator: 'System' },
+  { id: 'asian-pop', name: 'Mandarin & Asian Pop 🌸', creator: 'System' }
+];
 
 class Room {
   constructor(options = {}) {
@@ -84,8 +91,8 @@ class Room {
   }
 
   isIdle() {
-    // Main room is never pruned
-    if (this.id === 'main') return false;
+    // Preset rooms are never pruned
+    if (DEFAULT_PRESET_ROOMS.some(p => p.id === this.id)) return false;
     // If listeners are connected, not idle
     if (this.clients.size > 0) return false;
     // If last activity was > 30 minutes ago, considered idle
@@ -328,34 +335,38 @@ class RoomManager {
       }
     } catch (e) {}
 
-    // Ensure 'main' room exists
-    if (!this.rooms.has('main')) {
-      let legacyData = {};
-      try {
-        const qFile = path.join(this.dataDir, 'party_queue.json');
-        if (fs.existsSync(qFile)) {
-          const raw = JSON.parse(fs.readFileSync(qFile, 'utf8'));
-          legacyData.currentSong = raw.currentSong;
-          legacyData.partyQueue = raw.partyQueue;
+    // Ensure standard preset rooms exist
+    for (const preset of DEFAULT_PRESET_ROOMS) {
+      if (!this.rooms.has(preset.id)) {
+        let legacyData = {};
+        if (preset.id === 'main') {
+          try {
+            const qFile = path.join(this.dataDir, 'party_queue.json');
+            if (fs.existsSync(qFile)) {
+              const raw = JSON.parse(fs.readFileSync(qFile, 'utf8'));
+              legacyData.currentSong = raw.currentSong;
+              legacyData.partyQueue = raw.partyQueue;
+            }
+            const hFile = path.join(this.dataDir, 'party_host.json');
+            if (fs.existsSync(hFile)) {
+              legacyData.partyHost = JSON.parse(fs.readFileSync(hFile, 'utf8'));
+            }
+            const histFile = path.join(this.dataDir, 'played_history.json');
+            if (fs.existsSync(histFile)) {
+              legacyData.playedHistory = JSON.parse(fs.readFileSync(histFile, 'utf8'));
+            }
+          } catch (e) {}
         }
-        const hFile = path.join(this.dataDir, 'party_host.json');
-        if (fs.existsSync(hFile)) {
-          legacyData.partyHost = JSON.parse(fs.readFileSync(hFile, 'utf8'));
-        }
-        const histFile = path.join(this.dataDir, 'played_history.json');
-        if (fs.existsSync(histFile)) {
-          legacyData.playedHistory = JSON.parse(fs.readFileSync(histFile, 'utf8'));
-        }
-      } catch (e) {}
 
-      const mainRoom = new Room({
-        id: 'main',
-        name: 'Main Party',
-        creator: 'System',
-        ...legacyData
-      });
-      this.rooms.set('main', mainRoom);
-      this.persistRoom(mainRoom);
+        const room = new Room({
+          id: preset.id,
+          name: preset.name,
+          creator: preset.creator,
+          ...legacyData
+        });
+        this.rooms.set(preset.id, room);
+        this.persistRoom(room);
+      }
     }
   }
 

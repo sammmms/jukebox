@@ -2325,6 +2325,25 @@
     let currentRoomName = currentRoomId === 'main' ? 'Main Party' : `Party ${currentRoomId}`;
     localStorage.setItem('jukebox_room_id', currentRoomId);
 
+    function getKnownRooms() {
+      try {
+        const stored = JSON.parse(localStorage.getItem('jukebox_known_rooms') || '[]');
+        return Array.isArray(stored) ? stored : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function addKnownRoom(roomId) {
+      if (!roomId) return;
+      const list = getKnownRooms();
+      if (!list.includes(roomId)) {
+        list.push(roomId);
+        localStorage.setItem('jukebox_known_rooms', JSON.stringify(list.slice(-25)));
+      }
+    }
+    addKnownRoom(currentRoomId);
+
     // Refresh Lucide Icons Helper
     function refreshLucideIcons() {
       if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
@@ -2466,6 +2485,7 @@
         if (data.success && data.room) {
           if (nameInput) nameInput.value = '';
           if (idInput) idInput.value = '';
+          addKnownRoom(data.room.id);
           showToast(`Party "${data.room.name}" berhasil dibuat!`);
           currentRoomName = data.room.name;
           await switchRoom(data.room.id);
@@ -2481,7 +2501,9 @@
       const listContainer = document.getElementById('rooms-list-container');
       if (!listContainer) return;
       try {
-        const res = await fetch('/api/rooms');
+        addKnownRoom(currentRoomId);
+        const knownParam = encodeURIComponent(getKnownRooms().join(','));
+        const res = await fetch('/api/rooms?known=' + knownParam);
         const data = await res.json();
         if (!data.success || !Array.isArray(data.rooms)) return;
 
@@ -2537,7 +2559,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.13.1';
+    const CLIENT_VERSION = '2.13.2';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -5106,6 +5128,15 @@
       if (connText) connText.innerHTML = '<span class="text-emerald-600 dark:text-emerald-400 font-bold">Server Web Terhubung</span>';
 
       currentStatusData = status;
+
+      // Sync Room Metadata & Deep-Linked Room Name
+      if (status.room && status.room.name) {
+        addKnownRoom(status.room.id);
+        if (currentRoomName !== status.room.name) {
+          currentRoomName = status.room.name;
+          updateShareLinks();
+        }
+      }
       updateSpeakerToggleUI();
 
       // Current Song

@@ -9,7 +9,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.13.1';
+const APP_VERSION = '2.13.2';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -1459,6 +1459,13 @@ app.post('/api/auth/logout', (req, res) => {
 // MULTI-PARTY ROOM MANAGEMENT ENDPOINTS
 // ==========================================
 app.get('/api/rooms', (req, res) => {
+  const knownParam = req.query.known || req.headers['x-known-rooms'] || '';
+  if (knownParam) {
+    const ids = String(knownParam).split(',').map(s => s.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '')).filter(Boolean);
+    for (const id of ids) {
+      roomManager.getOrCreateRoom(id);
+    }
+  }
   res.json({
     success: true,
     rooms: roomManager.listRooms()
@@ -1833,16 +1840,17 @@ app.post('/api/playlist/queue', async (req, res) => {
     voters: []
   }));
 
-  partyQueue.push(...newItems);
-  persistPartyQueue();
+  const room = req.room;
+  room.partyQueue.push(...newItems);
+  roomManager.persistRoom(room);
 
-  addActivity(effectiveUser, 'playlist', `menambahkan ${newItems.length} lagu dari playlist "${playlistTitle || 'YouTube'}"`);
+  room.addActivity(effectiveUser, 'playlist', `menambahkan ${newItems.length} lagu dari playlist "${playlistTitle || 'YouTube'}"`);
 
   // If no song currently playing, immediately start playing first song
-  if (!currentSong || !currentSong.videoId || currentSong.title === 'No song playing') {
-    await advanceNextTrack('Playlist Auto Play');
+  if (!room.currentSong || !room.currentSong.videoId || room.currentSong.title === 'No song playing') {
+    await advanceNextTrack(room, 'Playlist Auto Play');
   } else {
-    broadcastUpdate();
+    room.broadcastUpdate(dynamicPublicUrl);
   }
 
   res.json({
@@ -2465,8 +2473,8 @@ async function prewarmUpcomingTracks(room = null) {
   if (nextItem && nextItem.videoId && !directAudioCache.has(nextItem.videoId)) {
     enqueuePrewarm(nextItem.videoId);
   }
-  if (partyQueue.length > 1) {
-    const nextItem2 = partyQueue[1];
+  if (targetRoom.partyQueue.length > 1) {
+    const nextItem2 = targetRoom.partyQueue[1];
     if (nextItem2 && nextItem2.videoId && !directAudioCache.has(nextItem2.videoId)) {
       enqueuePrewarm(nextItem2.videoId);
     }
