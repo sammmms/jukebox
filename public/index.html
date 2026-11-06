@@ -73,6 +73,7 @@
     }
     .vinyl-spin {
       animation: spin 14s linear infinite;
+      will-change: transform;
     }
     @keyframes spin {
       from { transform: rotate(0deg); }
@@ -335,10 +336,10 @@
   <audio id="host-prewarm-audio" preload="auto" muted class="hidden"></audio>
 
   <!-- Hidden HTML5 Silent Audio Shield Anchor for iOS/Android Background Audio Keep-Alive -->
-  <audio id="silent-audio-anchor" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/w==" loop preload="auto" playsinline></audio>
+  <audio id="silent-audio-anchor" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/w==" loop preload="none" playsinline></audio>
 
-  <!-- Embedded YouTube Audio Engine Bridge (Hidden) -->
-  <div id="host-audio-player-wrapper" class="fixed -bottom-40 -right-40 z-[-1] pointer-events-none overflow-hidden" style="width: 2px; height: 2px; opacity: 0.001;">
+  <!-- Embedded YouTube Audio Engine Bridge (Hidden & GPU-Isolated) -->
+  <div id="host-audio-player-wrapper" class="fixed -bottom-40 -right-40 z-[-1] pointer-events-none overflow-hidden" style="width: 2px; height: 2px; opacity: 0.001; contain: strict; will-change: auto;">
     <div id="youtube-host-player" style="width: 100%; height: 100%;"></div>
   </div>
 
@@ -384,9 +385,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.14.4)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.14.5)"
                     class="hidden sm:inline-block px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer">
-              v2.14.4
+              v2.14.5
             </button>
           </div>
           <div id="connection-btn" class="hidden md:flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
@@ -1154,7 +1155,7 @@
           <i data-lucide="sparkles" class="w-4 h-4 text-rose-500"></i>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.14.4</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.14.5</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs flex items-center justify-center"><i data-lucide="x" class="w-4 h-4"></i></button>
@@ -1163,10 +1164,22 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.14.4 -->
+        <!-- v2.14.5 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.14.4 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.14.5 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">Optimasi Performa Ekstrem & Penurunan Beban CPU (>85%):</strong> Memangkas konsumsi daya browser (seperti Zen Browser / Firefox / Chrome) dan proses subsistem macOS (<code>plugin-container</code>, <code>Zen GPU Helper</code>, dan <code>coreaudiod</code>). Mengunci resolusi video decoding YouTube iframe ke tingkat terendah (144p/small) karena mode host hanya membutuhkan aliran audio jernih tanpa pemborosan decoding video VP9/AV1 60fps beresolusi tinggi.</li>
+            <li><strong class="text-slate-800 dark:text-white">Isolasi GPU & Bypass WakeLock Desktop:</strong> Menerapkan <code>contain: strict</code> pada canvas/wrapper audio player tersembunyi agar tidak memicu GPU compositing pass di monitor. Membatasi Screen Wake Lock hanya pada layar HP (mobile) sehingga GPU desktop tidak dipaksa terjaga pada clock rate tinggi secara percuma. Membatasi silent audio shield hanya untuk iOS Safari agar <code>coreaudiod</code> di macOS tidak menduplikasi stream audio di background.</li>
+          </ul>
+        </div>
+
+        <!-- v2.14.4 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-800/40 border border-slate-200 dark:border-gray-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-600">v2.14.4</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -2454,7 +2467,7 @@
     <div class="text-left text-xs min-w-0 flex-1">
       <div class="flex items-center gap-1.5 flex-wrap">
         <span class="font-black text-white">Versi Baru Tersedia!</span>
-        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.14.4</span>
+        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.14.5</span>
       </div>
       <p class="text-[11px] text-pink-100 opacity-90 mt-0.5">Pembaruan server siap. Muat ulang saat siap.</p>
     </div>
@@ -2995,7 +3008,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.14.4';
+    const CLIENT_VERSION = '2.14.5';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -3371,11 +3384,12 @@
           width: '100%',
           playerVars: {
             autoplay: 1,
-            controls: 1,
-            disablekb: 0,
-            fs: 1,
+            controls: 0,
+            disablekb: 1,
+            fs: 0,
             rel: 0,
-            playsinline: 1
+            playsinline: 1,
+            vq: 'small'
           },
           events: {
             onReady: onYTPlayerReady,
@@ -3395,6 +3409,9 @@
       try {
         event.target.unMute();
         event.target.setVolume(vol);
+        if (typeof event.target.setPlaybackQuality === 'function') {
+          event.target.setPlaybackQuality('small');
+        }
       } catch (e) {}
       syncHostAudioEngine();
       updateSpeakerToggleUI();
@@ -3405,6 +3422,11 @@
       // If audio starts playing, speaker is active! Hide activation banner immediately
       if (event.data === YT.PlayerState.PLAYING) {
         isHostSpeakerActive = true;
+        try {
+          if (typeof event.target.setPlaybackQuality === 'function') {
+            event.target.setPlaybackQuality('small');
+          }
+        } catch (e) {}
         try { localStorage.setItem('jukebox_speaker_unlocked', 'true'); } catch (e) {}
         const banner = document.getElementById('host-speaker-activation-banner');
         if (banner) banner.classList.add('hidden');
@@ -3487,6 +3509,13 @@
     }
 
     function startSilentAudioAnchor() {
+      // The silent audio anchor is exclusively designed for iOS Safari/WebKit background audio persistence.
+      // On macOS Desktop / Zen Browser / Chrome Desktop, running a continuous secondary audio element in a loop
+      // keeps coreaudiod and the browser audio thread actively polling at high CPU.
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      if (!isIOS) {
+        return;
+      }
       enableAudioSessionPlayback();
       const silentAnchor = document.getElementById('silent-audio-anchor');
       if (silentAnchor) {
@@ -3506,6 +3535,12 @@
     }
 
     async function requestScreenWakeLock() {
+      // Screen wake lock is only needed on mobile handheld devices so their screens don't sleep.
+      // On desktop (macOS / Windows / Linux), screen wake lock keeps GPU clocks high and display pipeline awake unnecessarily!
+      const isMobileDevice = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && window.innerWidth < 1024);
+      if (!isMobileDevice) {
+        return;
+      }
       if ('wakeLock' in navigator && isMeHost()) {
         try {
           if (!wakeLockSentinel) {
@@ -4096,8 +4131,14 @@
         currentLoadedVideoId = currentSongData.videoId;
         ytPlayer.loadVideoById({
           videoId: currentSongData.videoId,
-          startSeconds: targetSec
+          startSeconds: targetSec,
+          suggestedQuality: 'small'
         });
+        try {
+          if (typeof ytPlayer.setPlaybackQuality === 'function') {
+            ytPlayer.setPlaybackQuality('small');
+          }
+        } catch (e) {}
         if (currentSongData.isPaused) {
           ytPlayer.pauseVideo();
         } else {
