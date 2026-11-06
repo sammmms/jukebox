@@ -33,7 +33,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.14.2';
+const APP_VERSION = '2.14.3';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -1577,6 +1577,20 @@ app.post('/api/rooms', async (req, res) => {
   const cleanName = inputName.slice(0, 40);
   const cleanCreator = (creator || 'Host').trim().slice(0, 25);
   const room = roomManager.createRoom(customCode, cleanName, cleanCreator);
+
+  let creatorToken = null;
+  if (cleanCreator && cleanCreator !== 'Host') {
+    creatorToken = 'tok_' + Math.random().toString(36).slice(2, 10);
+    room.partyHost = {
+      name: cleanCreator,
+      token: creatorToken,
+      claimedAt: Date.now(),
+      lastHeartbeat: Date.now(),
+      pendingTakeover: null
+    };
+    room.knownDJs.add(cleanCreator);
+    room.addActivity(cleanCreator, 'host_claim', `membuat room dan menjadi Host 👑`);
+  }
   await roomManager.persistRoom(room);
 
   res.json({
@@ -1589,7 +1603,9 @@ app.post('/api/rooms', async (req, res) => {
       createdAt: room.createdAt,
       listeners: room.clients.size,
       queueCount: room.partyQueue.length
-    }
+    },
+    hostToken: creatorToken,
+    partyHost: room.getPartyHostInfo()
   });
 });
 
@@ -2058,7 +2074,13 @@ app.post('/api/queue', async (req, res) => {
 
   // 2. Standalone Room Queue:
   const room = req.room;
-  if (!room.currentSong.videoId || room.currentSong.title === 'No song playing') {
+  const isStarterSong = (
+    !room.currentSong.videoId ||
+    room.currentSong.title === 'No song playing' ||
+    (room.currentSong.addedBy === 'Party Jukebox' && (room.playbackTracker.elapsed || 0) === 0 && room.partyQueue.length === 0)
+  );
+
+  if (isStarterSong) {
     room.currentSong = {
       videoId,
       title: songTitle,

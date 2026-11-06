@@ -337,15 +337,9 @@
   <!-- Hidden HTML5 Silent Audio Shield Anchor for iOS/Android Background Audio Keep-Alive -->
   <audio id="silent-audio-anchor" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/w==" loop preload="auto" playsinline></audio>
 
-  <!-- Embedded YouTube Audio Engine & Floating Mini Video Preview -->
-  <div id="host-audio-player-wrapper" class="fixed bottom-20 right-3 z-30 transition-all duration-300 pointer-events-none rounded-2xl overflow-hidden shadow-2xl border border-zinc-300 dark:border-zinc-700 bg-black" style="width: 2px; height: 2px; opacity: 0.01;">
+  <!-- Embedded YouTube Audio Engine Bridge (Hidden) -->
+  <div id="host-audio-player-wrapper" class="fixed -bottom-40 -right-40 z-[-1] pointer-events-none overflow-hidden" style="width: 2px; height: 2px; opacity: 0.001;">
     <div id="youtube-host-player" style="width: 100%; height: 100%;"></div>
-    <div id="mini-player-overlay" class="hidden absolute top-0 inset-x-0 p-1.5 bg-gradient-to-b from-black/80 to-transparent flex items-center justify-between text-white text-[10px]">
-      <span class="inline-flex items-center gap-1 font-bold"><i data-lucide="tv" class="w-3 h-3 text-rose-500"></i> Video Musik</span>
-      <button type="button" onclick="toggleMiniPlayer(false)" class="p-1 rounded-md hover:bg-white/20 transition-all cursor-pointer">
-        <i data-lucide="minus" class="w-3 h-3"></i>
-      </button>
-    </div>
   </div>
 
   <!-- Floating Banner to unlock audio autoplay on any device (Desktop & Mobile) -->
@@ -390,9 +384,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.14.2)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.14.3)"
                     class="hidden sm:inline-block px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer">
-              v2.14.2
+              v2.14.3
             </button>
           </div>
           <div id="connection-btn" class="hidden md:flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
@@ -405,7 +399,11 @@
       <!-- Mobile Right Actions (< md:): Compact Host Pill + User Profile + Refresh -->
       <div class="flex md:hidden items-center gap-1 shrink-0">
         <div id="mobile-host-action-container" class="shrink-0 flex items-center">
-          <!-- Populated dynamically via updateHostUI() -->
+          <button onclick="claimHostPrompt()" title="Kursi Host kosong. Klik untuk klaim"
+                  class="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 active:scale-95 transition-all">
+            <i data-lucide="crown" class="w-3 h-3 text-amber-500"></i>
+            <span>Klaim Host</span>
+          </button>
         </div>
         <button onclick="openSettingsModal()" id="mobile-settings-btn" title="Pengaturan & Profil Akun"
                 class="flex items-center gap-1 px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs font-medium cursor-pointer active:scale-95">
@@ -481,9 +479,13 @@
         <div class="flex items-center gap-2 shrink-0">
           <span class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Host:</span>
           <div id="host-status-container" class="flex items-center gap-1.5">
-            <div class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
-              <span id="host-name-placeholder">Memuat Host...</span>
+            <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
+              <span>Host: Vacant</span>
             </div>
+            <button id="host-claim-btn" onclick="claimHostPrompt()" title="Klaim kontrol Host"
+                    class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-900 transition-colors cursor-pointer active:scale-95">
+              <span>Klaim Host</span>
+            </button>
           </div>
         </div>
 
@@ -1152,7 +1154,7 @@
           <i data-lucide="sparkles" class="w-4 h-4 text-rose-500"></i>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.14.2</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.14.3</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs flex items-center justify-center"><i data-lucide="x" class="w-4 h-4"></i></button>
@@ -1161,10 +1163,25 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.14.2 -->
+        <!-- v2.14.3 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.14.2 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.14.3 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">Pemberantasan Bug "Memuat Host...":</strong> Header status Host kini langsung interaktif sejak detik pertama (default Host: Vacant / Klaim Host), dan siklus sinkronisasi host diutamakan di baris pertama update loop agar tidak pernah terjebak status loading.</li>
+            <li><strong class="text-slate-800 dark:text-white">Penghapusan Tombol "Video":</strong> Menghilangkan tombol preview video musik di control bar bawah demi memprioritaskan pengalaman audio murni karaoke &amp; social jukebox tanpa distraksi video watch-together.</li>
+            <li><strong class="text-slate-800 dark:text-white">Auto-Promote Antrean Lagu Baru:</strong> Penambahan lagu pertama pada party room baru yang masih berisi track default pembuka kini otomatis menggantikan starter track dan langsung memutar lagu pilihan tanpa terganjal lagu pengantar.</li>
+            <li><strong class="text-slate-800 dark:text-white">Pembuat Room Otomatis Menjadi Host:</strong> Pengguna yang membuat private party room kini otomatis ditetapkan sebagai Host dengan token tersinkronisasi, sehingga kontrol playback dan speaker langsung aktif seketika.</li>
+            <li><strong class="text-slate-800 dark:text-white">Isolasi Try-Catch Tangguh pada Setiap Komponen UI:</strong> Seluruh komponen DOM (Host, Song, Queue, Volume, DJ) dibungkus blok isolasi independen untuk menjamin antrean dan player tidak pernah membeku.</li>
+          </ul>
+        </div>
+
+        <!-- v2.14.2 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-800/40 border border-slate-200 dark:border-gray-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-600">v2.14.2</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -2155,12 +2172,6 @@
           <span id="mobile-bottombar-queue-badge" class="px-1 py-0.2 rounded-full text-[8px] bg-rose-500 text-white font-bold ml-0.5">0</span>
         </button>
 
-        <!-- Video Mini Player Toggle Button (Desktop Only) -->
-        <button id="video-pip-btn" onclick="toggleMiniPlayer()" title="Buka/Tutup Preview Video Musik"
-                class="hidden md:flex px-2.5 py-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 text-xs font-medium active:scale-95 transition-all items-center gap-1.5 cursor-pointer">
-          <i data-lucide="tv" class="w-3.5 h-3.5"></i><span>Video</span>
-        </button>
-
         <!-- Device Speaker Output Toggle Button (Desktop Only) -->
         <button id="speaker-toggle-btn" onclick="toggleDeviceSpeaker()" title="Status Speaker Perangkat Ini"
                 class="hidden md:flex px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs font-bold active:scale-95 transition-all items-center gap-1.5 cursor-pointer bg-zinc-100 dark:bg-zinc-800 text-zinc-500 border border-zinc-200 dark:border-zinc-700">
@@ -2431,7 +2442,7 @@
     <div class="text-left text-xs min-w-0 flex-1">
       <div class="flex items-center gap-1.5 flex-wrap">
         <span class="font-black text-white">Versi Baru Tersedia!</span>
-        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.14.2</span>
+        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.14.3</span>
       </div>
       <p class="text-[11px] text-pink-100 opacity-90 mt-0.5">Pembaruan server siap. Muat ulang saat siap.</p>
     </div>
@@ -2751,6 +2762,15 @@
         if (data && data.success && data.room) {
           currentRoomId = data.room.id;
           currentRoomName = data.room.name || `Party #${data.room.id}`;
+          if (data.hostToken) {
+            localStorage.setItem('jukebox_host_token', data.hostToken);
+            isHostSpeakerActive = true;
+            try { localStorage.setItem('jukebox_speaker_unlocked', 'true'); } catch (e) {}
+            startHostHeartbeat();
+          }
+          if (data.partyHost) {
+            updateHostUI(data.partyHost);
+          }
           saveKnownRoom(data.room.id, data.room.name);
           syncRoomUrl(data.room.id);
           closePartyGateModal();
@@ -2963,7 +2983,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.14.2';
+    const CLIENT_VERSION = '2.14.3';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -3262,32 +3282,8 @@
       refreshLucideIcons();
     }
 
-    let isMiniPlayerOpen = false;
-    function toggleMiniPlayer(forceState = null) {
-      isMiniPlayerOpen = (typeof forceState === 'boolean') ? forceState : !isMiniPlayerOpen;
-      const wrapper = document.getElementById('host-audio-player-wrapper');
-      const overlay = document.getElementById('mini-player-overlay');
-      const btn = document.getElementById('video-pip-btn');
-      if (!wrapper) return;
-
-      if (isMiniPlayerOpen) {
-        wrapper.style.width = '280px';
-        wrapper.style.height = '158px';
-        wrapper.style.opacity = '1';
-        wrapper.style.pointerEvents = 'auto';
-        wrapper.classList.remove('pointer-events-none');
-        if (overlay) overlay.classList.remove('hidden');
-        if (btn) btn.classList.add('bg-rose-500/15', 'text-rose-600', 'border-rose-500/30');
-      } else {
-        wrapper.style.width = '2px';
-        wrapper.style.height = '2px';
-        wrapper.style.opacity = '0.01';
-        wrapper.style.pointerEvents = 'none';
-        wrapper.classList.add('pointer-events-none');
-        if (overlay) overlay.classList.add('hidden');
-        if (btn) btn.classList.remove('bg-rose-500/15', 'text-rose-600', 'border-rose-500/30');
-      }
-      refreshLucideIcons();
+    function toggleMiniPlayer() {
+      // Disabled: Video modal removed per user design preference (Social audio jukebox only)
     }
 
     try {
@@ -5554,7 +5550,7 @@
       toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-3', 'scale-95');
     }
 
-    // Update UI from Status
+    // Update UI from Status (Defensively Guarded with Isolated Blocks)
     function updateUI(status) {
       if (!status) return;
 
@@ -5563,13 +5559,17 @@
       }
 
       // Auto-Update Version Watchdog: Detect new builds and prompt/auto-refresh
-      if (status.version && isNewerVersion(status.version, CLIENT_VERSION)) {
-        triggerVersionUpdateBanner(status.version);
-      }
+      try {
+        if (status.version && isNewerVersion(status.version, CLIENT_VERSION)) {
+          triggerVersionUpdateBanner(status.version);
+        }
+      } catch (e) {}
 
       if (!status.online) {
-        document.getElementById('connection-dot').className = 'w-2 h-2 rounded-full bg-red-500';
-        document.getElementById('connection-text').textContent = 'Menghubungkan ke Server...';
+        const dot = document.getElementById('connection-dot');
+        const txt = document.getElementById('connection-text');
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-red-500';
+        if (txt) txt.textContent = 'Menghubungkan ke Server...';
         return;
       }
 
@@ -5581,196 +5581,242 @@
 
       currentStatusData = status;
 
-      // Sync Room Metadata & Deep-Linked Room Name
-      if (status.room && status.room.name) {
-        saveKnownRoom(status.room.id, status.room.name);
-        if (currentRoomName !== status.room.name) {
-          currentRoomName = status.room.name;
-          updateShareLinks();
+      // 1. HOST UI & GUEST PROFILE (Highest priority: always render immediately)
+      try {
+        if (status.partyHost) {
+          updateHostUI(status.partyHost);
+        } else {
+          updateHostUI({ isVacant: true });
         }
+        renderGuestBadge();
+      } catch (err) {
+        console.error('[updateUI] Host UI error:', err);
       }
-      updateSpeakerToggleUI();
 
-      // Current Song
-      const song = status.current;
-      currentSongData = song;
-      if (song && song.title) {
-        updateMediaSession(song);
-        document.getElementById('now-title').textContent = song.title;
-        document.getElementById('now-artist').textContent = song.artist || song.album || '';
-        document.getElementById('now-thumbnail').src = song.imageSrc || 'https://via.placeholder.com/150';
-        
-        const addedByEl = document.getElementById('now-added-by');
-        const effectiveAddedBy = (song.addedBy && song.addedBy !== 'Autoplay / Host')
-          ? song.addedBy
-          : (song.videoId ? localStorage.getItem('jukebox_addedby_' + song.videoId) : null) || song.addedBy || 'Autoplay / Host';
-
-        if (song.videoId && effectiveAddedBy && effectiveAddedBy !== 'Autoplay / Host') {
-          try { localStorage.setItem('jukebox_addedby_' + song.videoId, effectiveAddedBy); } catch (e) {}
-        }
-
-        if (effectiveAddedBy) {
-          const isAutoplay = effectiveAddedBy.toLowerCase().includes('autoplay') || effectiveAddedBy.toLowerCase().includes('host');
-          const col = getUserColor(effectiveAddedBy);
-          const label = isAutoplay ? effectiveAddedBy : 'by ' + effectiveAddedBy;
-          addedByEl.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${col.bg}"><span class="w-1.5 h-1.5 rounded-full ${col.dot}"></span>${label}</span>`;
-        } else {
-          addedByEl.innerHTML = '';
-        }
-
-        // Check if song changed
-        if (song.videoId !== currentVideoId) {
-          currentVideoId = song.videoId;
-          currentElapsed = song.currentElapsed || 0;
-          songDuration = song.songDuration || 0;
-          lastTickTimestamp = Date.now();
-          loadLyricsForSong(song);
-          if (isDeviceSpeakerActive() && !song.isAudioCached) {
-            updateLoadingState(true, 'Menyiapkan Audio...');
+      // 2. ROOM METADATA & PERSISTENCE
+      try {
+        if (status.room && status.room.id) {
+          saveKnownRoom(status.room.id, status.room.name || `Party #${status.room.id}`);
+          if (status.room.name && currentRoomName !== status.room.name) {
+            currentRoomName = status.room.name;
+            updateShareLinks();
           }
-          syncHostAudioEngine();
-        } else {
-          // SAME SONG PLAYING:
-          syncHostAudioEngine();
-          const hostAudio = document.getElementById('host-native-audio');
-          const isHostPlayingNative = isDeviceSpeakerActive() && isUseNativeAudioEngine() && hostAudio && hostAudio.src && !hostAudio.paused && !isNaN(hostAudio.currentTime) && hostAudio.currentTime > 0;
-          const isHostPlayingYT = isDeviceSpeakerActive() && !isUseNativeAudioEngine() && ytPlayer && typeof ytPlayer.getPlayerState === 'function' && ytPlayer.getPlayerState() === 1;
+        }
+      } catch (err) {
+        console.error('[updateUI] Room metadata error:', err);
+      }
 
-          if (isHostPlayingNative) {
-            // Local physical audio is ground truth for Host! Never let server queue updates overwrite progress
-            currentElapsed = hostAudio.currentTime;
-          } else if (isHostPlayingYT) {
-            const ytTime = ytPlayer.getCurrentTime();
-            if (typeof ytTime === 'number' && ytTime > 0) currentElapsed = ytTime;
-          } else if (song.isPaused) {
-            if (typeof song.currentElapsed === 'number' && song.currentElapsed > 0) {
-              currentElapsed = song.currentElapsed;
+      // 3. SPEAKER / AUDIO TOGGLE UI
+      try {
+        updateSpeakerToggleUI();
+      } catch (err) {
+        console.error('[updateUI] Speaker toggle error:', err);
+      }
+
+      // 4. CURRENT PLAYING SONG
+      try {
+        const song = status.current;
+        currentSongData = song;
+        if (song && song.title) {
+          updateMediaSession(song);
+          const nowTitleEl = document.getElementById('now-title');
+          const nowArtistEl = document.getElementById('now-artist');
+          const nowThumbEl = document.getElementById('now-thumbnail');
+          if (nowTitleEl) nowTitleEl.textContent = song.title;
+          if (nowArtistEl) nowArtistEl.textContent = song.artist || song.album || '';
+          if (nowThumbEl) nowThumbEl.src = song.imageSrc || 'https://via.placeholder.com/150';
+          
+          const addedByEl = document.getElementById('now-added-by');
+          if (addedByEl) {
+            const effectiveAddedBy = (song.addedBy && song.addedBy !== 'Autoplay / Host')
+              ? song.addedBy
+              : (song.videoId ? localStorage.getItem('jukebox_addedby_' + song.videoId) : null) || song.addedBy || 'Autoplay / Host';
+
+            if (song.videoId && effectiveAddedBy && effectiveAddedBy !== 'Autoplay / Host') {
+              try { localStorage.setItem('jukebox_addedby_' + song.videoId, effectiveAddedBy); } catch (e) {}
             }
+
+            if (effectiveAddedBy) {
+              const isAutoplay = effectiveAddedBy.toLowerCase().includes('autoplay') || effectiveAddedBy.toLowerCase().includes('host');
+              const col = getUserColor(effectiveAddedBy);
+              const label = isAutoplay ? effectiveAddedBy : 'by ' + effectiveAddedBy;
+              addedByEl.innerHTML = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${col.bg}"><span class="w-1.5 h-1.5 rounded-full ${col.dot}"></span>${label}</span>`;
+            } else {
+              addedByEl.innerHTML = '';
+            }
+          }
+
+          // Check if song changed
+          if (song.videoId !== currentVideoId) {
+            currentVideoId = song.videoId;
+            currentElapsed = song.currentElapsed || 0;
+            songDuration = song.songDuration || 0;
             lastTickTimestamp = Date.now();
-          } else if (typeof song.currentElapsed === 'number') {
-            // For non-host listeners: only sync drift if server provides a positive elapsed or if drift is significant
-            const drift = Math.abs(song.currentElapsed - currentElapsed);
-            // Protect against server sending 0 when local already has positive progress:
-            if (song.currentElapsed === 0 && currentElapsed > 2) {
-              // Server is temporarily reporting 0 due to background queue mutation; IGNORE it!
-            } else if (drift > 1.5) {
-              currentElapsed = song.currentElapsed;
+            loadLyricsForSong(song);
+            if (isDeviceSpeakerActive() && !song.isAudioCached) {
+              updateLoadingState(true, 'Menyiapkan Audio...');
+            }
+            syncHostAudioEngine();
+          } else {
+            // SAME SONG PLAYING:
+            syncHostAudioEngine();
+            const hostAudio = document.getElementById('host-native-audio');
+            const isHostPlayingNative = isDeviceSpeakerActive() && isUseNativeAudioEngine() && hostAudio && hostAudio.src && !hostAudio.paused && !isNaN(hostAudio.currentTime) && hostAudio.currentTime > 0;
+            const isHostPlayingYT = isDeviceSpeakerActive() && !isUseNativeAudioEngine() && ytPlayer && typeof ytPlayer.getPlayerState === 'function' && ytPlayer.getPlayerState() === 1;
+
+            if (isHostPlayingNative) {
+              // Local physical audio is ground truth for Host! Never let server queue updates overwrite progress
+              currentElapsed = hostAudio.currentTime;
+            } else if (isHostPlayingYT) {
+              const ytTime = ytPlayer.getCurrentTime();
+              if (typeof ytTime === 'number' && ytTime > 0) currentElapsed = ytTime;
+            } else if (song.isPaused) {
+              if (typeof song.currentElapsed === 'number' && song.currentElapsed > 0) {
+                currentElapsed = song.currentElapsed;
+              }
               lastTickTimestamp = Date.now();
+            } else if (typeof song.currentElapsed === 'number') {
+              // For non-host listeners: only sync drift if server provides a positive elapsed or if drift is significant
+              const drift = Math.abs(song.currentElapsed - currentElapsed);
+              // Protect against server sending 0 when local already has positive progress:
+              if (song.currentElapsed === 0 && currentElapsed > 2) {
+                // Server is temporarily reporting 0 due to background queue mutation; IGNORE it!
+              } else if (drift > 1.5) {
+                currentElapsed = song.currentElapsed;
+                lastTickTimestamp = Date.now();
+              }
+            }
+
+            if (!isMeHost() || (typeof currentElapsed === 'number' && currentElapsed > 0) || !song.isPaused) {
+              updateLoadingState(false);
             }
           }
 
-          if (!isMeHost() || (typeof currentElapsed === 'number' && currentElapsed > 0) || !song.isPaused) {
-            updateLoadingState(false);
-          }
-        }
-
-        // Proactive Client Gapless Pre-Buffer for Upcoming Track
-        if (isMeHost() && isUseNativeAudioEngine() && status.queue && status.queue.length > 0) {
-          const nextTrack = status.queue[0];
-          if (nextTrack && nextTrack.videoId) {
-            const prewarmEl = document.getElementById('host-prewarm-audio');
-            const targetPrewarmUrl = `/api/audio/stream/${nextTrack.videoId}`;
-            if (prewarmEl && (!prewarmEl.src || !prewarmEl.src.includes(targetPrewarmUrl))) {
-              prewarmEl.src = targetPrewarmUrl;
-              prewarmEl.load();
+          // Proactive Client Gapless Pre-Buffer for Upcoming Track
+          if (isMeHost() && isUseNativeAudioEngine() && status.queue && status.queue.length > 0) {
+            const nextTrack = status.queue[0];
+            if (nextTrack && nextTrack.videoId) {
+              const prewarmEl = document.getElementById('host-prewarm-audio');
+              const targetPrewarmUrl = `/api/audio/stream/${nextTrack.videoId}`;
+              if (prewarmEl && (!prewarmEl.src || !prewarmEl.src.includes(targetPrewarmUrl))) {
+                prewarmEl.src = targetPrewarmUrl;
+                prewarmEl.load();
+              }
             }
           }
-        }
 
-        // Room Playback State: Play/Pause button strictly reflects room playback state
-        isPlaying = !song.isPaused;
-        if (song.songDuration && song.songDuration > 0) {
-          songDuration = song.songDuration;
-        } else if (!songDuration || songDuration === 0) {
-          const hostAudio = document.getElementById('host-native-audio');
-          if (hostAudio && hostAudio.duration > 0 && !isNaN(hostAudio.duration)) {
-            songDuration = Math.round(hostAudio.duration);
+          // Room Playback State: Play/Pause button strictly reflects room playback state
+          isPlaying = !song.isPaused;
+          if (song.songDuration && song.songDuration > 0) {
+            songDuration = song.songDuration;
+          } else if (!songDuration || songDuration === 0) {
+            const hostAudio = document.getElementById('host-native-audio');
+            if (hostAudio && hostAudio.duration > 0 && !isNaN(hostAudio.duration)) {
+              songDuration = Math.round(hostAudio.duration);
+            }
+          }
+
+          // Play/Pause State
+          const vinyl = document.getElementById('vinyl-disc');
+          const playIcon = document.getElementById('play-icon');
+          const pauseIcon = document.getElementById('pause-icon');
+          const spinner = document.getElementById('play-loading-spinner');
+
+          if (isAudioStreamLoading) {
+            if (spinner) spinner.classList.remove('hidden');
+            if (playIcon) playIcon.classList.add('hidden');
+            if (pauseIcon) pauseIcon.classList.add('hidden');
+          } else if (!isPlaying) {
+            vinyl?.classList.add('paused');
+            if (spinner) spinner.classList.add('hidden');
+            playIcon?.classList.remove('hidden');
+            pauseIcon?.classList.add('hidden');
+          } else {
+            vinyl?.classList.remove('paused');
+            if (spinner) spinner.classList.add('hidden');
+            playIcon?.classList.add('hidden');
+            pauseIcon?.classList.remove('hidden');
+          }
+
+          const timeDurEl = document.getElementById('time-duration');
+          if (timeDurEl) timeDurEl.textContent = formatTime(songDuration);
+          renderTimeline(currentElapsed);
+        }
+      } catch (err) {
+        console.error('[updateUI] Song render error:', err);
+      }
+
+      // 5. SPEAKER VOLUME
+      try {
+        if (status.volume && typeof status.volume.state === 'number') {
+          if (Date.now() - lastUserVolumeInteraction > 1500) {
+            updateVolumeUI(status.volume.state);
           }
         }
-
-        // Play/Pause State
-        const vinyl = document.getElementById('vinyl-disc');
-        const playIcon = document.getElementById('play-icon');
-        const pauseIcon = document.getElementById('pause-icon');
-        const spinner = document.getElementById('play-loading-spinner');
-
-        if (isAudioStreamLoading) {
-          if (spinner) spinner.classList.remove('hidden');
-          if (playIcon) playIcon.classList.add('hidden');
-          if (pauseIcon) pauseIcon.classList.add('hidden');
-        } else if (!isPlaying) {
-          vinyl.classList.add('paused');
-          if (spinner) spinner.classList.add('hidden');
-          playIcon.classList.remove('hidden');
-          pauseIcon.classList.add('hidden');
-        } else {
-          vinyl.classList.remove('paused');
-          if (spinner) spinner.classList.add('hidden');
-          playIcon.classList.add('hidden');
-          pauseIcon.classList.remove('hidden');
-        }
-
-        document.getElementById('time-duration').textContent = formatTime(songDuration);
-        renderTimeline(currentElapsed);
+      } catch (err) {
+        console.error('[updateUI] Volume error:', err);
       }
 
-      // Real Speaker Volume (Protected from Desync Jitter during User Dragging / Interaction)
-      if (status.volume && typeof status.volume.state === 'number') {
-        if (Date.now() - lastUserVolumeInteraction > 1500) {
-          updateVolumeUI(status.volume.state);
-        }
-      }
-
-      // Sync Party Host (Auto-Vacant System v2.3.0)
-      if (status.partyHost) {
-        updateHostUI(status.partyHost);
-      }
-      renderGuestBadge();
-
-      // Sync Known Profiles from server
-      if (status.djs && Array.isArray(status.djs)) {
-        let changed = false;
-        status.djs.forEach(dj => {
-          if (dj && !knownDJs.includes(dj)) {
-            knownDJs.push(dj);
-            changed = true;
+      // 6. KNOWN DJS & PROFILES
+      try {
+        if (status.djs && Array.isArray(status.djs)) {
+          let changed = false;
+          status.djs.forEach(dj => {
+            if (dj && !knownDJs.includes(dj)) {
+              knownDJs.push(dj);
+              changed = true;
+            }
+          });
+          if (changed) {
+            localStorage.setItem('jukebox_known_djs', JSON.stringify(knownDJs));
           }
-        });
-        if (changed) {
-          localStorage.setItem('jukebox_known_djs', JSON.stringify(knownDJs));
         }
+      } catch (err) {
+        console.error('[updateUI] DJs sync error:', err);
       }
 
-      // Sync Host URL & QR Code + Quick Tunnel Status
-      if (status.host) {
-        const isTunnel = Boolean(status.host.isTunnelActive && status.host.publicUrl);
-        const tunnelBadge = document.getElementById('tunnel-status-badge');
-        const tunnelBtnLabel = document.getElementById('tunnel-toggle-label');
-        const tunnelBtnIcon = document.getElementById('tunnel-toggle-icon');
+      // 7. HOST URL & TUNNEL
+      try {
+        if (status.host) {
+          const isTunnel = Boolean(status.host.isTunnelActive && status.host.publicUrl);
+          const tunnelBadge = document.getElementById('tunnel-status-badge');
+          const tunnelBtnLabel = document.getElementById('tunnel-toggle-label');
+          const tunnelBtnIcon = document.getElementById('tunnel-toggle-icon');
 
-        if (tunnelBadge) tunnelBadge.classList.toggle('hidden', !isTunnel);
-        if (tunnelBtnLabel && !isTunnelLoading) {
-          tunnelBtnLabel.textContent = isTunnel ? 'Tutup Link Publik' : 'Buka Link Publik (Kuota HP)';
-        }
-        if (tunnelBtnIcon && !isTunnelLoading) {
-          tunnelBtnIcon.innerHTML = isTunnel ? '<i data-lucide="lock" class="w-3.5 h-3.5"></i>' : '<i data-lucide="globe" class="w-3.5 h-3.5"></i>'; refreshLucideIcons();
-        }
+          if (tunnelBadge) tunnelBadge.classList.toggle('hidden', !isTunnel);
+          if (tunnelBtnLabel && !isTunnelLoading) {
+            tunnelBtnLabel.textContent = isTunnel ? 'Tutup Link Publik' : 'Buka Link Publik (Kuota HP)';
+          }
+          if (tunnelBtnIcon && !isTunnelLoading) {
+            tunnelBtnIcon.innerHTML = isTunnel ? '<i data-lucide="lock" class="w-3.5 h-3.5"></i>' : '<i data-lucide="globe" class="w-3.5 h-3.5"></i>'; refreshLucideIcons();
+          }
 
-        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const targetShare = (isLocal && status.host.publicUrl)
-          ? status.host.publicUrl
-          : (status.host.publicUrl || status.host.url || window.location.origin);
-        updateHostShareUrl();
+          updateHostShareUrl();
+        }
+      } catch (err) {
+        console.error('[updateUI] Tunnel sync error:', err);
       }
 
-      // Queue List (Upcoming only)
-      renderQueue(status.queue || [], status.selectedIndex ?? -1);
+      // 8. QUEUE LIST (Upcoming only)
+      try {
+        renderQueue(status.queue || [], status.selectedIndex ?? -1);
+      } catch (err) {
+        console.error('[updateUI] Queue render error:', err);
+      }
 
-      // Previously Played Songs History
-      renderHistory(status.history || []);
+      // 9. HISTORY
+      try {
+        renderHistory(status.history || []);
+      } catch (err) {
+        console.error('[updateUI] History render error:', err);
+      }
 
-      // Activity Feed
-      renderActivity(status.activity || []);
+      // 10. ACTIVITY FEED
+      try {
+        renderActivity(status.activity || []);
+      } catch (err) {
+        console.error('[updateUI] Activity render error:', err);
+      }
     }
 
     // Read-Only Timeline Render
