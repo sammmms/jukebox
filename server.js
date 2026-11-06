@@ -9,7 +9,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.13.4';
+const APP_VERSION = '2.13.5';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -1683,6 +1683,7 @@ app.post('/api/host/release', (req, res) => {
   if (room.partyHost.name && (!token || room.partyHost.token === token)) {
     const oldHost = room.partyHost.name;
     room.partyHost = { name: null, token: null, claimedAt: null, lastHeartbeat: null };
+    room.pendingTakeover = null;
     roomManager.persistRoom(room);
     room.addActivity(oldHost, 'host_released', 'melepas kursi Host. Status sekarang VACANT ⚠️');
     room.broadcastUpdate(dynamicPublicUrl);

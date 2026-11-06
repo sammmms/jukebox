@@ -2559,7 +2559,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.13.4';
+    const CLIENT_VERSION = '2.13.5';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -4873,10 +4873,11 @@
           localStorage.setItem('jukebox_host_token', token);
         }
 
+        const isVacant = !currentPartyHost || currentPartyHost.isVacant || !currentPartyHost.name;
         const res = await fetch('/api/host/claim', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, token, force: false })
+          body: JSON.stringify({ name, token, force: Boolean(isTakeover || isVacant) })
         });
         const data = await res.json();
 
