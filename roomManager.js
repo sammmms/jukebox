@@ -26,7 +26,7 @@ const path = require('path');
 });
 
 const IS_VERCEL = Boolean(process.env.VERCEL);
-const APP_VERSION = '2.14.6';
+const APP_VERSION = '2.14.7';
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '';
 
@@ -248,12 +248,21 @@ class Room {
     if (this.playbackTracker.isPaused) {
       return this.playbackTracker.elapsed || 0;
     }
+    const dur = (this.currentSong && this.currentSong.songDuration && this.currentSong.songDuration > 0)
+      ? this.currentSong.songDuration
+      : (this.playbackTracker.songDuration || 99999);
+
     const now = Date.now();
+    // Prefer startedAt for drift-free wall-clock precision across serverless instances
+    if (this.currentSong && this.currentSong.startedAt && this.currentSong.startedAt > 0) {
+      const elapsedWallClock = (now - this.currentSong.startedAt) / 1000;
+      if (elapsedWallClock >= 0) {
+        return Math.min(dur, elapsedWallClock);
+      }
+    }
+
     const delta = (now - this.playbackTracker.lastUpdated) / 1000;
-    const dur = (this.playbackTracker.songDuration && this.playbackTracker.songDuration > 0)
-      ? this.playbackTracker.songDuration
-      : 99999;
-    return Math.min(dur, (this.playbackTracker.elapsed || 0) + delta);
+    return Math.min(dur, (this.playbackTracker.elapsed || 0) + Math.max(0, delta));
   }
 
   getPartyHostInfo() {
@@ -444,12 +453,21 @@ class Room {
         ...data.currentSong,
         songDuration: (typeof data.currentSong.songDuration === 'number' && data.currentSong.songDuration > 0) ? Math.round(data.currentSong.songDuration) : 215,
         imageSrc: data.currentSong.thumbnail || data.currentSong.imageSrc || '',
-        isPaused: typeof data.currentSong.isPaused === 'boolean' ? data.currentSong.isPaused : true
+        isPaused: typeof data.currentSong.isPaused === 'boolean' ? data.currentSong.isPaused : true,
+        startedAt: data.currentSong.startedAt || Date.now()
       };
       this.playbackTracker.videoId = this.currentSong.videoId;
       this.playbackTracker.songDuration = this.currentSong.songDuration;
       this.playbackTracker.isPaused = this.currentSong.isPaused;
-      this.playbackTracker.elapsed = this.currentSong.elapsedSeconds || 0;
+      this.playbackTracker.lastUpdated = Date.now();
+
+      if (this.currentSong.isPaused) {
+        this.playbackTracker.elapsed = this.currentSong.elapsedSeconds || 0;
+      } else {
+        const wallClockElapsed = Math.max(0, (Date.now() - this.currentSong.startedAt) / 1000);
+        this.playbackTracker.elapsed = wallClockElapsed;
+        this.currentSong.elapsedSeconds = wallClockElapsed;
+      }
     }
 
     if (Array.isArray(data.partyQueue)) {

@@ -33,7 +33,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.14.6';
+const APP_VERSION = '2.14.7';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -637,8 +637,13 @@ async function advanceNextTrack(targetRoomOrSkipped = null, skippedByUser = null
   return targetRoom.currentSong;
 }
 
-// Server-Side Master Autoplay & Song Completion Watchdog (Runs for all active rooms)
+// Server-Side Master Autoplay & Song Completion Watchdog (Runs for standalone instances)
 function checkServerPlaybackAutoplay(room = null) {
+  // On Vercel Serverless, background timers freeze and thaw between HTTP invocations, creating
+  // massive artificial time jumps that prematurely skip active songs. The client Host Audio Engine
+  // reports /api/control/ended when songs physically complete.
+  if (IS_VERCEL) return;
+
   const targetRoom = room || roomManager.getRoom('main');
   if (!targetRoom) return;
 
@@ -650,14 +655,18 @@ function checkServerPlaybackAutoplay(room = null) {
   if (!targetRoom.currentSong || !targetRoom.currentSong.videoId || targetRoom.currentSong.title === 'No song playing') return;
   if (targetRoom.playbackTracker.isPaused) return;
 
-  const dur = (targetRoom.currentSong.songDuration && targetRoom.currentSong.songDuration > 0) ? targetRoom.currentSong.songDuration : 240;
-
+  // If room has an active Host with recent heartbeat (< 45s), DEFER strictly to Host physical audio!
   const now = Date.now();
-  const delta = (now - targetRoom.playbackTracker.lastUpdated) / 1000;
-  const rawElapsed = (targetRoom.playbackTracker.elapsed || 0) + delta;
+  if (targetRoom.partyHost.name && targetRoom.partyHost.lastHeartbeat && (now - targetRoom.partyHost.lastHeartbeat < 45000)) {
+    return;
+  }
 
-  // If track has reached or exceeded its duration (+ 1s buffer)
-  if (rawElapsed >= dur + 1) {
+  const dur = (targetRoom.currentSong.songDuration && targetRoom.currentSong.songDuration > 0) ? targetRoom.currentSong.songDuration : 240;
+  const startedAt = targetRoom.currentSong.startedAt || targetRoom.playbackTracker.lastUpdated || now;
+  const rawElapsed = (now - startedAt) / 1000;
+
+  // If track has reached or exceeded its duration (+ 5s buffer to allow client to report first)
+  if (rawElapsed >= dur + 5) {
     console.log(`[Autoplay Watchdog][Room ${targetRoom.id}] Track "${targetRoom.currentSong.title}" reached end (${rawElapsed.toFixed(1)}s / ${dur}s). Advancing track automatically...`);
     advanceNextTrack(targetRoom, 'Autoplay Watchdog / Server');
   }
@@ -2404,26 +2413,36 @@ app.post('/api/control/next', async (req, res) => {
 
 app.post('/api/control/ended', async (req, res) => {
   const { videoId, user } = req.body || {};
-  const isRecentAdvance = (Date.now() - lastAdvanceTime < 3500);
-
   const room = req.room;
-  const isRoomRecent = (Date.now() - (room.lastAdvanceTime || 0) < 3500);
-  if (!videoId || videoId === room.currentSong.videoId || isRoomRecent) {
-    if (videoId && videoId !== room.currentSong.videoId && isRoomRecent) {
-      return res.json({
-        success: true,
-        current: room.currentSong,
-        audioStreamUrl: room.currentSong && room.currentSong.videoId ? `/api/audio/stream/${room.currentSong.videoId}` : null
-      });
-    }
-    const next = await advanceNextTrack(room, user || 'Host Audio Engine');
+  const now = Date.now();
+  const isRoomRecent = (now - (room.lastAdvanceTime || 0) < 4000);
+
+  if (isRoomRecent) {
     return res.json({
       success: true,
-      current: next,
-      audioStreamUrl: next && next.videoId ? `/api/audio/stream/${next.videoId}` : null
+      current: room.currentSong,
+      audioStreamUrl: room.currentSong && room.currentSong.videoId ? `/api/audio/stream/${room.currentSong.videoId}` : null
     });
   }
-  res.json({ success: false, reason: 'Track mismatch', current: room.currentSong });
+
+  // Only advance if the ended report matches the currently active song
+  if (videoId && videoId !== room.currentSong.videoId) {
+    return res.json({ success: true, current: room.currentSong });
+  }
+
+  // Premature Ended Guard: A full track cannot end within 15 seconds of starting
+  const trackAgeSec = (now - (room.currentSong.startedAt || now)) / 1000;
+  if (trackAgeSec < 15 && room.currentSong.songDuration > 30) {
+    console.warn(`[Ended Guard][Room ${room.id}] Rejected premature ended report at ${trackAgeSec.toFixed(1)}s for track "${room.currentSong.title}" (duration: ${room.currentSong.songDuration}s)`);
+    return res.json({ success: true, current: room.currentSong });
+  }
+
+  const next = await advanceNextTrack(room, user || 'Host Audio Engine');
+  return res.json({
+    success: true,
+    current: next,
+    audioStreamUrl: next && next.videoId ? `/api/audio/stream/${next.videoId}` : null
+  });
 });
 
 let serverVolumeDebounce = null;
@@ -2471,18 +2490,24 @@ app.post('/api/player/sync', async (req, res) => {
   }
   if (videoId && room.currentSong.videoId === videoId) {
     if (typeof elapsed === 'number' && elapsed >= 0) {
-      const trackAgeSec = (Date.now() - (room.currentSong.startedAt || 0)) / 1000;
-      if (trackAgeSec < 8 && elapsed > 8) {
-        console.warn(`[Sync Guard][Room ${room.id}] Rejected stale elapsed of ${elapsed}s for freshly started track "${room.currentSong.title}"`);
+      const trackAgeSec = (Date.now() - (room.currentSong.startedAt || Date.now())) / 1000;
+      // Stale track guard: only reject if track started less than 3s ago and elapsed reported is > 10s
+      if (trackAgeSec < 3 && elapsed > 10) {
         return res.json({ success: true, rejected: 'stale_track_elapsed' });
       }
       room.playbackTracker.elapsed = elapsed;
       room.currentSong.elapsedSeconds = elapsed;
+      // Calibrate startedAt so all serverless instances compute wall-clock elapsed accurately
+      room.currentSong.startedAt = Date.now() - Math.round(elapsed * 1000);
       room.playbackTracker.lastUpdated = Date.now();
     }
     if (typeof duration === 'number' && duration > 0) {
       room.currentSong.songDuration = duration;
       room.playbackTracker.songDuration = duration;
+    }
+    // Throttle remote database persist to at most once every 10s to avoid high write traffic
+    if (!room._lastSyncPersist || (Date.now() - room._lastSyncPersist > 10000)) {
+      room._lastSyncPersist = Date.now();
       await roomManager.persistRoom(room);
     }
   }
