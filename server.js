@@ -33,7 +33,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.14.0';
+const APP_VERSION = '2.14.1';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -1599,12 +1599,13 @@ app.delete('/api/rooms/:roomId', (req, res) => {
 });
 
 // Device Presence & Duplicate User Endpoint
-app.post('/api/room/presence', (req, res) => {
+app.post('/api/room/presence', async (req, res) => {
   const { deviceId, name, email, mode } = req.body || {};
   if (!req.room) {
     return res.status(404).json({ error: 'Room not found' });
   }
   const result = req.room.registerDevicePresence(deviceId, name, email, mode || 'check');
+  await roomManager.persistRoom(req.room);
   res.json(result);
 });
 

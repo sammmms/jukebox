@@ -26,7 +26,7 @@ const path = require('path');
 });
 
 const IS_VERCEL = Boolean(process.env.VERCEL);
-const APP_VERSION = '2.14.0';
+const APP_VERSION = '2.14.1';
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '';
 
@@ -478,6 +478,21 @@ class Room {
         this.knownDJs.add(dj);
       }
     }
+    if (Array.isArray(data.activeDevices)) {
+      const now = Date.now();
+      for (const dev of data.activeDevices) {
+        if (dev && dev.deviceId && (now - (dev.lastHeartbeat || 0) < 60000)) {
+          this.activeDevices.set(dev.deviceId, {
+            deviceId: dev.deviceId,
+            name: dev.name,
+            baseName: dev.baseName || dev.name,
+            email: dev.email || '',
+            lastHeartbeat: dev.lastHeartbeat || now,
+            replaced: Boolean(dev.replaced)
+          });
+        }
+      }
+    }
     this.lastRemoteSync = Date.now();
   }
 
@@ -497,7 +512,15 @@ class Room {
       pendingTakeover: this.pendingTakeover,
       currentVolume: this.currentVolume,
       isMuted: this.isMuted,
-      knownDJs: Array.from(this.knownDJs)
+      knownDJs: Array.from(this.knownDJs),
+      activeDevices: Array.from(this.activeDevices.values()).map(v => ({
+        deviceId: v.deviceId,
+        name: v.name,
+        baseName: v.baseName,
+        email: v.email,
+        lastHeartbeat: v.lastHeartbeat,
+        replaced: v.replaced
+      }))
     };
   }
 }
