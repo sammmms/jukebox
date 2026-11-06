@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const IS_VERCEL = Boolean(process.env.VERCEL);
-const APP_VERSION = '2.12.0';
+const APP_VERSION = '2.13.0';
 
 const DEFAULT_STARTER_TRACK = {
   videoId: 'bu7nU9Mhpyo',
@@ -29,6 +29,7 @@ class Room {
     // Current Song
     this.currentSong = options.currentSong && options.currentSong.videoId ? {
       ...options.currentSong,
+      songDuration: (typeof options.currentSong.songDuration === 'number' && options.currentSong.songDuration > 0) ? Math.round(options.currentSong.songDuration) : 215,
       imageSrc: options.currentSong.thumbnail || options.currentSong.imageSrc || '',
       isPaused: typeof options.currentSong.isPaused === 'boolean' ? options.currentSong.isPaused : true
     } : { ...DEFAULT_STARTER_TRACK };
@@ -105,6 +106,7 @@ class Room {
   }
 
   getPartyHostInfo() {
+    this.checkHostVacant();
     const isVacant = this.partyHost.name === null;
     let pending = null;
     if (this.pendingTakeover && this.partyHost.name) {

@@ -9,7 +9,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.12.0';
+const APP_VERSION = '2.13.0';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -537,6 +537,7 @@ async function advanceNextTrack(targetRoomOrSkipped = null, skippedByUser = null
       const fallback = AUTOPLAY_FALLBACK_TRACKS.find(t => t.videoId === nextItem.videoId);
       if (fallback && fallback.songDuration) dur = fallback.songDuration;
     }
+    if (!dur || dur <= 0) dur = 215;
     targetRoom.currentSong = {
       videoId: nextItem.videoId,
       title: nextItem.title,
@@ -1717,6 +1718,19 @@ app.get('/api/status', async (req, res) => {
   res.setHeader('Expires', '0');
 
   const room = req.room;
+  room.checkHostVacant();
+
+  // Serverless Auto-Advance Watchdog: if track completed while function was idle/frozen
+  if (!room.playbackTracker.isPaused && room.currentSong && room.currentSong.videoId && room.currentSong.title !== 'No song playing') {
+    const dur = (room.currentSong.songDuration && room.currentSong.songDuration > 0) ? room.currentSong.songDuration : 215;
+    const now = Date.now();
+    const delta = (now - room.playbackTracker.lastUpdated) / 1000;
+    const rawElapsed = (room.playbackTracker.elapsed || 0) + delta;
+    if (rawElapsed >= dur + 1) {
+      await advanceNextTrack(room, 'Serverless Auto-Advance');
+    }
+  }
+
   const currentIp = getLocalIp();
   const activePublicUrl = dynamicPublicUrl || (process.env.PUBLIC_URL || (process.env.CLOUDFLARE_TUNNEL_TOKEN ? 'https://dj.wsnsam.my.id' : null));
 
@@ -1840,8 +1854,8 @@ app.post('/api/playlist/queue', async (req, res) => {
 
 // 3. Add to Queue / Transfer Song to YouTube Music
 app.post('/api/queue', async (req, res) => {
-  let { input, user, title, artist, thumbnail, songDuration } = req.body;
-  let videoId = extractVideoId(input);
+  let { input, videoId: reqVideoId, user, title, artist, thumbnail, songDuration } = req.body;
+  let videoId = extractVideoId(input || reqVideoId);
 
   if (!videoId) {
     return res.status(400).json({ error: 'Format link atau ID YouTube tidak valid.' });
