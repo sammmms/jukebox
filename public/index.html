@@ -380,18 +380,19 @@
             <h1 class="hidden sm:inline text-sm sm:text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
               Party Jukebox
             </h1>
-            <button onclick="openRoomsModal()" id="header-room-btn" title="Ganti / Buat Party Room"
-                    class="flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-colors cursor-pointer truncate max-w-[125px] sm:max-w-none">
+            <button onclick="openRoomsModal()" id="header-room-btn" title="Ganti / Bagikan Party Room"
+                    class="flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-colors cursor-pointer truncate max-w-[155px] sm:max-w-none">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-              <span id="header-room-name" class="font-semibold truncate">Main Party</span>
+              <span id="header-room-name" class="font-semibold truncate">Pilih Party</span>
+              <span id="header-room-code" class="font-mono text-[9px] px-1 py-0.2 rounded bg-rose-500/15 text-rose-600 dark:text-rose-400 font-extrabold uppercase">#---</span>
               <i data-lucide="chevron-down" class="w-3 h-3 opacity-60 shrink-0"></i>
             </button>
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.13.10)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.14.0)"
                     class="hidden sm:inline-block px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer">
-              v2.13.10
+              v2.14.0
             </button>
           </div>
           <div id="connection-btn" class="hidden md:flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
@@ -914,82 +915,227 @@
 
   
   <!-- ============================================================
+       MANDATORY PARTY GATE MODAL (Start with Choosing / Creating Party)
+       ============================================================ -->
+  <div id="party-gate-modal" class="hidden fixed inset-0 z-[60] bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 transition-all duration-300 opacity-0 pointer-events-none">
+    <div class="bg-white dark:bg-[#11131a] rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-2xl w-full max-w-md p-5 sm:p-6 space-y-4 text-zinc-900 dark:text-zinc-100 max-h-[92vh] overflow-y-auto">
+      
+      <!-- Brand & Title -->
+      <div class="relative text-center space-y-1.5 pb-2 border-b border-zinc-100 dark:border-zinc-800/80">
+        <button id="gate-close-btn" type="button" onclick="closePartyGateModal()" class="hidden absolute top-0 right-0 p-1.5 rounded-xl text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all cursor-pointer" title="Tutup">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+        <div class="w-12 h-12 mx-auto rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center border border-rose-500/20 shadow-xs mb-2">
+          <i data-lucide="radio" class="w-6 h-6"></i>
+        </div>
+        <h2 class="text-lg font-bold tracking-tight text-zinc-900 dark:text-white">Pilih atau Buat Party</h2>
+        <p class="text-xs text-zinc-500 dark:text-zinc-400 max-w-xs mx-auto">
+          Semua party bersifat private. Masuk dengan kode room atau buat party baru untuk memutar musik &amp; karaoke bersama.
+        </p>
+      </div>
+
+      <!-- Segmented Tab Switcher: Join vs Create -->
+      <div class="flex rounded-xl bg-zinc-100 dark:bg-zinc-900 p-1 border border-zinc-200/80 dark:border-zinc-800 text-xs font-semibold">
+        <button type="button" id="gate-tab-join" onclick="switchGateTab('join')" class="flex-1 py-2 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-2xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+          <i data-lucide="key-round" class="w-3.5 h-3.5 text-rose-500"></i>
+          <span>Gabung Room</span>
+        </button>
+        <button type="button" id="gate-tab-create" onclick="switchGateTab('create')" class="flex-1 py-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+          <i data-lucide="plus-circle" class="w-3.5 h-3.5 text-rose-500"></i>
+          <span>Buat Party Baru</span>
+        </button>
+      </div>
+
+      <!-- TAB 1: JOIN WITH ROOM CODE -->
+      <div id="gate-panel-join" class="space-y-3.5 pt-1">
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+            Kode Room Party (Maks 6 Karakter):
+          </label>
+          <div class="relative">
+            <input type="text" id="gate-join-code-input" maxlength="6" placeholder="Contoh: SAM99"
+                   class="w-full text-center text-lg font-mono font-bold tracking-widest uppercase bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2.5 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all"
+                   oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0,6);"
+                   onkeydown="if(event.key==='Enter') joinPartyByCode();">
+          </div>
+          <p class="text-[11px] text-zinc-500 dark:text-zinc-400">
+            Dapatkan kode room 6-huruf/angka dari teman atau host party.
+          </p>
+        </div>
+        <button type="button" id="gate-join-btn" onclick="joinPartyByCode()"
+                class="w-full py-2.5 rounded-xl text-xs font-bold bg-rose-500 hover:bg-rose-600 text-white active:scale-[0.99] transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs">
+          <span>Masuk Party</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- TAB 2: CREATE NEW PARTY -->
+      <div id="gate-panel-create" class="hidden space-y-3.5 pt-1">
+        <div class="space-y-1.5">
+          <label class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+            Nama Party:
+          </label>
+          <input type="text" id="gate-create-name-input" placeholder="Contoh: Ultah Sam / Karaoke Night" maxlength="40"
+                 class="w-full text-xs bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all">
+        </div>
+
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              Kode Room Kustom <span class="text-zinc-400 font-normal">(Opsional)</span>:
+            </label>
+            <span class="text-[10px] font-mono text-zinc-400">Maks 6 karakter</span>
+          </div>
+          <input type="text" id="gate-create-code-input" placeholder="Contoh: SAM99 (Kosong = Acak)" maxlength="6"
+                 class="w-full text-xs font-mono font-bold uppercase bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all"
+                 oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0,6);"
+                 onkeydown="if(event.key==='Enter') createPartyFromGate();">
+          <p class="text-[11px] text-zinc-500 dark:text-zinc-400">
+            Bisa pilih kode sendiri hingga 6 huruf/angka, atau kosongkan untuk kode acak 6-karakter otomatis.
+          </p>
+        </div>
+
+        <button type="button" id="gate-create-btn" onclick="createPartyFromGate()"
+                class="w-full py-2.5 rounded-xl text-xs font-bold bg-rose-500 hover:bg-rose-600 text-white active:scale-[0.99] transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs">
+          <span>Buat Party &amp; Mulai</span>
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- SECTION: RECENT KNOWN ROOMS -->
+      <div id="gate-recent-section" class="border-t border-zinc-100 dark:border-zinc-800/80 pt-3 space-y-2">
+        <div class="flex items-center justify-between text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">
+          <span>Party Terakhir Kamu</span>
+        </div>
+        <div id="gate-recent-list" class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+          <!-- Populated dynamically from localStorage -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MODAL: DUPLICATE USER IN ROOM (Single vs Multi-Device Choice)
+       ============================================================ -->
+  <div id="duplicate-user-modal" class="hidden fixed inset-0 z-[70] bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 transition-all duration-300 opacity-0 pointer-events-none">
+    <div class="bg-white dark:bg-[#11131a] rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-2xl w-full max-w-md p-5 sm:p-6 space-y-4 text-zinc-900 dark:text-zinc-100 cursor-default">
+      
+      <!-- Icon & Header -->
+      <div class="text-center space-y-1.5 pb-2 border-b border-zinc-100 dark:border-zinc-800/80">
+        <div class="w-12 h-12 mx-auto rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center border border-amber-500/20 shadow-xs mb-2">
+          <i data-lucide="smartphone" class="w-6 h-6"></i>
+        </div>
+        <h2 class="text-lg font-bold tracking-tight text-zinc-900 dark:text-white">Akun Terdeteksi di Perangkat Lain</h2>
+        <p class="text-xs text-zinc-600 dark:text-zinc-400 max-w-sm mx-auto">
+          Nama/Akun <strong id="dup-modal-username" class="font-bold text-rose-500">User</strong> saat ini sedang aktif di room party ini dari perangkat lain.
+        </p>
+      </div>
+
+      <div class="space-y-2.5">
+        <p class="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+          Pilih bagaimana Anda ingin masuk ke room ini:
+        </p>
+
+        <!-- Option 1: Takeover / Device ini saja -->
+        <button type="button" onclick="resolveDuplicateUser('takeover')"
+                class="w-full text-left p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-rose-500 dark:hover:border-rose-500 bg-zinc-50/80 dark:bg-zinc-900/40 hover:bg-rose-500/5 transition-all group cursor-pointer active:scale-[0.99]">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-zinc-200 dark:bg-zinc-800 group-hover:bg-rose-500 group-hover:text-white text-zinc-700 dark:text-zinc-300 flex items-center justify-center shrink-0 transition-colors">
+              <i data-lucide="smartphone" class="w-4 h-4"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <h4 class="text-xs font-bold text-zinc-900 dark:text-white group-hover:text-rose-500 transition-colors">
+                Masuk dari Device Ini Saja
+              </h4>
+              <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                Keluarkan sesi di perangkat lain dan jadikan perangkat ini satu-satunya sesi aktif.
+              </p>
+            </div>
+          </div>
+        </button>
+
+        <!-- Option 2: Duplicate / Device ini juga with [N] -->
+        <button type="button" onclick="resolveDuplicateUser('duplicate')"
+                class="w-full text-left p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:border-emerald-500 dark:hover:border-emerald-500 bg-zinc-50/80 dark:bg-zinc-900/40 hover:bg-emerald-500/5 transition-all group cursor-pointer active:scale-[0.99]">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-zinc-200 dark:bg-zinc-800 group-hover:bg-emerald-500 group-hover:text-white text-zinc-700 dark:text-zinc-300 flex items-center justify-center shrink-0 transition-colors">
+              <i data-lucide="users" class="w-4 h-4"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <h4 class="text-xs font-bold text-zinc-900 dark:text-white group-hover:text-emerald-500 transition-colors">
+                Masuk di Device Ini Juga (Beri Tanda [N])
+              </h4>
+              <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                Buka sesi bersamaan. Perangkat ini akan ditandai dengan nomor duplikat (contoh: <span id="dup-modal-preview-name" class="font-mono font-semibold text-emerald-600 dark:text-emerald-400">User [2]</span>).
+              </p>
+            </div>
+          </div>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================
        MULTI-PARTY ROOMS & SHARING MODAL
        ============================================================ -->
   <div id="rooms-modal" onclick="if (event.target === this) closeRoomsModal()" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 transition-all duration-200 opacity-0 pointer-events-none cursor-pointer">
-    <div class="bg-white dark:bg-[#11131a] rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-2xl w-full max-w-lg p-5 sm:p-6 space-y-5 text-zinc-900 dark:text-zinc-100 cursor-default max-h-[90vh] overflow-y-auto">
+    <div class="bg-white dark:bg-[#11131a] rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-2xl w-full max-w-lg p-5 sm:p-6 space-y-4 text-zinc-900 dark:text-zinc-100 cursor-default max-h-[90vh] overflow-y-auto">
       
       <!-- Modal Header -->
       <div class="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800/80 pb-3">
         <div>
           <div class="flex items-center gap-2">
             <i data-lucide="radio" class="w-4 h-4 text-rose-500"></i>
-            <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">Party Rooms</h2>
+            <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">Party Room</h2>
           </div>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Buat, ganti, dan bagikan room party kamu</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Kode room &amp; bagikan link ke teman</p>
         </div>
         <button onclick="closeRoomsModal()" class="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 flex items-center justify-center text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors cursor-pointer">
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
 
-      <!-- SECTION 1: Active Room & 1-Click Share -->
+      <!-- SECTION 1: Active Room & 1-Click Share & Room Code -->
       <div class="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/30 p-4 space-y-3">
         <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span class="text-xs font-medium text-zinc-600 dark:text-zinc-400">Room Saat Ini:</span>
-            <span id="modal-current-room-title" class="text-xs font-bold text-rose-500">Main Party</span>
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+            <span class="text-xs font-medium text-zinc-600 dark:text-zinc-400 shrink-0">Room:</span>
+            <span id="modal-current-room-title" class="text-xs font-bold text-rose-500 truncate">Party</span>
           </div>
-          <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-200/80 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">Aktif</span>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <span class="text-[11px] text-zinc-400">Kode:</span>
+            <span id="modal-current-room-code" class="font-mono text-xs px-2 py-0.5 rounded bg-rose-500/15 text-rose-600 dark:text-rose-400 font-extrabold uppercase">#---</span>
+            <button onclick="copyModalRoomCode()" title="Salin Kode Room" class="px-2 py-0.5 rounded text-[11px] font-medium bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 active:scale-95 transition-all cursor-pointer">
+              Salin Kode
+            </button>
+          </div>
         </div>
 
         <div class="flex items-center gap-3">
           <img id="modal-room-qr-img" src="" alt="Scan QR Room" class="w-20 h-20 rounded-lg bg-white p-1 border border-zinc-200 dark:border-zinc-700 shrink-0">
           <div class="min-w-0 flex-1 space-y-2">
-            <p class="text-[11px] text-zinc-500 dark:text-zinc-400">Scan QR atau salin link ini untuk mengundang teman ke party ini:</p>
+            <p class="text-[11px] text-zinc-500 dark:text-zinc-400">Scan QR atau salin link ini untuk mengundang teman ke party:</p>
             <div class="flex items-center gap-1.5">
               <input type="text" id="modal-room-share-url" readonly class="w-full text-[11px] font-mono bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-2.5 py-1.5 text-zinc-700 dark:text-zinc-300 select-all focus:outline-none">
               <button onclick="copyModalRoomUrl()" id="modal-copy-btn" class="shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-900 active:scale-95 transition-all cursor-pointer flex items-center gap-1">
                 <i data-lucide="copy" class="w-3 h-3"></i>
-                <span id="modal-copy-text">Salin</span>
+                <span id="modal-copy-text">Salin Link</span>
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- SECTION 2: Buat Party Baru -->
-      <div class="space-y-3 border-t border-zinc-100 dark:border-zinc-800/80 pt-4">
-        <h3 class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider flex items-center gap-1.5">
-          <i data-lucide="plus-circle" class="w-3.5 h-3.5 text-rose-500"></i>
-          <span>Buat Party Baru</span>
-        </h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <input type="text" id="new-room-name-input" placeholder="Nama Party (contoh: Ultah Sam)" class="text-xs bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 py-2 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-rose-500">
-          <input type="text" id="new-room-id-input" placeholder="Kode / ID (opsional)" class="text-xs bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 py-2 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-rose-500 font-mono">
-        </div>
-        <button onclick="createPartyRoom()" class="w-full py-2.5 rounded-lg text-xs font-semibold bg-rose-500 hover:bg-rose-600 text-white active:scale-[0.99] transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-xs">
-          <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-          <span>Buat & Masuk Party Baru</span>
+      <!-- SECTION 2: Ganti / Buka Party Lain -->
+      <div class="space-y-2.5 border-t border-zinc-100 dark:border-zinc-800/80 pt-3">
+        <button onclick="closeRoomsModal(); openPartyGateModal(false);"
+                class="w-full py-2.5 rounded-xl text-xs font-semibold bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 active:scale-[0.99] transition-all cursor-pointer flex items-center justify-center gap-2">
+          <i data-lucide="log-out" class="w-3.5 h-3.5 text-zinc-500"></i>
+          <span>Ganti Party / Gabung Room Lain</span>
         </button>
-      </div>
-
-      <!-- SECTION 3: Daftar Party Aktif -->
-      <div class="space-y-3 border-t border-zinc-100 dark:border-zinc-800/80 pt-4">
-        <div class="flex items-center justify-between">
-          <h3 class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider flex items-center gap-1.5">
-            <i data-lucide="users" class="w-3.5 h-3.5 text-zinc-500"></i>
-            <span>Daftar Party Aktif</span>
-          </h3>
-          <button onclick="fetchRoomsList()" class="text-[11px] text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 font-medium cursor-pointer flex items-center gap-1">
-            <i data-lucide="rotate-cw" class="w-3 h-3"></i>
-            <span>Refresh</span>
-          </button>
-        </div>
-        <div id="rooms-list-container" class="space-y-2 max-h-48 overflow-y-auto pr-1">
-          <p class="text-xs text-zinc-500 py-3 text-center">Memuat daftar room...</p>
-        </div>
       </div>
 
     </div>
@@ -1006,7 +1152,7 @@
           <i data-lucide="sparkles" class="w-4 h-4 text-rose-500"></i>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.13.10</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.14.0</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs flex items-center justify-center"><i data-lucide="x" class="w-4 h-4"></i></button>
@@ -1014,6 +1160,19 @@
 
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
+        
+        <!-- v2.14.0 -->
+        <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.14.0 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">Semua Party Bersifat Private &amp; Gerbang Wajib Pilih Room:</strong> Tidak ada lagi party default umum terbuka tanpa pembuat. Pengguna wajib masuk melalui tautan ber-kode, memasukkan kode room (maksimal 6 karakter), atau membuat party sendiri dengan kode kustom maupun kode 6-karakter acak otomatis.</li>
+            <li><strong class="text-slate-800 dark:text-white">Resolusi Duplikat Akun Lintas Perangkat ([N]):</strong> Jika akun/nama pengguna aktif di satu room dari perangkat lain, sistem memberikan opsi jelas: masuk dari perangkat ini saja (mengeluarkan perangkat lain) atau tetap masuk di perangkat ini juga secara bersamaan dengan penanda otomatis <code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">[N]</code> (misal: <em>Samuel Onasis [2]</em>).</li>
+            <li><strong class="text-slate-800 dark:text-white">Kemudahan Berbagi Kode &amp; Tautan:</strong> Indikator kode room (#CODE) ditampilkan langsung pada header utama, kartu Undang Teman, dan modal room dengan fitur 1-klik salin kode maupun salin link.</li>
+          </ul>
+        </div>
         
         <!-- v2.13.10 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
@@ -2259,7 +2418,7 @@
     <div class="text-left text-xs min-w-0 flex-1">
       <div class="flex items-center gap-1.5 flex-wrap">
         <span class="font-black text-white">Versi Baru Tersedia!</span>
-        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.13.10</span>
+        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.14.0</span>
       </div>
       <p class="text-[11px] text-pink-100 opacity-90 mt-0.5">Pembaruan server siap. Muat ulang saat siap.</p>
     </div>
@@ -2278,32 +2437,47 @@
        ============================================================ -->
   <script>
 
-    // --- MULTI-PARTY ROOM STATE & TRANSPARENT FETCH INTERCEPTOR ---
-    const _urlParams = new URLSearchParams(window.location.search);
-    let currentRoomId = (_urlParams.get('room') || localStorage.getItem('jukebox_room_id') || 'main')
-      .toLowerCase()
-      .replace(/[^a-z0-9_-]/g, '') || 'main';
-    let currentRoomName = currentRoomId === 'main' ? 'Main Party' : `Party ${currentRoomId}`;
-    localStorage.setItem('jukebox_room_id', currentRoomId);
+    // --- MULTI-PARTY ROOM & DEVICE PRESENCE STATE ---
+    let currentDeviceId = localStorage.getItem('jukebox_device_id');
+    if (!currentDeviceId) {
+      currentDeviceId = 'dev_' + Math.random().toString(36).slice(2, 9) + '_' + Date.now().toString(36);
+      localStorage.setItem('jukebox_device_id', currentDeviceId);
+    }
 
-    function getKnownRooms() {
+    const _urlParams = new URLSearchParams(window.location.search);
+    const initialUrlRoom = (_urlParams.get('room') || '').trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 6);
+    let currentRoomId = initialUrlRoom || '';
+    let currentRoomName = currentRoomId ? `Party #${currentRoomId}` : '';
+
+    function getSavedKnownRooms() {
       try {
-        const stored = JSON.parse(localStorage.getItem('jukebox_known_rooms') || '[]');
-        return Array.isArray(stored) ? stored : [];
+        const raw = JSON.parse(localStorage.getItem('jukebox_known_rooms_v2') || '[]');
+        return Array.isArray(raw) ? raw : [];
       } catch (e) {
         return [];
       }
     }
 
-    function addKnownRoom(roomId) {
-      if (!roomId) return;
-      const list = getKnownRooms();
-      if (!list.includes(roomId)) {
-        list.push(roomId);
-        localStorage.setItem('jukebox_known_rooms', JSON.stringify(list.slice(-25)));
-      }
+    function saveKnownRoom(code, name) {
+      if (!code) return;
+      const cleanCode = String(code).toUpperCase().slice(0, 6);
+      const cleanName = (name || `Party #${cleanCode}`).slice(0, 40);
+      let list = getSavedKnownRooms().filter(r => r.code !== cleanCode);
+      list.unshift({ code: cleanCode, name: cleanName, lastVisited: Date.now() });
+      localStorage.setItem('jukebox_known_rooms_v2', JSON.stringify(list.slice(0, 15)));
+      // Backward compatibility
+      try {
+        const oldList = JSON.parse(localStorage.getItem('jukebox_known_rooms') || '[]');
+        if (!oldList.includes(cleanCode)) {
+          oldList.push(cleanCode);
+          localStorage.setItem('jukebox_known_rooms', JSON.stringify(oldList.slice(-25)));
+        }
+      } catch (e) {}
     }
-    addKnownRoom(currentRoomId);
+
+    if (currentRoomId) {
+      saveKnownRoom(currentRoomId, currentRoomName);
+    }
 
     // Refresh Lucide Icons Helper
     function refreshLucideIcons() {
@@ -2314,23 +2488,27 @@
 
     // Synchronize browser address bar without reload
     function syncRoomUrl(roomId) {
-      currentRoomId = (roomId || 'main').toLowerCase().replace(/[^a-z0-9_-]/g, '') || 'main';
-      localStorage.setItem('jukebox_room_id', currentRoomId);
-      const newUrl = currentRoomId === 'main' 
-        ? window.location.pathname 
-        : `${window.location.pathname}?room=${encodeURIComponent(currentRoomId)}`;
-      window.history.replaceState({ room: currentRoomId }, '', newUrl);
+      currentRoomId = (roomId || '').toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 6);
+      if (currentRoomId) {
+        localStorage.setItem('jukebox_room_id', currentRoomId);
+        const newUrl = `${window.location.pathname}?room=${encodeURIComponent(currentRoomId)}`;
+        window.history.replaceState({ room: currentRoomId }, '', newUrl);
+      } else {
+        localStorage.removeItem('jukebox_room_id');
+        window.history.replaceState({}, '', window.location.pathname);
+      }
       updateShareLinks();
     }
 
-    // Transparent Fetch Interceptor: Attaches X-Room-Id to all /api/ requests
+    // Transparent Fetch Interceptor: Attaches X-Room-Id and X-Device-Id to all /api/ requests
     const _originalFetch = window.fetch;
     window.fetch = function(resource, init = {}) {
       if (typeof resource === 'string' && resource.startsWith('/api/') && !resource.includes('/api/audio/stream/')) {
         const opts = { ...init };
         opts.headers = {
           ...(opts.headers || {}),
-          'X-Room-Id': currentRoomId
+          'X-Room-Id': currentRoomId || '',
+          'X-Device-Id': currentDeviceId
         };
         return _originalFetch.call(this, resource, opts);
       }
@@ -2338,16 +2516,16 @@
     };
 
     function updateShareLinks() {
-      const shareUrl = currentRoomId === 'main'
-        ? window.location.origin
-        : `${window.location.origin}/?room=${encodeURIComponent(currentRoomId)}`;
+      const shareUrl = currentRoomId
+        ? `${window.location.origin}/?room=${encodeURIComponent(currentRoomId)}`
+        : window.location.origin;
       currentHostShareUrl = shareUrl;
 
       const hostUrlText = document.getElementById('host-url-text');
-      if (hostUrlText) hostUrlText.textContent = shareUrl;
+      if (hostUrlText) hostUrlText.textContent = currentRoomId ? shareUrl : 'Pilih atau Buat Party Terlebih Dahulu';
 
       const hostQrImg = document.getElementById('host-qr-img');
-      if (hostQrImg) {
+      if (hostQrImg && currentRoomId) {
         hostQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(shareUrl)}`;
       }
 
@@ -2355,20 +2533,30 @@
       if (modalShareUrl) modalShareUrl.value = shareUrl;
 
       const modalQrImg = document.getElementById('modal-room-qr-img');
-      if (modalQrImg) {
+      if (modalQrImg && currentRoomId) {
         modalQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(shareUrl)}`;
       }
 
       const headerRoomName = document.getElementById('header-room-name');
-      if (headerRoomName) headerRoomName.textContent = currentRoomName;
+      if (headerRoomName) headerRoomName.textContent = currentRoomName || 'Pilih Party';
+
+      const headerRoomCode = document.getElementById('header-room-code');
+      if (headerRoomCode) headerRoomCode.textContent = currentRoomId ? `#${currentRoomId}` : '#---';
 
       const modalRoomTitle = document.getElementById('modal-current-room-title');
-      if (modalRoomTitle) modalRoomTitle.textContent = currentRoomName;
+      if (modalRoomTitle) modalRoomTitle.textContent = currentRoomName || 'Belum Ada Party';
+
+      const modalRoomCode = document.getElementById('modal-current-room-code');
+      if (modalRoomCode) modalRoomCode.textContent = currentRoomId ? `#${currentRoomId}` : '#---';
 
       setTimeout(refreshLucideIcons, 0);
     }
 
     function openRoomsModal() {
+      if (!currentRoomId) {
+        openPartyGateModal(true);
+        return;
+      }
       const modal = document.getElementById('rooms-modal');
       if (modal) {
         updateShareLinks();
@@ -2387,50 +2575,147 @@
       }
     }
 
+    async function copyModalRoomCode() {
+      if (!currentRoomId) return;
+      try {
+        await navigator.clipboard.writeText(currentRoomId);
+        showToast(`Kode room #${currentRoomId} berhasil disalin!`);
+      } catch (e) {
+        showToast(`Kode room: ${currentRoomId}`);
+      }
+    }
+
     async function copyModalRoomUrl() {
-      const shareUrl = currentRoomId === 'main'
-        ? window.location.origin
-        : `${window.location.origin}/?room=${encodeURIComponent(currentRoomId)}`;
+      if (!currentRoomId) return;
+      const shareUrl = `${window.location.origin}/?room=${encodeURIComponent(currentRoomId)}`;
       try {
         await navigator.clipboard.writeText(shareUrl);
         const text = document.getElementById('modal-copy-text');
         if (text) text.textContent = 'Disalin!';
         showToast('Link room party berhasil disalin!');
         setTimeout(() => {
-          if (text) text.textContent = 'Salin';
+          if (text) text.textContent = 'Salin Link';
         }, 2000);
       } catch (e) {
         showToast(`Buka link: ${shareUrl}`);
       }
     }
 
-    async function switchRoom(targetRoomId) {
-      if (!targetRoomId || targetRoomId === currentRoomId) return;
-      syncRoomUrl(targetRoomId);
-      currentRoomName = targetRoomId === 'main' ? 'Main Party' : `Party ${targetRoomId}`;
-      updateShareLinks();
-      showToast(`Masuk ke room "${currentRoomName}"...`);
-
-      if (sseSource) {
-        try { sseSource.close(); } catch (e) {}
-        sseSource = null;
+    // ============================================================
+    // MANDATORY PARTY GATE MODAL LOGIC
+    // ============================================================
+    function openPartyGateModal(isMandatory = false) {
+      const modal = document.getElementById('party-gate-modal');
+      if (!modal) return;
+      renderRecentRoomsInGate();
+      const closeBtn = document.getElementById('gate-close-btn');
+      if (closeBtn) {
+        if (!currentRoomId || isMandatory) {
+          closeBtn.classList.add('hidden');
+        } else {
+          closeBtn.classList.remove('hidden');
+        }
       }
-      setupSSE();
-      await fetchStatus();
-      closeRoomsModal();
+      modal.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+      modal.classList.add('opacity-100');
+      setTimeout(() => {
+        const input = document.getElementById('gate-join-code-input');
+        if (input) input.focus();
+        refreshLucideIcons();
+      }, 60);
     }
 
-    async function createPartyRoom() {
-      const nameInput = document.getElementById('new-room-name-input');
-      const idInput = document.getElementById('new-room-id-input');
+    function closePartyGateModal() {
+      if (!currentRoomId) {
+        showToast('Wajib memilih atau membuat party terlebih dahulu!');
+        return;
+      }
+      const modal = document.getElementById('party-gate-modal');
+      if (modal) {
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+      }
+    }
+
+    function switchGateTab(tab) {
+      const btnJoin = document.getElementById('gate-tab-join');
+      const btnCreate = document.getElementById('gate-tab-create');
+      const panelJoin = document.getElementById('gate-panel-join');
+      const panelCreate = document.getElementById('gate-panel-create');
+
+      if (tab === 'join') {
+        if (btnJoin) btnJoin.className = 'flex-1 py-2 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-2xs flex items-center justify-center gap-1.5 transition-all cursor-pointer';
+        if (btnCreate) btnCreate.className = 'flex-1 py-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center justify-center gap-1.5 transition-all cursor-pointer';
+        if (panelJoin) panelJoin.classList.remove('hidden');
+        if (panelCreate) panelCreate.classList.add('hidden');
+        const inp = document.getElementById('gate-join-code-input');
+        if (inp) inp.focus();
+      } else {
+        if (btnCreate) btnCreate.className = 'flex-1 py-2 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-2xs flex items-center justify-center gap-1.5 transition-all cursor-pointer';
+        if (btnJoin) btnJoin.className = 'flex-1 py-2 rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center justify-center gap-1.5 transition-all cursor-pointer';
+        if (panelCreate) panelCreate.classList.remove('hidden');
+        if (panelJoin) panelJoin.classList.add('hidden');
+        const inp = document.getElementById('gate-create-name-input');
+        if (inp) inp.focus();
+      }
+      refreshLucideIcons();
+    }
+
+    async function joinPartyByCode(explicitCode = null) {
+      const input = document.getElementById('gate-join-code-input');
+      const rawCode = explicitCode || (input ? input.value : '');
+      const code = String(rawCode || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+
+      if (!code || code.length < 2) {
+        showToast('Masukkan kode room minimal 2 huruf/angka.');
+        if (input) input.focus();
+        return;
+      }
+
+      const btn = document.getElementById('gate-join-btn');
+      if (btn) btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/rooms/check/' + encodeURIComponent(code));
+        const data = await res.json();
+        if (data && data.exists && data.room) {
+          currentRoomId = data.room.id;
+          currentRoomName = data.room.name || `Party #${data.room.id}`;
+          saveKnownRoom(data.room.id, data.room.name);
+          syncRoomUrl(data.room.id);
+          closePartyGateModal();
+          showToast(`Masuk ke party "${currentRoomName}"!`);
+          await checkDevicePresence();
+          if (sseSource) {
+            try { sseSource.close(); } catch (e) {}
+            sseSource = null;
+          }
+          setupSSE();
+          fetchStatus();
+        } else {
+          showToast(data.error || `Room dengan kode "${code}" tidak ditemukan.`);
+        }
+      } catch (err) {
+        showToast('Gagal menghubungkan ke server.');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    async function createPartyFromGate() {
+      const nameInput = document.getElementById('gate-create-name-input');
+      const codeInput = document.getElementById('gate-create-code-input');
       const name = nameInput ? nameInput.value.trim() : '';
-      const customId = idInput ? idInput.value.trim() : '';
+      const customCode = codeInput ? codeInput.value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6) : '';
 
       if (!name) {
-        showToast('Masukkan nama room party terlebih dahulu!');
+        showToast('Masukkan nama party terlebih dahulu!');
         if (nameInput) nameInput.focus();
         return;
       }
+
+      const btn = document.getElementById('gate-create-btn');
+      if (btn) btn.disabled = true;
 
       try {
         const res = await fetch('/api/rooms', {
@@ -2438,77 +2723,212 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name,
-            id: customId,
-            creator: currentUser || 'DJ'
+            id: customCode,
+            creator: currentUser || 'Host'
+          })
+        });
+
+        if (res.status === 409 && customCode) {
+          showToast(`Room #${customCode} sudah ada, langsung bergabung...`);
+          await joinPartyByCode(customCode);
+          return;
+        }
+
+        const data = await res.json();
+        if (data && data.success && data.room) {
+          currentRoomId = data.room.id;
+          currentRoomName = data.room.name || `Party #${data.room.id}`;
+          saveKnownRoom(data.room.id, data.room.name);
+          syncRoomUrl(data.room.id);
+          closePartyGateModal();
+          showToast(`Party "${currentRoomName}" (#${currentRoomId}) berhasil dibuat!`);
+          await checkDevicePresence();
+          if (sseSource) {
+            try { sseSource.close(); } catch (e) {}
+            sseSource = null;
+          }
+          setupSSE();
+          fetchStatus();
+        } else {
+          showToast(data.error || 'Gagal membuat party room.');
+        }
+      } catch (err) {
+        showToast('Gagal menghubungkan ke server saat membuat party.');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    function renderRecentRoomsInGate() {
+      const container = document.getElementById('gate-recent-list');
+      const section = document.getElementById('gate-recent-section');
+      if (!container || !section) return;
+
+      const recent = getSavedKnownRooms();
+      if (recent.length === 0) {
+        section.classList.add('hidden');
+        return;
+      }
+      section.classList.remove('hidden');
+      container.innerHTML = recent.map(r => `
+        <div class="flex items-center justify-between p-2 rounded-xl bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200/80 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all">
+          <div class="min-w-0 flex-1 pr-2">
+            <h5 class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate">${escapeHtml(r.name)}</h5>
+            <span class="font-mono text-[10px] font-bold text-rose-500">#${escapeHtml(r.code)}</span>
+          </div>
+          <button type="button" onclick="joinPartyByCode('${escapeHtml(r.code)}')"
+                  class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-900 active:scale-95 transition-all cursor-pointer shrink-0">
+            Masuk
+          </button>
+        </div>
+      `).join('');
+    }
+
+    async function initPartySystem() {
+      if (initialUrlRoom) {
+        try {
+          const res = await fetch('/api/rooms/check/' + encodeURIComponent(initialUrlRoom));
+          const data = await res.json();
+          if (data && data.exists && data.room) {
+            currentRoomId = data.room.id;
+            currentRoomName = data.room.name || `Party #${data.room.id}`;
+            saveKnownRoom(data.room.id, data.room.name);
+            syncRoomUrl(data.room.id);
+            closePartyGateModal();
+            await checkDevicePresence();
+            setupSSE();
+            fetchStatus();
+            return;
+          } else {
+            showToast(`Room #${initialUrlRoom} tidak ditemukan atau belum dibuat.`);
+            currentRoomId = '';
+            currentRoomName = '';
+            syncRoomUrl('');
+          }
+        } catch (e) {
+          console.warn('[Party Init Error]', e);
+        }
+      }
+      // If no room or invalid room link, always start by choosing/creating party
+      openPartyGateModal(true);
+    }
+
+    // ============================================================
+    // DUPLICATE USER MODAL LOGIC ([N] MULTI-DEVICE SUPPORT)
+    // ============================================================
+    let pendingDuplicateBaseName = '';
+
+    function openDuplicateUserModal(baseName, count) {
+      pendingDuplicateBaseName = baseName;
+      const modal = document.getElementById('duplicate-user-modal');
+      if (!modal) return;
+      const nameEl = document.getElementById('dup-modal-username');
+      const previewEl = document.getElementById('dup-modal-preview-name');
+      if (nameEl) nameEl.textContent = baseName;
+      if (previewEl) previewEl.textContent = `${baseName} [${(count || 1) + 1}]`;
+
+      modal.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+      modal.classList.add('opacity-100');
+      refreshLucideIcons();
+    }
+
+    function closeDuplicateUserModal() {
+      const modal = document.getElementById('duplicate-user-modal');
+      if (modal) {
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+      }
+    }
+
+    async function resolveDuplicateUser(choice) {
+      closeDuplicateUserModal();
+      await checkDevicePresence(choice);
+      showToast(choice === 'takeover'
+        ? 'Sesi aktif di perangkat ini saja.'
+        : `Bergabung bersamaan sebagai "${currentUser}"`
+      );
+      fetchStatus();
+    }
+
+    async function checkDevicePresence(mode = 'check') {
+      if (!currentRoomId || !currentUser) return;
+      try {
+        const res = await fetch('/api/room/presence', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Room-Id': currentRoomId,
+            'X-Device-Id': currentDeviceId
+          },
+          body: JSON.stringify({
+            deviceId: currentDeviceId,
+            name: currentUser,
+            email: currentUserProfile?.email || '',
+            mode: mode
           })
         });
         const data = await res.json();
-        if (data.success && data.room) {
-          if (nameInput) nameInput.value = '';
-          if (idInput) idInput.value = '';
-          addKnownRoom(data.room.id);
-          showToast(`Party "${data.room.name}" berhasil dibuat!`);
-          currentRoomName = data.room.name;
-          await switchRoom(data.room.id);
-        } else {
-          showToast(data.error || 'Gagal membuat room');
+
+        if (data && data.isDuplicate && mode === 'check') {
+          openDuplicateUserModal(data.baseName, data.existingCount);
+        } else if (data && data.finalName) {
+          currentUser = data.finalName;
+          updateUserDisplay();
+        } else if (data && data.replaced) {
+          showToast('Sesi Anda telah dipindahkan ke perangkat lain.');
         }
       } catch (err) {
-        showToast('Koneksi gagal saat membuat room');
+        console.warn('[Presence Check Error]', err);
       }
+    }
+
+    function updateUserDisplay() {
+      const mobileNameEl = document.getElementById('mobile-header-user-name');
+      if (mobileNameEl) mobileNameEl.textContent = currentUser || 'Masuk Google';
+      const guestNameText = document.getElementById('guest-name-text');
+      if (guestNameText) guestNameText.textContent = currentUser || 'Belum Login';
+    }
+
+    async function switchRoom(targetRoomId) {
+      if (!targetRoomId || targetRoomId === currentRoomId) return;
+      await joinPartyByCode(targetRoomId);
+      closeRoomsModal();
     }
 
     async function fetchRoomsList() {
       const listContainer = document.getElementById('rooms-list-container');
       if (!listContainer) return;
-      try {
-        addKnownRoom(currentRoomId);
-        const knownParam = encodeURIComponent(getKnownRooms().join(','));
-        const res = await fetch('/api/rooms?known=' + knownParam);
-        const data = await res.json();
-        if (!data.success || !Array.isArray(data.rooms)) return;
-
-        if (data.rooms.length === 0) {
-          listContainer.innerHTML = '<p class="text-xs text-zinc-500 py-3 text-center">Belum ada room lain yang aktif.</p>';
-          return;
-        }
-
-        listContainer.innerHTML = data.rooms.map(r => {
-          const isCurrent = r.id === currentRoomId;
-          const playingTitle = r.currentSong?.title && r.currentSong.title !== 'No song playing' ? r.currentSong.title : 'Tidak ada lagu playing';
-          return `
-            <div class="flex items-center justify-between p-3 rounded-xl border ${isCurrent ? 'border-rose-500/40 bg-rose-500/5' : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/40'} transition-all">
-              <div class="min-w-0 flex-1 pr-3">
-                <div class="flex items-center gap-2">
-                  <span class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate">${escapeHtml(r.name)}</span>
-                  ${isCurrent ? '<span class="px-1.5 py-0.5 rounded text-[9px] font-medium bg-rose-500 text-white">Aktif</span>' : ''}
-                </div>
-                <p class="text-[11px] text-zinc-500 dark:text-zinc-400 truncate mt-0.5">
-                  <span>Host: ${escapeHtml(r.creator || 'DJ')}</span> • <span>${r.listeners || 0} pendengar</span> • <span>${r.queueCount || 0} antrean</span>
-                </p>
-                <p class="text-[10px] font-mono text-zinc-400 dark:text-zinc-500 truncate mt-0.5 flex items-center gap-1">
-                  <i data-lucide="music" class="w-2.5 h-2.5 inline"></i>
-                  <span>${escapeHtml(playingTitle)}</span>
-                </p>
-              </div>
-              <div>
-                ${isCurrent ? `
-                  <button disabled class="px-3 py-1.5 rounded-lg text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed">
-                    Aktif
-                  </button>
-                ` : `
-                  <button onclick="switchRoom('${r.id}')" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-900 cursor-pointer active:scale-95 transition-all">
-                    Masuk
-                  </button>
-                `}
+      const recent = getSavedKnownRooms();
+      if (recent.length === 0) {
+        listContainer.innerHTML = '<p class="text-xs text-zinc-500 py-3 text-center">Belum ada room lain yang tersimpan.</p>';
+        return;
+      }
+      listContainer.innerHTML = recent.map(r => {
+        const isCurrent = r.code === currentRoomId;
+        return `
+          <div class="flex items-center justify-between p-2.5 rounded-xl border ${isCurrent ? 'border-rose-500/40 bg-rose-500/5' : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/40'} transition-all">
+            <div class="min-w-0 flex-1 pr-3">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate">${escapeHtml(r.name)}</span>
+                <span class="font-mono text-[10px] font-bold text-rose-500">#${escapeHtml(r.code)}</span>
+                ${isCurrent ? '<span class="px-1.5 py-0.2 rounded text-[9px] font-medium bg-rose-500 text-white">Aktif</span>' : ''}
               </div>
             </div>
-          `;
-        }).join('');
-        setTimeout(refreshLucideIcons, 0);
-      } catch (e) {
-        listContainer.innerHTML = '<p class="text-xs text-rose-500 py-3 text-center">Gagal memuat daftar room.</p>';
-      }
+            <div>
+              ${isCurrent ? `
+                <button disabled class="px-2.5 py-1 rounded-lg text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed">
+                  Aktif
+                </button>
+              ` : `
+                <button onclick="joinPartyByCode('${escapeHtml(r.code)}'); closeRoomsModal();" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-900 cursor-pointer active:scale-95 transition-all">
+                  Masuk
+                </button>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+      setTimeout(refreshLucideIcons, 0);
     }
 
     // State
@@ -2530,7 +2950,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.13.10';
+    const CLIENT_VERSION = '2.14.0';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -7255,10 +7675,21 @@
     // Standard Initial Fetch with Retry Resiliency
     let consecutiveFetchErrors = 0;
     async function fetchStatus() {
+      if (!currentRoomId) return;
       try {
         const res = await fetch(`/api/status?_t=${Date.now()}`, { cache: 'no-store' });
+        if (res.status === 400 || res.status === 404) {
+          currentRoomId = '';
+          currentRoomName = '';
+          syncRoomUrl('');
+          openPartyGateModal(true);
+          return;
+        }
         if (!res.ok) throw new Error('Status HTTP ' + res.status);
         const data = await res.json();
+        if (data && data.isDeviceReplaced) {
+          showToast('⚠️ Sesi perangkat ini telah digantikan oleh login baru di perangkat lain.', 5000);
+        }
         consecutiveFetchErrors = 0;
         updateUI(data);
       } catch (err) {
@@ -7275,6 +7706,13 @@
     let sseFallbackPollInterval = null;
 
     function setupSSE() {
+      if (!currentRoomId) {
+        if (sseSource) {
+          try { sseSource.close(); } catch (e) {}
+          sseSource = null;
+        }
+        return;
+      }
       if (sseSource) {
         try { sseSource.close(); } catch (e) {}
         sseSource = null;
@@ -7327,6 +7765,7 @@
 
     // Active Health Watchdog: Detect silent socket drops through Cloudflare/NAT (every 10s)
     setInterval(() => {
+      if (!currentRoomId) return;
       const silenceDuration = Date.now() - lastSSEMessageTime;
       // If no ping/message received in 25s, or sseSource is closed:
       if (silenceDuration > 25000 || !sseSource || sseSource.readyState === 2) {
@@ -7336,7 +7775,10 @@
     }, 10000);
 
     // Continuous background sync interval (guarantees timeline and queue sync even if SSE reconnects)
-    setInterval(fetchStatus, 4000);
+    setInterval(() => {
+      if (!currentRoomId) return;
+      fetchStatus();
+    }, 4000);
 
     // Changelog Modal Open/Close
     function openChangelogModal() {
@@ -7773,10 +8215,9 @@
           }
         }, 700);
       }
+      initPartySystem();
     }
 
-    fetchStatus();
-    setupSSE();
     renderDefaultRecommendations();
 
     // Global Keyboard Shortcuts Engine

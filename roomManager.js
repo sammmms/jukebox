@@ -26,7 +26,7 @@ const path = require('path');
 });
 
 const IS_VERCEL = Boolean(process.env.VERCEL);
-const APP_VERSION = '2.13.10';
+const APP_VERSION = '2.14.0';
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '';
 
@@ -43,21 +43,18 @@ const DEFAULT_STARTER_TRACK = {
   startedAt: Date.now()
 };
 
-const DEFAULT_PRESET_ROOMS = [
-  { id: 'main', name: 'Main Party', creator: 'System' },
-  { id: 'karaoke', name: 'Karaoke Room 🎤', creator: 'System' },
-  { id: 'chill', name: 'Chill & Lo-Fi Lounge ☕', creator: 'System' },
-  { id: 'asian-pop', name: 'Mandarin & Asian Pop 🌸', creator: 'System' }
-];
-
 class Room {
   constructor(options = {}) {
-    this.id = options.id || 'main';
-    this.name = options.name || (this.id === 'main' ? 'Main Party' : `Party ${this.id}`);
-    this.creator = options.creator || 'System';
+    this.id = String(options.id || '').toUpperCase().slice(0, 6);
+    this.code = this.id;
+    this.name = options.name || (this.id ? `Party ${this.id}` : 'Private Party');
+    this.creator = options.creator || 'Host';
     this.createdAt = options.createdAt || Date.now();
     this.lastActive = options.lastActive || Date.now();
     this.isRoomSleeping = Boolean(options.isRoomSleeping);
+
+    // Connected devices & presence (Map<deviceId, { deviceId, name, baseName, email, lastHeartbeat, replaced }>)
+    this.activeDevices = new Map();
 
     // Current Song
     this.currentSong = options.currentSong && options.currentSong.videoId ? {
@@ -117,13 +114,134 @@ class Room {
   }
 
   isIdle() {
-    // Preset rooms are never pruned
-    if (DEFAULT_PRESET_ROOMS.some(p => p.id === this.id)) return false;
-    // If listeners are connected, not idle
-    if (this.clients.size > 0) return false;
-    // If last activity was > 30 minutes ago, considered idle
-    const IDLE_TIMEOUT_MS = 30 * 60 * 1000;
+    // If listeners or active devices are connected, not idle
+    if (this.clients.size > 0 || this.activeDevices.size > 0) return false;
+    // If last activity was > 2 hours ago, considered idle
+    const IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000;
     return (Date.now() - this.lastActive) > IDLE_TIMEOUT_MS;
+  }
+
+  registerDevicePresence(deviceId, name, email, mode = 'check') {
+    if (!deviceId) return { success: false, error: 'deviceId required' };
+    const now = Date.now();
+
+    // 1. Clean stale devices (> 60s without ping)
+    for (const [dId, dev] of this.activeDevices.entries()) {
+      if (dId !== deviceId && (now - dev.lastHeartbeat > 60000)) {
+        this.activeDevices.delete(dId);
+      }
+    }
+
+    const cleanName = String(name || '').trim();
+    if (!cleanName) return { success: false, error: 'name required' };
+    
+    // Normalize baseName by removing trailing [N]
+    const baseName = cleanName.replace(/\s*\[\d+\]$/, '').trim();
+
+    // Check if device was replaced
+    const selfDevice = this.activeDevices.get(deviceId);
+    if (selfDevice && selfDevice.replaced && mode !== 'takeover' && mode !== 'duplicate') {
+      return { replaced: true, message: 'Sesi Anda telah dipindahkan ke perangkat lain.' };
+    }
+
+    // Find other devices with same baseName or same email
+    const duplicates = [];
+    for (const [dId, dev] of this.activeDevices.entries()) {
+      if (dId !== deviceId && !dev.replaced) {
+        const matchesName = (dev.baseName && dev.baseName.toLowerCase() === baseName.toLowerCase());
+        const matchesEmail = (email && dev.email && dev.email.toLowerCase() === email.toLowerCase());
+        if (matchesName || matchesEmail) {
+          duplicates.push({ deviceId: dId, dev });
+        }
+      }
+    }
+
+    if (mode === 'check') {
+      if (duplicates.length > 0) {
+        return {
+          isDuplicate: true,
+          baseName,
+          existingCount: duplicates.length,
+          activeNames: duplicates.map(d => d.dev.name)
+        };
+      }
+      // No duplicate, register self
+      this.activeDevices.set(deviceId, {
+        deviceId,
+        name: baseName,
+        baseName,
+        email: email || '',
+        lastHeartbeat: now,
+        replaced: false
+      });
+      this.knownDJs.add(baseName);
+      this.broadcastUpdate();
+      return { isDuplicate: false, finalName: baseName };
+    }
+
+    if (mode === 'takeover') {
+      // Mark other duplicates as replaced (retained until stale cleanup so client receives replaced signal)
+      for (const d of duplicates) {
+        d.dev.replaced = true;
+      }
+      this.activeDevices.set(deviceId, {
+        deviceId,
+        name: baseName,
+        baseName,
+        email: email || '',
+        lastHeartbeat: now,
+        replaced: false
+      });
+      this.knownDJs.add(baseName);
+      this.addActivity(baseName, 'takeover_device', `memindahkan sesi ke perangkat ini`);
+      this.broadcastUpdate();
+      return { success: true, finalName: baseName, isDuplicate: false };
+    }
+
+    if (mode === 'duplicate') {
+      // Find highest [N] among duplicates
+      let highestN = 1;
+      for (const d of duplicates) {
+        const match = d.dev.name.match(/\[(\d+)\]$/);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num > highestN) highestN = num;
+        }
+      }
+      const nextN = highestN + 1;
+      const finalName = `${baseName} [${nextN}]`;
+      this.activeDevices.set(deviceId, {
+        deviceId,
+        name: finalName,
+        baseName,
+        email: email || '',
+        lastHeartbeat: now,
+        replaced: false
+      });
+      this.knownDJs.add(finalName);
+      this.addActivity(finalName, 'join_multi', `bergabung dari perangkat tambahan (${finalName})`);
+      this.broadcastUpdate();
+      return { success: true, finalName, isDuplicate: false, duplicateIndex: nextN };
+    }
+
+    // Heartbeat update
+    if (selfDevice) {
+      selfDevice.lastHeartbeat = now;
+      return { success: true, finalName: selfDevice.name };
+    }
+
+    return { success: false, error: 'Unknown mode' };
+  }
+
+  isDeviceReplaced(deviceId) {
+    if (!deviceId) return false;
+    const dev = this.activeDevices.get(deviceId);
+    return Boolean(dev && dev.replaced);
+  }
+
+  unregisterDevice(deviceId) {
+    if (!deviceId) return;
+    this.activeDevices.delete(deviceId);
   }
 
   getCalculatedElapsed() {
@@ -255,9 +373,11 @@ class Room {
       isVercel: IS_VERCEL,
       room: {
         id: this.id,
+        code: this.id,
         name: this.name,
         creator: this.creator,
-        listeners: this.clients.size
+        listeners: this.clients.size,
+        activeDJsCount: this.activeDevices ? this.activeDevices.size : 0
       },
       current: {
         ...this.currentSong,
@@ -406,8 +526,9 @@ class RoomManager {
             const filePath = path.join(this.roomsDir, file);
             const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
             if (data && data.id) {
-              const room = new Room(data);
-              this.rooms.set(room.id, room);
+              const code = String(data.id).toUpperCase().slice(0, 6);
+              const room = new Room({ ...data, id: code });
+              this.rooms.set(code, room);
             }
           } catch (err) {
             console.warn(`[RoomManager] Failed loading room ${file}:`, err.message);
@@ -415,44 +536,57 @@ class RoomManager {
         }
       }
     } catch (e) {}
-
-    // Ensure standard preset rooms exist
-    for (const preset of DEFAULT_PRESET_ROOMS) {
-      if (!this.rooms.has(preset.id)) {
-        let legacyData = {};
-        if (preset.id === 'main') {
-          try {
-            const qFile = path.join(this.dataDir, 'party_queue.json');
-            if (fs.existsSync(qFile)) {
-              const raw = JSON.parse(fs.readFileSync(qFile, 'utf8'));
-              legacyData.currentSong = raw.currentSong;
-              legacyData.partyQueue = raw.partyQueue;
-            }
-            const hFile = path.join(this.dataDir, 'party_host.json');
-            if (fs.existsSync(hFile)) {
-              legacyData.partyHost = JSON.parse(fs.readFileSync(hFile, 'utf8'));
-            }
-            const histFile = path.join(this.dataDir, 'played_history.json');
-            if (fs.existsSync(histFile)) {
-              legacyData.playedHistory = JSON.parse(fs.readFileSync(histFile, 'utf8'));
-            }
-          } catch (e) {}
-        }
-
-        const room = new Room({
-          id: preset.id,
-          name: preset.name,
-          creator: preset.creator,
-          ...legacyData
-        });
-        this.rooms.set(preset.id, room);
-        this.persistRoom(room);
-      }
-    }
   }
 
-  async getOrHydrateRoom(id, name, creator = 'Guest', forceSync = false) {
-    const normalized = String(id || 'main').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '') || 'main';
+  generateUniqueRoomCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 32 unambiguous chars
+    for (let attempt = 0; attempt < 200; attempt++) {
+      let code = '';
+      for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      if (!this.rooms.has(code)) {
+        return code;
+      }
+    }
+    return `RM${Date.now().toString(36).slice(-4).toUpperCase()}`;
+  }
+
+  async checkRoomExists(code) {
+    if (!code) return false;
+    const normalized = String(code).trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 6);
+    if (!normalized) return false;
+    if (this.rooms.has(normalized)) return true;
+
+    // Check disk
+    try {
+      const filePath = path.join(this.roomsDir, `${normalized}.json`);
+      if (fs.existsSync(filePath)) return true;
+    } catch (e) {}
+
+    // Check Supabase if configured
+    if (SUPABASE_URL && SUPABASE_KEY) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 1200);
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/jukebox_rooms?id=eq.${encodeURIComponent(normalized)}&select=id`, {
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+          signal: controller.signal
+        });
+        clearTimeout(timeout);
+        if (res.ok) {
+          const rows = await res.json();
+          return Array.isArray(rows) && rows.length > 0;
+        }
+      } catch (e) {}
+    }
+    return false;
+  }
+
+  async getOrHydrateRoom(id, name, creator = 'Host', forceSync = false) {
+    if (!id) return null;
+    const normalized = String(id).trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 6);
+    if (!normalized) return null;
     let room = this.rooms.get(normalized);
 
     const now = Date.now();
@@ -485,7 +619,7 @@ class RoomManager {
               room = new Room({
                 ...row.data,
                 id: normalized,
-                name: row.name || name,
+                name: row.name || name || `Party ${normalized}`,
                 creator: row.creator || creator
               });
               this.rooms.set(normalized, room);
@@ -499,69 +633,56 @@ class RoomManager {
       }
     }
 
-    if (!room) {
-      room = this.getOrCreateRoom(normalized, name, creator);
-    }
-    return room;
+    return room || null;
   }
 
   getRoom(id) {
-    if (!id) return this.rooms.get('main');
-    const normalized = String(id).trim().toLowerCase().replace(/[^a-z0-9_-]/g, '') || 'main';
-    return this.rooms.get(normalized);
+    if (!id) return null;
+    const normalized = String(id).trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 6);
+    return this.rooms.get(normalized) || null;
   }
 
-  getOrCreateRoom(id, name, creator = 'Guest') {
-    const normalized = String(id || 'main').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '') || 'main';
-    let room = this.rooms.get(normalized);
+  createRoom(id, name, creator = 'Host') {
+    let cleanCode = (id || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+    if (!cleanCode) {
+      cleanCode = this.generateUniqueRoomCode();
+    }
+    const cleanName = (name || `Party ${cleanCode}`).trim().slice(0, 40);
+    const cleanCreator = (creator || 'Host').trim().slice(0, 25);
+
+    const room = new Room({
+      id: cleanCode,
+      name: cleanName,
+      creator: cleanCreator,
+      createdAt: Date.now()
+    });
+    this.rooms.set(cleanCode, room);
+    this.persistRoom(room);
+    console.log(`[RoomManager] ✨ Room baru dibuat: "${room.name}" (Kode: ${room.id}) oleh ${cleanCreator}`);
+    return room;
+  }
+
+  getOrCreateRoom(id, name, creator = 'Host') {
+    if (!id) return this.createRoom(null, name, creator);
+    const cleanCode = String(id).trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+    let room = this.rooms.get(cleanCode);
     if (!room) {
-      room = new Room({
-        id: normalized,
-        name: name || (normalized === 'main' ? 'Main Party' : `Party ${normalized}`),
-        creator: creator || 'DJ'
-      });
-      this.rooms.set(normalized, room);
-      this.persistRoom(room);
-      console.log(`[RoomManager] ✨ Room baru dibuat: "${room.name}" (ID: ${room.id}) oleh ${creator}`);
+      room = this.createRoom(cleanCode, name, creator);
     }
     return room;
   }
 
-  async listRooms() {
-    // If Supabase is available, fetch recent rooms from remote to merge
-    if (SUPABASE_URL && SUPABASE_KEY) {
-      try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 1500);
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/jukebox_rooms?select=id,name,creator,data,updated_at&order=updated_at.desc&limit=30`, {
-          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
-          signal: controller.signal
-        });
-        clearTimeout(timeout);
-        if (res.ok) {
-          const rows = await res.json();
-          if (Array.isArray(rows)) {
-            for (const row of rows) {
-              if (row && row.id && !this.rooms.has(row.id)) {
-                const room = new Room({
-                  ...row.data,
-                  id: row.id,
-                  name: row.name,
-                  creator: row.creator
-                });
-                room.lastRemoteSync = Date.now();
-                this.rooms.set(row.id, room);
-              }
-            }
-          }
-        }
-      } catch (e) {}
-    }
-
+  async listRooms(onlyKnown = false, knownList = []) {
     const list = [];
+    const normalizedKnown = new Set((knownList || []).map(k => String(k).toUpperCase().slice(0, 6)));
+
     for (const room of this.rooms.values()) {
+      if (onlyKnown && !normalizedKnown.has(room.id)) {
+        continue;
+      }
       list.push({
         id: room.id,
+        code: room.id,
         name: room.name,
         creator: room.creator,
         createdAt: room.createdAt,
@@ -569,6 +690,7 @@ class RoomManager {
         isIdle: room.isIdle(),
         isRoomSleeping: room.isRoomSleeping,
         listeners: room.clients.size,
+        activeDJsCount: room.activeDevices ? room.activeDevices.size : 0,
         queueCount: room.partyQueue.length,
         currentSong: {
           title: room.currentSong.title,

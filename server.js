@@ -33,7 +33,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.13.10';
+const APP_VERSION = '2.14.0';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -91,11 +91,21 @@ const roomManager = new RoomManager(DATA_DIR);
 // Middleware: Automatic Room Resolution for all /api endpoints
 app.use('/api', async (req, res, next) => {
   try {
-    const rawId = req.headers['x-room-id'] || req.query.room || req.body?.room || 'main';
-    const roomId = String(rawId).trim().toLowerCase().replace(/[^a-z0-9_-]/g, '') || 'main';
+    if (req.path.startsWith('/rooms') || req.path.startsWith('/auth') || req.path === '/version' || req.path.startsWith('/audio/stream')) {
+      return next();
+    }
+    const rawId = req.headers['x-room-id'] || req.query.room || req.body?.room;
+    if (!rawId) {
+      return res.status(400).json({ error: 'ROOM_REQUIRED', message: 'Wajib memilih atau membuat party room terlebih dahulu.' });
+    }
+    const roomId = String(rawId).trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 6);
     req.roomId = roomId;
     const forceSync = Boolean(req.query._t || req.headers['cache-control']?.includes('no-cache'));
-    req.room = await roomManager.getOrHydrateRoom(roomId, null, null, forceSync);
+    const room = await roomManager.getOrHydrateRoom(roomId, null, null, forceSync);
+    if (!room) {
+      return res.status(404).json({ error: 'ROOM_NOT_FOUND', message: `Party room "${roomId}" tidak ditemukan atau belum dibuat.` });
+    }
+    req.room = room;
     req.room.touch();
     next();
   } catch (err) {
@@ -104,8 +114,6 @@ app.use('/api', async (req, res, next) => {
   }
 });
 
-// Backward compatibility alias for main room
-const mainRoom = roomManager.getRoom('main');
 
 
 // Google OAuth Configuration (Loaded securely from env or local external config)
@@ -1369,7 +1377,9 @@ app.get('/auth/google', (req, res) => {
   const host = req.get('host');
   const proto = req.protocol === 'https' || req.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
   const redirectUri = `${proto}://${host}/auth/callback`;
-  const state = Math.random().toString(36).slice(2);
+  const room = (req.query.room || '').trim().toUpperCase().slice(0, 6);
+  const stateObj = { nonce: Math.random().toString(36).slice(2), room };
+  const state = Buffer.from(JSON.stringify(stateObj)).toString('base64url');
 
   const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
   authUrl.searchParams.set('client_id', GOOGLE_CLIENT_ID);
@@ -1384,9 +1394,19 @@ app.get('/auth/google', (req, res) => {
 
 app.get('/auth/callback', async (req, res) => {
   updateActivityTimestamp();
-  const { code, error } = req.query;
+  const { code, error, state } = req.query;
+  let targetRoom = '';
+  try {
+    if (state) {
+      const parsed = JSON.parse(Buffer.from(state, 'base64url').toString('utf8'));
+      if (parsed && parsed.room) targetRoom = String(parsed.room).toUpperCase().slice(0, 6);
+    }
+  } catch (e) {}
+
   if (error || !code) {
-    return res.redirect(`/?auth_error=${encodeURIComponent(error || 'Izin Google dibatalkan')}`);
+    const errParam = encodeURIComponent(error || 'Izin Google dibatalkan');
+    const roomParam = targetRoom ? `&room=${encodeURIComponent(targetRoom)}` : '';
+    return res.redirect(`/?auth_error=${errParam}${roomParam}`);
   }
 
   const host = req.get('host');
@@ -1463,8 +1483,9 @@ app.get('/auth/callback', async (req, res) => {
             localStorage.setItem('jukebox_user', ${JSON.stringify(djName)});
             localStorage.setItem('jukebox_user_profile', ${JSON.stringify(JSON.stringify(djProfile))});
           } catch(e) {}
+          const targetRoom = ${JSON.stringify(targetRoom)} || localStorage.getItem('jukebox_room_redirect') || '';
           setTimeout(function() {
-            window.location.href = '/';
+            window.location.href = targetRoom ? '/?room=' + encodeURIComponent(targetRoom) : '/';
           }, 600);
         </script>
       </body>
@@ -1490,44 +1511,78 @@ app.post('/api/auth/logout', (req, res) => {
 // ==========================================
 // MULTI-PARTY ROOM MANAGEMENT ENDPOINTS
 // ==========================================
+app.get('/api/rooms/check/:code', async (req, res) => {
+  const code = String(req.params.code || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+  if (!code || code.length < 2) {
+    return res.status(400).json({ exists: false, error: 'Kode room minimal 2 karakter.' });
+  }
+  const room = await roomManager.getOrHydrateRoom(code, null, null, true);
+  if (room) {
+    return res.json({
+      exists: true,
+      room: {
+        id: room.id,
+        code: room.id,
+        name: room.name,
+        creator: room.creator,
+        listeners: room.clients.size,
+        activeDJsCount: room.activeDevices ? room.activeDevices.size : 0,
+        queueCount: room.partyQueue.length,
+        currentSong: {
+          title: room.currentSong.title,
+          artist: room.currentSong.artist,
+          thumbnail: room.currentSong.thumbnail
+        }
+      }
+    });
+  }
+  return res.json({ exists: false, error: 'Room dengan kode tersebut tidak ditemukan.' });
+});
+
 app.get('/api/rooms', async (req, res) => {
   const knownParam = req.query.known || req.headers['x-known-rooms'] || '';
-  if (knownParam) {
-    const ids = String(knownParam).split(',').map(s => s.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '')).filter(Boolean);
-    for (const id of ids) {
-      await roomManager.getOrHydrateRoom(id);
-    }
+  const knownIds = knownParam
+    ? String(knownParam).split(',').map(s => s.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '')).filter(Boolean)
+    : [];
+  for (const id of knownIds) {
+    await roomManager.getOrHydrateRoom(id);
   }
-  const roomsList = await roomManager.listRooms();
+  const roomsList = await roomManager.listRooms(Boolean(knownIds.length > 0), knownIds);
   res.json({
     success: true,
     rooms: roomsList
   });
 });
 
-app.post('/api/rooms', (req, res) => {
+app.post('/api/rooms', async (req, res) => {
   const { id, name, creator } = req.body || {};
-  const inputName = (name || id || '').trim();
+  const inputName = (name || '').trim();
   if (!inputName) {
     return res.status(400).json({ error: 'Nama party room wajib diisi.' });
   }
 
-  let rawSlug = (id || inputName)
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-  if (!rawSlug || rawSlug.length < 2) {
-    rawSlug = `party-${Date.now().toString(36)}`;
+  let customCode = (id || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+  if (customCode) {
+    if (customCode.length < 2 || customCode.length > 6) {
+      return res.status(400).json({ error: 'Kode kustom harus antara 2 hingga 6 karakter (huruf/angka).' });
+    }
+    const exists = await roomManager.checkRoomExists(customCode);
+    if (exists) {
+      return res.status(409).json({ error: `Kode room "${customCode}" sudah digunakan. Gunakan kode lain atau kosongkan untuk kode otomatis.` });
+    }
+  } else {
+    customCode = roomManager.generateUniqueRoomCode();
   }
-  const cleanId = rawSlug.slice(0, 30);
-  const cleanName = inputName.slice(0, 40);
-  const cleanCreator = (creator || 'DJ').trim().slice(0, 25);
 
-  const room = roomManager.getOrCreateRoom(cleanId, cleanName, cleanCreator);
+  const cleanName = inputName.slice(0, 40);
+  const cleanCreator = (creator || 'Host').trim().slice(0, 25);
+  const room = roomManager.createRoom(customCode, cleanName, cleanCreator);
+
   res.json({
     success: true,
     room: {
       id: room.id,
+      code: room.id,
       name: room.name,
       creator: room.creator,
       createdAt: room.createdAt,
@@ -1539,11 +1594,18 @@ app.post('/api/rooms', (req, res) => {
 
 app.delete('/api/rooms/:roomId', (req, res) => {
   const { roomId } = req.params;
-  if (!roomId || roomId === 'main') {
-    return res.status(400).json({ error: 'Room utama (main) tidak dapat dihapus.' });
-  }
   const deleted = roomManager.deleteRoom(roomId);
   res.json({ success: deleted });
+});
+
+// Device Presence & Duplicate User Endpoint
+app.post('/api/room/presence', (req, res) => {
+  const { deviceId, name, email, mode } = req.body || {};
+  if (!req.room) {
+    return res.status(404).json({ error: 'Room not found' });
+  }
+  const result = req.room.registerDevicePresence(deviceId, name, email, mode || 'check');
+  res.json(result);
 });
 
 app.get('/api/version', (req, res) => {
@@ -1768,6 +1830,9 @@ app.get('/api/status', async (req, res) => {
   const room = req.room;
   room.checkHostVacant();
 
+  const deviceId = req.headers['x-device-id'] || req.query.deviceId || '';
+  const isReplaced = deviceId ? room.isDeviceReplaced(deviceId) : false;
+
   const currentIp = getLocalIp();
   const activePublicUrl = dynamicPublicUrl || (process.env.PUBLIC_URL || (process.env.CLOUDFLARE_TUNNEL_TOKEN ? 'https://dj.wsnsam.my.id' : null));
 
@@ -1779,11 +1844,14 @@ app.get('/api/status', async (req, res) => {
     ytmCompanionOnline: false,
     version: APP_VERSION,
     isVercel: IS_VERCEL,
+    isDeviceReplaced: isReplaced,
     room: {
       id: room.id,
+      code: room.id,
       name: room.name,
       creator: room.creator,
       listeners: room.clients.size,
+      activeDJsCount: room.activeDevices ? room.activeDevices.size : 0,
       isIdle: room.isIdle()
     },
     host: {
