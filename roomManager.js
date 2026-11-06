@@ -1,8 +1,34 @@
 const fs = require('fs');
 const path = require('path');
 
+// Zero-dependency .env loader for local environments
+['.env', '.env.local'].forEach(envFile => {
+  const envPath = path.join(__dirname, envFile);
+  if (fs.existsSync(envPath)) {
+    try {
+      const content = fs.readFileSync(envPath, 'utf8');
+      content.split('\n').forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+          const idx = trimmed.indexOf('=');
+          const key = trimmed.slice(0, idx).trim();
+          let val = trimmed.slice(idx + 1).trim();
+          if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+            val = val.slice(1, -1);
+          }
+          if (!process.env[key]) {
+            process.env[key] = val;
+          }
+        }
+      });
+    } catch (e) {}
+  }
+});
+
 const IS_VERCEL = Boolean(process.env.VERCEL);
-const APP_VERSION = '2.13.5';
+const APP_VERSION = '2.13.6';
+const SUPABASE_URL = process.env.SUPABASE_URL || '';
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '';
 
 const DEFAULT_STARTER_TRACK = {
   videoId: 'bu7nU9Mhpyo',
@@ -281,6 +307,56 @@ class Room {
     }
   }
 
+  hydrateFrom(data) {
+    if (!data) return;
+    if (data.name) this.name = data.name;
+    if (data.creator) this.creator = data.creator;
+    if (data.createdAt) this.createdAt = data.createdAt;
+    if (data.lastActive) this.lastActive = data.lastActive;
+    if (typeof data.isRoomSleeping === 'boolean') this.isRoomSleeping = data.isRoomSleeping;
+
+    if (data.currentSong && data.currentSong.videoId) {
+      this.currentSong = {
+        ...data.currentSong,
+        songDuration: (typeof data.currentSong.songDuration === 'number' && data.currentSong.songDuration > 0) ? Math.round(data.currentSong.songDuration) : 215,
+        imageSrc: data.currentSong.thumbnail || data.currentSong.imageSrc || '',
+        isPaused: typeof data.currentSong.isPaused === 'boolean' ? data.currentSong.isPaused : true
+      };
+      this.playbackTracker.videoId = this.currentSong.videoId;
+      this.playbackTracker.songDuration = this.currentSong.songDuration;
+      this.playbackTracker.isPaused = this.currentSong.isPaused;
+      this.playbackTracker.elapsed = this.currentSong.elapsedSeconds || 0;
+    }
+
+    if (Array.isArray(data.partyQueue)) {
+      this.partyQueue = data.partyQueue;
+    }
+    if (Array.isArray(data.playedHistory)) {
+      this.playedHistory = data.playedHistory;
+    }
+    if (Array.isArray(data.activityLogs)) {
+      this.activityLogs = data.activityLogs;
+    }
+    if (data.partyHost) {
+      this.partyHost = data.partyHost;
+    }
+    if (data.pendingTakeover !== undefined) {
+      this.pendingTakeover = data.pendingTakeover;
+    }
+    if (typeof data.currentVolume === 'number') {
+      this.currentVolume = data.currentVolume;
+    }
+    if (typeof data.isMuted === 'boolean') {
+      this.isMuted = data.isMuted;
+    }
+    if (Array.isArray(data.knownDJs)) {
+      for (const dj of data.knownDJs) {
+        this.knownDJs.add(dj);
+      }
+    }
+    this.lastRemoteSync = Date.now();
+  }
+
   toJSON() {
     return {
       id: this.id,
@@ -294,6 +370,7 @@ class Room {
       playedHistory: this.playedHistory,
       activityLogs: this.activityLogs,
       partyHost: this.partyHost,
+      pendingTakeover: this.pendingTakeover,
       currentVolume: this.currentVolume,
       isMuted: this.isMuted,
       knownDJs: Array.from(this.knownDJs)
@@ -370,6 +447,60 @@ class RoomManager {
     }
   }
 
+  async getOrHydrateRoom(id, name, creator = 'Guest', forceSync = false) {
+    const normalized = String(id || 'main').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '') || 'main';
+    let room = this.rooms.get(normalized);
+
+    const now = Date.now();
+    // Fast path: if recently synced within 400ms and not forcing sync, reuse memory
+    if (!forceSync && room && (now - (room.lastRemoteSync || 0) < 400)) {
+      return room;
+    }
+
+    // Attempt remote hydration from Supabase
+    if (SUPABASE_URL && SUPABASE_KEY) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 1800);
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/jukebox_rooms?id=eq.${encodeURIComponent(normalized)}&select=id,name,creator,data,updated_at`, {
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`
+          },
+          signal: controller.signal
+        });
+        clearTimeout(timeout);
+
+        if (res.ok) {
+          const rows = await res.json();
+          if (Array.isArray(rows) && rows.length > 0 && rows[0].data) {
+            const row = rows[0];
+            if (room) {
+              room.hydrateFrom(row.data);
+            } else {
+              room = new Room({
+                ...row.data,
+                id: normalized,
+                name: row.name || name,
+                creator: row.creator || creator
+              });
+              this.rooms.set(normalized, room);
+            }
+            room.lastRemoteSync = Date.now();
+            return room;
+          }
+        }
+      } catch (err) {
+        // Fall back to memory / local file on any network or timeout error
+      }
+    }
+
+    if (!room) {
+      room = this.getOrCreateRoom(normalized, name, creator);
+    }
+    return room;
+  }
+
   getRoom(id) {
     if (!id) return this.rooms.get('main');
     const normalized = String(id).trim().toLowerCase().replace(/[^a-z0-9_-]/g, '') || 'main';
@@ -392,7 +523,37 @@ class RoomManager {
     return room;
   }
 
-  listRooms() {
+  async listRooms() {
+    // If Supabase is available, fetch recent rooms from remote to merge
+    if (SUPABASE_URL && SUPABASE_KEY) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 1500);
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/jukebox_rooms?select=id,name,creator,data,updated_at&order=updated_at.desc&limit=30`, {
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
+          signal: controller.signal
+        });
+        clearTimeout(timeout);
+        if (res.ok) {
+          const rows = await res.json();
+          if (Array.isArray(rows)) {
+            for (const row of rows) {
+              if (row && row.id && !this.rooms.has(row.id)) {
+                const room = new Room({
+                  ...row.data,
+                  id: row.id,
+                  name: row.name,
+                  creator: row.creator
+                });
+                room.lastRemoteSync = Date.now();
+                this.rooms.set(row.id, room);
+              }
+            }
+          }
+        }
+      } catch (e) {}
+    }
+
     const list = [];
     for (const room of this.rooms.values()) {
       list.push({
@@ -417,6 +578,10 @@ class RoomManager {
   }
 
   persistRoom(room) {
+    if (!room) return Promise.resolve();
+    room.lastLocalMutation = Date.now();
+
+    // 1. Local disk write
     try {
       if (!fs.existsSync(this.roomsDir)) {
         fs.mkdirSync(this.roomsDir, { recursive: true });
@@ -426,6 +591,38 @@ class RoomManager {
     } catch (e) {
       console.warn(`[RoomManager] Failed saving room ${room.id}:`, e.message);
     }
+
+    // 2. Cloud Supabase sync (Sequential write chain per room)
+    if (SUPABASE_URL && SUPABASE_KEY) {
+      if (!this.persistChains) this.persistChains = new Map();
+      const prev = this.persistChains.get(room.id) || Promise.resolve();
+      const next = prev.then(async () => {
+        try {
+          const payload = JSON.stringify({
+            id: room.id,
+            name: room.name,
+            creator: room.creator,
+            data: room.toJSON(),
+            updated_at: new Date().toISOString()
+          });
+          await fetch(`${SUPABASE_URL}/rest/v1/jukebox_rooms`, {
+            method: 'POST',
+            headers: {
+              'apikey': SUPABASE_KEY,
+              'Authorization': `Bearer ${SUPABASE_KEY}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'resolution=merge-duplicates'
+            },
+            body: payload
+          });
+        } catch (err) {
+          console.warn(`[Supabase][Room ${room.id}] Persist error:`, err.message);
+        }
+      });
+      this.persistChains.set(room.id, next);
+      return next;
+    }
+    return Promise.resolve();
   }
 
   deleteRoom(id) {
@@ -449,6 +646,20 @@ class RoomManager {
     } catch (e) {}
 
     this.rooms.delete(id);
+
+    // Delete from Supabase
+    if (SUPABASE_URL && SUPABASE_KEY) {
+      fetch(`${SUPABASE_URL}/rest/v1/jukebox_rooms?id=eq.${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`
+        }
+      }).catch(err => {
+        console.warn(`[Supabase][Room ${id}] Delete error:`, err.message);
+      });
+    }
+
     console.log(`[RoomManager] 🗑️ Room "${id}" telah dibersihkan / dimatikan.`);
     return true;
   }

@@ -7,9 +7,33 @@ const { exec, spawn, execFile } = require('child_process');
 const https = require('https');
 const qrcode = require('qrcode-terminal');
 
+// Zero-dependency .env loader for local environments
+['.env', '.env.local'].forEach(envFile => {
+  const envPath = path.join(__dirname, envFile);
+  if (fs.existsSync(envPath)) {
+    try {
+      const content = fs.readFileSync(envPath, 'utf8');
+      content.split('\n').forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+          const idx = trimmed.indexOf('=');
+          const key = trimmed.slice(0, idx).trim();
+          let val = trimmed.slice(idx + 1).trim();
+          if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+            val = val.slice(1, -1);
+          }
+          if (!process.env[key]) {
+            process.env[key] = val;
+          }
+        }
+      });
+    } catch (e) {}
+  }
+});
+
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.13.5';
+const APP_VERSION = '2.13.6';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -65,13 +89,18 @@ const { RoomManager } = require('./roomManager');
 const roomManager = new RoomManager(DATA_DIR);
 
 // Middleware: Automatic Room Resolution for all /api endpoints
-app.use('/api', (req, res, next) => {
-  const rawId = req.headers['x-room-id'] || req.query.room || req.body?.room || 'main';
-  const roomId = String(rawId).trim().toLowerCase().replace(/[^a-z0-9_-]/g, '') || 'main';
-  req.roomId = roomId;
-  req.room = roomManager.getOrCreateRoom(roomId);
-  req.room.touch();
-  next();
+app.use('/api', async (req, res, next) => {
+  try {
+    const rawId = req.headers['x-room-id'] || req.query.room || req.body?.room || 'main';
+    const roomId = String(rawId).trim().toLowerCase().replace(/[^a-z0-9_-]/g, '') || 'main';
+    req.roomId = roomId;
+    req.room = await roomManager.getOrHydrateRoom(roomId);
+    req.room.touch();
+    next();
+  } catch (err) {
+    console.error('[API Room Middleware Error]', err);
+    next();
+  }
 });
 
 // Backward compatibility alias for main room
@@ -1458,17 +1487,18 @@ app.post('/api/auth/logout', (req, res) => {
 // ==========================================
 // MULTI-PARTY ROOM MANAGEMENT ENDPOINTS
 // ==========================================
-app.get('/api/rooms', (req, res) => {
+app.get('/api/rooms', async (req, res) => {
   const knownParam = req.query.known || req.headers['x-known-rooms'] || '';
   if (knownParam) {
     const ids = String(knownParam).split(',').map(s => s.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '')).filter(Boolean);
     for (const id of ids) {
-      roomManager.getOrCreateRoom(id);
+      await roomManager.getOrHydrateRoom(id);
     }
   }
+  const roomsList = await roomManager.listRooms();
   res.json({
     success: true,
-    rooms: roomManager.listRooms()
+    rooms: roomsList
   });
 });
 
@@ -1586,6 +1616,7 @@ app.post(['/api/host/claim', '/api/host/takeover/request'], (req, res) => {
   };
 
   room.addActivity(cleanName, 'takeover_request', `meminta izin mengambil alih kursi Host dari ${room.partyHost.name}`);
+  roomManager.persistRoom(room);
   room.broadcastUpdate(dynamicPublicUrl);
 
   return res.json({
@@ -1597,8 +1628,12 @@ app.post(['/api/host/claim', '/api/host/takeover/request'], (req, res) => {
   });
 });
 
-app.post('/api/host/takeover/respond', (req, res) => {
-  const room = req.room;
+app.post('/api/host/takeover/respond', async (req, res) => {
+  let room = req.room;
+  if (!room.pendingTakeover) {
+    room = await roomManager.getOrHydrateRoom(req.roomId, null, null, true);
+    req.room = room;
+  }
   const { approve, token } = req.body || {};
   if (!room.pendingTakeover) {
     return res.status(400).json({ error: 'Tidak ada permintaan ambil alih yang aktif saat ini' });
@@ -1629,6 +1664,7 @@ app.post('/api/host/takeover/respond', (req, res) => {
   } else {
     room.pendingTakeover = null;
     room.addActivity(curHost, 'takeover_rejected', `menolak permintaan ambil alih Host dari ${reqUser}`);
+    roomManager.persistRoom(room);
     room.broadcastUpdate(dynamicPublicUrl);
     return res.json({ success: true, approved: false, partyHost: room.getPartyHostInfo() });
   }
@@ -1644,6 +1680,7 @@ app.post('/api/host/takeover/cancel', (req, res) => {
   const reqUser = room.pendingTakeover.requestingDJ || room.pendingTakeover.requestedBy;
   room.pendingTakeover = null;
   room.addActivity(name || reqUser, 'takeover_cancelled', `membatalkan permintaan ambil alih Host`);
+  roomManager.persistRoom(room);
   room.broadcastUpdate(dynamicPublicUrl);
   return res.json({ success: true, partyHost: room.getPartyHostInfo() });
 });
@@ -2126,7 +2163,12 @@ app.patch('/api/queue/move', async (req, res) => {
   }
 
   const room = req.room;
-  const targetQueue = room ? room.partyQueue : partyQueue;
+  let targetQueue = room ? room.partyQueue : partyQueue;
+
+  if (room && (fromIndex >= targetQueue.length || toIndex >= targetQueue.length)) {
+    await roomManager.getOrHydrateRoom(req.roomId, null, null, true);
+    targetQueue = room.partyQueue;
+  }
 
   if (fromIndex >= 0 && fromIndex < targetQueue.length && toIndex >= 0 && toIndex < targetQueue.length) {
     const [movedItem] = targetQueue.splice(fromIndex, 1);
@@ -2169,8 +2211,15 @@ app.post('/api/upvote', async (req, res) => {
   }
 
   const room = req.room;
-  const targetQueue = room ? room.partyQueue : partyQueue;
-  const item = targetQueue.find(q => q.videoId === videoId);
+  let targetQueue = room ? room.partyQueue : partyQueue;
+  let item = targetQueue.find(q => q.videoId === videoId);
+
+  if (!item && room) {
+    await roomManager.getOrHydrateRoom(req.roomId, null, null, true);
+    targetQueue = room.partyQueue;
+    item = targetQueue.find(q => q.videoId === videoId);
+  }
+
   if (!item) return res.status(404).json({ error: 'Song not found in queue' });
 
   if (!Array.isArray(item.votedUsers)) item.votedUsers = [];
