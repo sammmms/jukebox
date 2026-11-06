@@ -33,7 +33,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.14.3';
+const APP_VERSION = '2.14.4';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -100,7 +100,8 @@ app.use('/api', async (req, res, next) => {
     }
     const roomId = String(rawId).trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 6);
     req.roomId = roomId;
-    const forceSync = Boolean(req.query._t || req.headers['cache-control']?.includes('no-cache'));
+    const isMutation = req.method !== 'GET' && req.method !== 'HEAD';
+    const forceSync = isMutation || Boolean(req.query._t || req.headers['cache-control']?.includes('no-cache'));
     const room = await roomManager.getOrHydrateRoom(roomId, null, null, forceSync);
     if (!room) {
       return res.status(404).json({ error: 'ROOM_NOT_FOUND', message: `Party room "${roomId}" tidak ditemukan atau belum dibuat.` });
@@ -1753,7 +1754,7 @@ app.post('/api/host/takeover/respond', async (req, res) => {
   }
 });
 
-app.post('/api/host/takeover/cancel', (req, res) => {
+app.post('/api/host/takeover/cancel', async (req, res) => {
   const room = req.room;
   const { name } = req.body || {};
   if (!room.pendingTakeover) {
@@ -1763,17 +1764,17 @@ app.post('/api/host/takeover/cancel', (req, res) => {
   const reqUser = room.pendingTakeover.requestingDJ || room.pendingTakeover.requestedBy;
   room.pendingTakeover = null;
   room.addActivity(name || reqUser, 'takeover_cancelled', `membatalkan permintaan ambil alih Host`);
-  roomManager.persistRoom(room);
+  await roomManager.persistRoom(room);
   room.broadcastUpdate(dynamicPublicUrl);
   return res.json({ success: true, partyHost: room.getPartyHostInfo() });
 });
 
-app.post('/api/host/heartbeat', (req, res) => {
+app.post('/api/host/heartbeat', async (req, res) => {
   const room = req.room;
   const { token, name } = req.body || {};
   if (room.partyHost.name && room.partyHost.token && room.partyHost.token === token) {
     room.partyHost.lastHeartbeat = Date.now();
-    roomManager.persistRoom(room);
+    await roomManager.persistRoom(room);
     return res.json({ success: true, partyHost: room.getPartyHostInfo() });
   }
 
@@ -1788,7 +1789,7 @@ app.post('/api/host/heartbeat', (req, res) => {
       lastHeartbeat: Date.now()
     };
     room.knownDJs.add(cleanName);
-    roomManager.persistRoom(room);
+    await roomManager.persistRoom(room);
     room.broadcastUpdate(dynamicPublicUrl);
     return res.json({ success: true, partyHost: room.getPartyHostInfo() });
   }
@@ -1958,7 +1959,7 @@ app.post('/api/playlist/queue', async (req, res) => {
 
   const room = req.room;
   room.partyQueue.push(...newItems);
-  roomManager.persistRoom(room);
+  await roomManager.persistRoom(room);
 
   room.addActivity(effectiveUser, 'playlist', `menambahkan ${newItems.length} lagu dari playlist "${playlistTitle || 'YouTube'}"`);
 
@@ -2428,13 +2429,14 @@ app.post('/api/control/ended', async (req, res) => {
 let serverVolumeDebounce = null;
 let lastVolumeActivityLogTime = 0;
 
-app.post('/api/control/volume', (req, res) => {
+app.post('/api/control/volume', async (req, res) => {
   const { volume, user } = req.body;
   if (typeof volume !== 'number') return res.status(400).json({ error: 'volume number is required' });
 
   const vol = Math.max(0, Math.min(100, Math.round(volume)));
   currentVolume = vol;
   req.room.currentVolume = vol;
+  await roomManager.persistRoom(req.room);
 
   // Immediate ACK to client with updated volume
   res.json({ success: true, volume: vol });
@@ -2461,7 +2463,7 @@ app.post('/api/control/volume', (req, res) => {
   }, 120);
 });
 
-app.post('/api/player/sync', (req, res) => {
+app.post('/api/player/sync', async (req, res) => {
   const { videoId, elapsed, duration, token } = req.body || {};
   const room = req.room;
   if (room.partyHost.name && room.partyHost.token && token && token !== room.partyHost.token) {
@@ -2481,7 +2483,7 @@ app.post('/api/player/sync', (req, res) => {
     if (typeof duration === 'number' && duration > 0) {
       room.currentSong.songDuration = duration;
       room.playbackTracker.songDuration = duration;
-      roomManager.persistRoom(room);
+      await roomManager.persistRoom(room);
     }
   }
   res.json({ success: true });

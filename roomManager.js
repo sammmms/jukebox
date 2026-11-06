@@ -26,7 +26,7 @@ const path = require('path');
 });
 
 const IS_VERCEL = Boolean(process.env.VERCEL);
-const APP_VERSION = '2.14.3';
+const APP_VERSION = '2.14.4';
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '';
 
@@ -615,10 +615,11 @@ class RoomManager {
     const now = Date.now();
     // Fast path:
     // 1. In long-running Node server (!IS_VERCEL), in-memory room is canonical living state.
-    // 2. In serverless, if recently mutated (within 3000ms) or synced (within 400ms), preserve memory to prevent stale DB clobber.
+    // 2. In serverless (IS_VERCEL): If forceSync is requested (all mutations), NEVER use memory; fetch fresh from Supabase.
+    //    If !forceSync, only reuse in-memory if synced within 150ms during the same burst.
     if (!forceSync && room) {
       if (!IS_VERCEL) return room;
-      if ((now - (room.lastLocalMutation || 0) < 3000) || (now - (room.lastRemoteSync || 0) < 400)) {
+      if (now - (room.lastRemoteSync || 0) < 150) {
         return room;
       }
     }
@@ -746,35 +747,29 @@ class RoomManager {
       console.warn(`[RoomManager] Failed saving room ${room.id}:`, e.message);
     }
 
-    // 2. Cloud Supabase sync (Sequential write chain per room)
+    // 2. Cloud Supabase sync
     if (SUPABASE_URL && SUPABASE_KEY) {
-      if (!this.persistChains) this.persistChains = new Map();
-      const prev = this.persistChains.get(room.id) || Promise.resolve();
-      const next = prev.then(async () => {
-        try {
-          const payload = JSON.stringify({
-            id: room.id,
-            name: room.name,
-            creator: room.creator,
-            data: room.toJSON(),
-            updated_at: new Date().toISOString()
-          });
-          await fetch(`${SUPABASE_URL}/rest/v1/jukebox_rooms`, {
-            method: 'POST',
-            headers: {
-              'apikey': SUPABASE_KEY,
-              'Authorization': `Bearer ${SUPABASE_KEY}`,
-              'Content-Type': 'application/json',
-              'Prefer': 'resolution=merge-duplicates'
-            },
-            body: payload
-          });
-        } catch (err) {
-          console.warn(`[Supabase][Room ${room.id}] Persist error:`, err.message);
-        }
+      const payload = JSON.stringify({
+        id: room.id,
+        name: room.name,
+        creator: room.creator,
+        data: room.toJSON(),
+        updated_at: new Date().toISOString()
       });
-      this.persistChains.set(room.id, next);
-      return next;
+      return fetch(`${SUPABASE_URL}/rest/v1/jukebox_rooms`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'resolution=merge-duplicates'
+        },
+        body: payload
+      }).then(() => {
+        room.lastRemoteSync = Date.now();
+      }).catch(err => {
+        console.warn(`[Supabase][Room ${room.id}] Persist error:`, err.message);
+      });
     }
     return Promise.resolve();
   }
