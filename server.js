@@ -9,7 +9,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.13.0';
+const APP_VERSION = '2.13.1';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -2069,27 +2069,38 @@ app.delete('/api/queue/:index', async (req, res) => {
 app.post('/api/queue/delete-bulk', (req, res) => {
   const { indices, videoIds, user } = req.body || {};
   let removedCount = 0;
+  const room = req.room;
+  const targetQueue = room ? room.partyQueue : partyQueue;
 
   if (Array.isArray(indices) && indices.length > 0) {
     const sorted = [...new Set(indices)].map(Number).filter(n => !isNaN(n)).sort((a, b) => b - a);
     for (const idx of sorted) {
-      if (idx >= 0 && idx < partyQueue.length) {
-        partyQueue.splice(idx, 1);
+      if (idx >= 0 && idx < targetQueue.length) {
+        targetQueue.splice(idx, 1);
         removedCount++;
       }
     }
   } else if (Array.isArray(videoIds) && videoIds.length > 0) {
     const idSet = new Set(videoIds);
-    const initialLen = partyQueue.length;
-    partyQueue = partyQueue.filter(item => !idSet.has(item.videoId));
-    removedCount = initialLen - partyQueue.length;
+    const initialLen = targetQueue.length;
+    const filtered = targetQueue.filter(item => !idSet.has(item.videoId));
+    removedCount = initialLen - filtered.length;
+    if (room) room.partyQueue = filtered;
+    else partyQueue = filtered;
   }
 
   if (removedCount > 0) {
-    persistPartyQueue();
-    addActivity(user || 'Host', 'remove', `menghapus ${removedCount} lagu sekaligus dari antrean`);
-    broadcastUpdate();
-    setTimeout(prewarmUpcomingTracks, 500);
+    if (room) {
+      roomManager.persistRoom(room);
+      room.addActivity(user || 'Host', 'remove', `menghapus ${removedCount} lagu sekaligus dari antrean`);
+      room.broadcastUpdate(dynamicPublicUrl);
+      setTimeout(() => prewarmUpcomingTracks(room), 500);
+    } else {
+      persistPartyQueue();
+      addActivity(user || 'Host', 'remove', `menghapus ${removedCount} lagu sekaligus dari antrean`);
+      broadcastUpdate();
+      setTimeout(prewarmUpcomingTracks, 500);
+    }
   }
 
   res.json({ success: true, count: removedCount });
@@ -2116,12 +2127,21 @@ app.patch('/api/queue/move', async (req, res) => {
     } catch (e) {}
   }
 
-  if (fromIndex >= 0 && fromIndex < partyQueue.length && toIndex >= 0 && toIndex < partyQueue.length) {
-    const [movedItem] = partyQueue.splice(fromIndex, 1);
-    partyQueue.splice(toIndex, 0, movedItem);
-    persistPartyQueue();
-    addActivity(user, 'move', `dragged "${title || movedItem.title || 'song'}" to #${targetPosition || (toIndex + 1)}`);
-    broadcastUpdate();
+  const room = req.room;
+  const targetQueue = room ? room.partyQueue : partyQueue;
+
+  if (fromIndex >= 0 && fromIndex < targetQueue.length && toIndex >= 0 && toIndex < targetQueue.length) {
+    const [movedItem] = targetQueue.splice(fromIndex, 1);
+    targetQueue.splice(toIndex, 0, movedItem);
+    if (room) {
+      roomManager.persistRoom(room);
+      room.addActivity(user, 'move', `dragged "${title || movedItem.title || 'song'}" to #${targetPosition || (toIndex + 1)}`);
+      room.broadcastUpdate(dynamicPublicUrl);
+    } else {
+      persistPartyQueue();
+      addActivity(user, 'move', `dragged "${title || movedItem.title || 'song'}" to #${targetPosition || (toIndex + 1)}`);
+      broadcastUpdate();
+    }
     return res.json({ success: true });
   }
 
@@ -2150,7 +2170,9 @@ app.post('/api/upvote', async (req, res) => {
     return res.json({ success: true, votes: votes.size, hasVoted });
   }
 
-  const item = partyQueue.find(q => q.videoId === videoId);
+  const room = req.room;
+  const targetQueue = room ? room.partyQueue : partyQueue;
+  const item = targetQueue.find(q => q.videoId === videoId);
   if (!item) return res.status(404).json({ error: 'Song not found in queue' });
 
   if (!Array.isArray(item.votedUsers)) item.votedUsers = [];
@@ -2159,17 +2181,24 @@ app.post('/api/upvote', async (req, res) => {
   if (idx !== -1) {
     item.votedUsers.splice(idx, 1);
     hasVoted = false;
-    addActivity(user, 'unvote', title || item.title || 'a song');
+    if (room) room.addActivity(user, 'unvote', title || item.title || 'a song');
+    else addActivity(user, 'unvote', title || item.title || 'a song');
   } else {
     item.votedUsers.push(user);
     hasVoted = true;
-    addActivity(user, 'upvote', title || item.title || 'a song');
+    if (room) room.addActivity(user, 'upvote', title || item.title || 'a song');
+    else addActivity(user, 'upvote', title || item.title || 'a song');
   }
 
   item.upvotes = item.votedUsers.length;
-  partyQueue.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
-  persistPartyQueue();
-  broadcastUpdate();
+  targetQueue.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
+  if (room) {
+    roomManager.persistRoom(room);
+    room.broadcastUpdate(dynamicPublicUrl);
+  } else {
+    persistPartyQueue();
+    broadcastUpdate();
+  }
   res.json({ success: true, votes: item.upvotes, hasVoted });
 });
 

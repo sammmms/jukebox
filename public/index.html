@@ -2537,7 +2537,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.13.0';
+    const CLIENT_VERSION = '2.13.1';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -7644,17 +7644,22 @@
     }
 
     function seekRelative(seconds) {
-      if (isMobileMode && hostAudio) {
+      const hostAudio = document.getElementById('host-native-audio');
+      if (isUseNativeAudioEngine() && hostAudio) {
         const cur = hostAudio.currentTime || 0;
         const dur = hostAudio.duration || currentSongData?.songDuration || 0;
         const target = Math.max(0, Math.min(dur, cur + seconds));
         hostAudio.currentTime = target;
+        currentElapsed = target;
+        renderTimeline(target);
         showToast(seconds > 0 ? `⏩ +${seconds}d` : `⏪ ${Math.abs(seconds)}d`);
       } else if (ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
         const cur = ytPlayer.getCurrentTime() || 0;
         const dur = ytPlayer.getDuration() || currentSongData?.songDuration || 0;
         const target = Math.max(0, Math.min(dur, cur + seconds));
         ytPlayer.seekTo(target, true);
+        currentElapsed = target;
+        renderTimeline(target);
         showToast(seconds > 0 ? `⏩ +${seconds}d` : `⏪ ${Math.abs(seconds)}d`);
       } else {
         if (seconds < 0) restartTrack();
