@@ -2998,6 +2998,10 @@
         if (!audioLoadingInterval) {
           const tickLoadingProgress = () => {
             if (!isAudioStreamLoading) return;
+            if (audioLoadingStartTime && (Date.now() - audioLoadingStartTime > 4000)) {
+              updateLoadingState(false);
+              return;
+            }
             if (loadingText) loadingText.textContent = label || 'Menyiapkan audio...';
           };
           tickLoadingProgress();
@@ -3396,11 +3400,13 @@
         }
       } else if (event.data === YT.PlayerState.PAUSED) {
         releaseScreenWakeLock();
-        isPlaying = false;
-        updateLoadingState(false);
-        document.getElementById('vinyl-disc')?.classList.add('paused');
-        document.getElementById('play-icon')?.classList.remove('hidden');
-        document.getElementById('pause-icon')?.classList.add('hidden');
+        if (currentSongData?.isPaused) {
+          isPlaying = false;
+          updateLoadingState(false);
+          document.getElementById('vinyl-disc')?.classList.add('paused');
+          document.getElementById('play-icon')?.classList.remove('hidden');
+          document.getElementById('pause-icon')?.classList.add('hidden');
+        }
       } else if (event.data === YT.PlayerState.ENDED) {
         releaseScreenWakeLock();
         isPlaying = false;
@@ -3774,10 +3780,12 @@
 
       hostAudio.addEventListener('pause', () => {
         releaseScreenWakeLock();
-        isPlaying = false;
-        document.getElementById('vinyl-disc')?.classList.add('paused');
-        document.getElementById('play-icon')?.classList.remove('hidden');
-        document.getElementById('pause-icon')?.classList.add('hidden');
+        if (currentSongData?.isPaused) {
+          isPlaying = false;
+          document.getElementById('vinyl-disc')?.classList.add('paused');
+          document.getElementById('play-icon')?.classList.remove('hidden');
+          document.getElementById('pause-icon')?.classList.add('hidden');
+        }
       });
 
       hostAudio.addEventListener('ended', async () => {
@@ -5562,7 +5570,7 @@
 
       // Sync Room Metadata & Deep-Linked Room Name
       if (status.room && status.room.name) {
-        addKnownRoom(status.room.id);
+        saveKnownRoom(status.room.id, status.room.name);
         if (currentRoomName !== status.room.name) {
           currentRoomName = status.room.name;
           updateShareLinks();
@@ -5604,7 +5612,7 @@
           songDuration = song.songDuration || 0;
           lastTickTimestamp = Date.now();
           loadLyricsForSong(song);
-          if (!song.isAudioCached) {
+          if (isDeviceSpeakerActive() && !song.isAudioCached) {
             updateLoadingState(true, 'Menyiapkan Audio...');
           }
           syncHostAudioEngine();
@@ -5638,7 +5646,7 @@
             }
           }
 
-          if (!isMeHost() || (typeof currentElapsed === 'number' && currentElapsed > 0)) {
+          if (!isMeHost() || (typeof currentElapsed === 'number' && currentElapsed > 0) || !song.isPaused) {
             updateLoadingState(false);
           }
         }
@@ -5761,14 +5769,14 @@
 
     // Client Ticker (with 0ms frame-perfect Host Audio Engine sync)
     function tickPlayback() {
-      // Freeze timeline and suppress sync heartbeats while audio stream is loading
-      if (isAudioStreamLoading) {
+      // Freeze timeline and suppress sync heartbeats while audio stream is loading on active speaker
+      if (isAudioStreamLoading && isDeviceSpeakerActive()) {
         return;
       }
 
-      // 1. If THIS device is Host or active speaker and playing via Native HTML5 Audio:
+      // 1. If THIS device is Host or active speaker and physically playing via Native HTML5 Audio:
       const hostAudio = document.getElementById('host-native-audio');
-      if (isDeviceSpeakerActive() && isUseNativeAudioEngine() && hostAudio && hostAudio.src) {
+      if (isDeviceSpeakerActive() && isUseNativeAudioEngine() && hostAudio && hostAudio.src && !hostAudio.paused && hostAudio.readyState >= 2) {
         const audioTime = hostAudio.currentTime;
         if (typeof audioTime === 'number' && !isNaN(audioTime) && audioTime >= 0) {
           currentElapsed = audioTime;
@@ -7555,6 +7563,7 @@
         const data = await res.json();
         if (data.success) {
           isPlaying = !data.isPaused;
+          lastTickTimestamp = Date.now();
           if (currentSongData) currentSongData.isPaused = data.isPaused;
           const vinyl = document.getElementById('vinyl-disc');
           const playIcon = document.getElementById('play-icon');
@@ -8400,6 +8409,20 @@
         respondTakeover(false);
       }
     });
+
+    // Global Observable State Object (For telemetry, testing, and multi-device introspection)
+    window.jukeboxState = {
+      get roomId() { return currentRoomId; },
+      get roomName() { return currentRoomName; },
+      get currentUser() { return currentUser; },
+      get currentSong() { return currentSongData; },
+      get currentElapsed() { return currentElapsed; },
+      get songDuration() { return songDuration; },
+      get isPlaying() { return isPlaying; },
+      get partyHost() { return currentPartyHost; },
+      get isHost() { return isMeHost(); },
+      get isOnline() { return Boolean(sseSource && sseSource.readyState === EventSource.OPEN); }
+    };
   </script>
 </body>
 </html>

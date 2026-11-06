@@ -613,9 +613,14 @@ class RoomManager {
     let room = this.rooms.get(normalized);
 
     const now = Date.now();
-    // Fast path: if recently synced within 400ms and not forcing sync, reuse memory
-    if (!forceSync && room && (now - (room.lastRemoteSync || 0) < 400)) {
-      return room;
+    // Fast path:
+    // 1. In long-running Node server (!IS_VERCEL), in-memory room is canonical living state.
+    // 2. In serverless, if recently mutated (within 3000ms) or synced (within 400ms), preserve memory to prevent stale DB clobber.
+    if (!forceSync && room) {
+      if (!IS_VERCEL) return room;
+      if ((now - (room.lastLocalMutation || 0) < 3000) || (now - (room.lastRemoteSync || 0) < 400)) {
+        return room;
+      }
     }
 
     // Attempt remote hydration from Supabase
