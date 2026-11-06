@@ -33,7 +33,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.14.1';
+const APP_VERSION = '2.14.2';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -615,7 +615,7 @@ async function advanceNextTrack(targetRoomOrSkipped = null, skippedByUser = null
   targetRoom.playbackTracker.songDuration = targetRoom.currentSong.songDuration;
   targetRoom.playbackTracker.lastUpdated = Date.now();
 
-  roomManager.persistRoom(targetRoom);
+  await roomManager.persistRoom(targetRoom);
   if (skipped) {
     targetRoom.addActivity(skipped, 'skip', targetRoom.currentSong.title || 'song');
   }
@@ -624,11 +624,11 @@ async function advanceNextTrack(targetRoomOrSkipped = null, skippedByUser = null
 
   // Asynchronously resolve song duration if still missing
   if ((!targetRoom.currentSong.songDuration || targetRoom.currentSong.songDuration <= 0) && targetRoom.currentSong.videoId) {
-    fetchDirectAudioUrl(targetRoom.currentSong.videoId).then(info => {
+    fetchDirectAudioUrl(targetRoom.currentSong.videoId).then(async info => {
       if (info && info.duration > 0 && targetRoom.currentSong.videoId === info.videoId) {
         targetRoom.currentSong.songDuration = info.duration;
         targetRoom.playbackTracker.songDuration = info.duration;
-        roomManager.persistRoom(targetRoom);
+        await roomManager.persistRoom(targetRoom);
         targetRoom.broadcastUpdate(dynamicPublicUrl);
       }
     }).catch(() => {});
@@ -1577,6 +1577,7 @@ app.post('/api/rooms', async (req, res) => {
   const cleanName = inputName.slice(0, 40);
   const cleanCreator = (creator || 'Host').trim().slice(0, 25);
   const room = roomManager.createRoom(customCode, cleanName, cleanCreator);
+  await roomManager.persistRoom(room);
 
   res.json({
     success: true,
@@ -1642,7 +1643,7 @@ app.get('/api/host', (req, res) => {
   res.json({ partyHost: req.room.getPartyHostInfo() });
 });
 
-app.post(['/api/host/claim', '/api/host/takeover/request'], (req, res) => {
+app.post(['/api/host/claim', '/api/host/takeover/request'], async (req, res) => {
   const room = req.room;
   room.checkHostVacant();
   const { name, token, force } = req.body || {};
@@ -1662,7 +1663,7 @@ app.post(['/api/host/claim', '/api/host/takeover/request'], (req, res) => {
       claimedAt: Date.now(),
       lastHeartbeat: Date.now()
     };
-    roomManager.persistRoom(room);
+    await roomManager.persistRoom(room);
     room.knownDJs.add(cleanName);
     room.addActivity(cleanName, 'host_claimed', prevHost && prevHost !== cleanName ? `mengambil alih kursi Host dari ${prevHost}` : 'menjadi Host Party malam ini 👑');
     room.broadcastUpdate(dynamicPublicUrl);
@@ -1682,7 +1683,7 @@ app.post(['/api/host/claim', '/api/host/takeover/request'], (req, res) => {
   };
 
   room.addActivity(cleanName, 'takeover_request', `meminta izin mengambil alih kursi Host dari ${room.partyHost.name}`);
-  roomManager.persistRoom(room);
+  await roomManager.persistRoom(room);
   room.broadcastUpdate(dynamicPublicUrl);
 
   return res.json({
@@ -1722,7 +1723,7 @@ app.post('/api/host/takeover/respond', async (req, res) => {
       claimedAt: Date.now(),
       lastHeartbeat: Date.now()
     };
-    roomManager.persistRoom(room);
+    await roomManager.persistRoom(room);
     room.knownDJs.add(reqUser);
     room.addActivity(curHost, 'takeover_approved', `menyetujui pemindahan kursi Host ke ${reqUser} 👑`);
     room.broadcastUpdate(dynamicPublicUrl);
@@ -1730,7 +1731,7 @@ app.post('/api/host/takeover/respond', async (req, res) => {
   } else {
     room.pendingTakeover = null;
     room.addActivity(curHost, 'takeover_rejected', `menolak permintaan ambil alih Host dari ${reqUser}`);
-    roomManager.persistRoom(room);
+    await roomManager.persistRoom(room);
     room.broadcastUpdate(dynamicPublicUrl);
     return res.json({ success: true, approved: false, partyHost: room.getPartyHostInfo() });
   }
@@ -1780,14 +1781,14 @@ app.post('/api/host/heartbeat', (req, res) => {
   res.json({ success: false, partyHost: room.getPartyHostInfo() });
 });
 
-app.post('/api/host/release', (req, res) => {
+app.post('/api/host/release', async (req, res) => {
   const room = req.room;
   const { token } = req.body || {};
   if (room.partyHost.name && (!token || room.partyHost.token === token)) {
     const oldHost = room.partyHost.name;
     room.partyHost = { name: null, token: null, claimedAt: null, lastHeartbeat: null };
     room.pendingTakeover = null;
-    roomManager.persistRoom(room);
+    await roomManager.persistRoom(room);
     room.addActivity(oldHost, 'host_released', 'melepas kursi Host. Status sekarang VACANT ⚠️');
     room.broadcastUpdate(dynamicPublicUrl);
     return res.json({ success: true, partyHost: room.getPartyHostInfo() });
@@ -2078,7 +2079,7 @@ app.post('/api/queue', async (req, res) => {
     room.playbackTracker.lastUpdated = Date.now();
 
     room.addActivity(songUser, 'add', `memutar "${songTitle}"`);
-    roomManager.persistRoom(room);
+    await roomManager.persistRoom(room);
     room.broadcastUpdate(dynamicPublicUrl);
 
     if (!room.currentSong.songDuration || room.currentSong.songDuration <= 0) {
@@ -2117,7 +2118,7 @@ app.post('/api/queue', async (req, res) => {
 
   room.partyQueue.push(queueItem);
   room.addActivity(songUser, 'add', songTitle);
-  roomManager.persistRoom(room);
+  await roomManager.persistRoom(room);
   room.broadcastUpdate(dynamicPublicUrl);
 
   // Controlled Proactive Pre-Warm via FIFO queue
@@ -2162,7 +2163,7 @@ app.delete('/api/queue/:index', async (req, res) => {
   const room = req.room;
   if (index >= 0 && index < room.partyQueue.length) {
     const removed = room.partyQueue.splice(index, 1)[0];
-    roomManager.persistRoom(room);
+    await roomManager.persistRoom(room);
     room.addActivity(user, 'remove', title || removed?.title || 'a song');
     room.broadcastUpdate(dynamicPublicUrl);
     setTimeout(() => prewarmUpcomingTracks(room), 500);
@@ -2173,7 +2174,7 @@ app.delete('/api/queue/:index', async (req, res) => {
 });
 
 // Bulk Delete Queue Items with Checklist
-app.post('/api/queue/delete-bulk', (req, res) => {
+app.post('/api/queue/delete-bulk', async (req, res) => {
   const { indices, videoIds, user } = req.body || {};
   let removedCount = 0;
   const room = req.room;
@@ -2198,7 +2199,7 @@ app.post('/api/queue/delete-bulk', (req, res) => {
 
   if (removedCount > 0) {
     if (room) {
-      roomManager.persistRoom(room);
+      await roomManager.persistRoom(room);
       room.addActivity(user || 'Host', 'remove', `menghapus ${removedCount} lagu sekaligus dari antrean`);
       room.broadcastUpdate(dynamicPublicUrl);
       setTimeout(() => prewarmUpcomingTracks(room), 500);
@@ -2246,7 +2247,7 @@ app.patch('/api/queue/move', async (req, res) => {
     const [movedItem] = targetQueue.splice(fromIndex, 1);
     targetQueue.splice(toIndex, 0, movedItem);
     if (room) {
-      roomManager.persistRoom(room);
+      await roomManager.persistRoom(room);
       room.addActivity(user, 'move', `dragged "${title || movedItem.title || 'song'}" to #${targetPosition || (toIndex + 1)}`);
       room.broadcastUpdate(dynamicPublicUrl);
     } else {
@@ -2312,7 +2313,7 @@ app.post('/api/upvote', async (req, res) => {
   item.upvotes = item.votedUsers.length;
   targetQueue.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
   if (room) {
-    roomManager.persistRoom(room);
+    await roomManager.persistRoom(room);
     room.broadcastUpdate(dynamicPublicUrl);
   } else {
     persistPartyQueue();
@@ -2354,7 +2355,7 @@ app.post('/api/control/toggle', async (req, res) => {
   room.playbackTracker.isPaused = room.currentSong.isPaused;
   room.playbackTracker.lastUpdated = now;
   room.addActivity(user, room.currentSong.isPaused ? 'pause' : 'play', room.currentSong.title);
-  roomManager.persistRoom(room);
+  await roomManager.persistRoom(room);
   room.broadcastUpdate(dynamicPublicUrl);
   res.json({ success: true, isPaused: room.currentSong.isPaused, elapsed: room.getCalculatedElapsed() });
 });
