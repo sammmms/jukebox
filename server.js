@@ -33,7 +33,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.13.7';
+const APP_VERSION = '2.13.8';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -904,7 +904,9 @@ function addActivity(user, action, details) {
   const item = {
     id: Date.now() + '-' + Math.random().toString(36).slice(2, 6),
     user: user || 'Someone',
+    dj: user || 'Someone',
     action,
+    type: action,
     details: details || '',
     timestamp: Date.now()
   };

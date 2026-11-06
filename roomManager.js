@@ -26,7 +26,7 @@ const path = require('path');
 });
 
 const IS_VERCEL = Boolean(process.env.VERCEL);
-const APP_VERSION = '2.13.7';
+const APP_VERSION = '2.13.8';
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '';
 
@@ -196,7 +196,9 @@ class Room {
     this.touch();
     this.activityLogs.unshift({
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      user: dj,
       dj,
+      action: type,
       type,
       details,
       timestamp: Date.now()
