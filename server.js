@@ -9,7 +9,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.13.3';
+const APP_VERSION = '2.13.4';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -1546,7 +1546,7 @@ app.get('/api/host', (req, res) => {
   res.json({ partyHost: req.room.getPartyHostInfo() });
 });
 
-app.post('/api/host/claim', (req, res) => {
+app.post(['/api/host/claim', '/api/host/takeover/request'], (req, res) => {
   const room = req.room;
   room.checkHostVacant();
   const { name, token, force } = req.body || {};

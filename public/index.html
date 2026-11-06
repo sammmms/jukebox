@@ -2559,7 +2559,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.13.3';
+    const CLIENT_VERSION = '2.13.4';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -2815,14 +2815,11 @@
       // 1. If user is Host, always active
       if (isMeHost()) return true;
 
-      // 2. On Desktop / PC, default to active (PC user expects sound)
-      if (!isMobileDevice) return true;
+      // 2. Mobile devices ALWAYS default to silent remote mode (prevents echo/feedback at parties)
+      if (isMobileDevice) return false;
 
-      // 3. If host is vacant, default to active on any device
-      if (!currentPartyHost || currentPartyHost.isVacant || !currentPartyHost.name) return true;
-
-      // 4. Mobile guest defaults to remote controller mode
-      return false;
+      // 3. Desktop / PC browsers default to speaker active (host sound system)
+      return true;
     }
 
     function toggleDeviceSpeaker() {

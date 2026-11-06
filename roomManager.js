@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const IS_VERCEL = Boolean(process.env.VERCEL);
-const APP_VERSION = '2.13.3';
+const APP_VERSION = '2.13.4';
 
 const DEFAULT_STARTER_TRACK = {
   videoId: 'bu7nU9Mhpyo',
