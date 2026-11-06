@@ -228,7 +228,9 @@ class Room {
   }
 
   getFormattedQueue() {
-    return this.partyQueue.map((item, idx) => ({
+    // Stable sort: higher upvotes bubble to the top, preserving FIFO order for equal votes
+    const sorted = [...this.partyQueue].sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
+    return sorted.map((item, idx) => ({
       rawIndex: idx,
       videoId: item.videoId,
       title: item.title,

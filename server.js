@@ -94,7 +94,8 @@ app.use('/api', async (req, res, next) => {
     const rawId = req.headers['x-room-id'] || req.query.room || req.body?.room || 'main';
     const roomId = String(rawId).trim().toLowerCase().replace(/[^a-z0-9_-]/g, '') || 'main';
     req.roomId = roomId;
-    req.room = await roomManager.getOrHydrateRoom(roomId);
+    const forceSync = Boolean(req.query._t || req.headers['cache-control']?.includes('no-cache'));
+    req.room = await roomManager.getOrHydrateRoom(roomId, null, null, forceSync);
     req.room.touch();
     next();
   } catch (err) {
