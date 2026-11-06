@@ -389,9 +389,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.13.9)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.13.10)"
                     class="hidden sm:inline-block px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer">
-              v2.13.9
+              v2.13.10
             </button>
           </div>
           <div id="connection-btn" class="hidden md:flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
@@ -1006,7 +1006,7 @@
           <i data-lucide="sparkles" class="w-4 h-4 text-rose-500"></i>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.11.14</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.13.10</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs flex items-center justify-center"><i data-lucide="x" class="w-4 h-4"></i></button>
@@ -1014,6 +1014,19 @@
 
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
+        
+        <!-- v2.13.10 -->
+        <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.13.10 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">Kartu Rekomendasi Bebas Overflow & Rapi di Mobile:</strong> Mengoptimalkan layout kartu rekomendasi dengan ketinggian responsif adaptif (<code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">min-h-[58px]</code>) dan <code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">overflow-hidden</code>, memastikan tombol <em>+ Queue</em> dan lencana durasi tidak pernah terpotong atau keluar batas kartu pada layar smartphone berukuran apa pun.</li>
+            <li><strong class="text-slate-800 dark:text-white">Sinkronisasi Versi & Anti-Loop Banner Pembaruan:</strong> Menyinkronkan konstanta versi client (<code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">v2.13.10</code>) dengan API server, serta menambahkan bypass cache otomatis (<code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">?_v=timestamp</code> &amp; <code class="text-[10px] bg-slate-200 dark:bg-gray-800 px-1 py-0.5 rounded">sessionStorage</code>) saat tombol Refresh ditekan agar banner tidak muncul berulang kali setelah dimuat ulang.</li>
+            <li><strong class="text-slate-800 dark:text-white">Optimasi Media Query Lintas Perangkat:</strong> Memverifikasi keselarasan visual pada seluruh ukuran viewport (mobile 320px–428px, tablet 768px, desktop 1024px–1440px) tanpa ada scroll horizontal liar atau benturan tombol.</li>
+          </ul>
+        </div>
         
         <!-- v2.11.14 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
@@ -2246,12 +2259,12 @@
     <div class="text-left text-xs min-w-0 flex-1">
       <div class="flex items-center gap-1.5 flex-wrap">
         <span class="font-black text-white">Versi Baru Tersedia!</span>
-        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.11.1</span>
+        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.13.10</span>
       </div>
       <p class="text-[11px] text-pink-100 opacity-90 mt-0.5">Pembaruan server siap. Muat ulang saat siap.</p>
     </div>
     <div class="flex items-center gap-2 shrink-0">
-      <button onclick="window.location.reload(true)" class="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-black text-xs shadow-md active:scale-95 transition-all cursor-pointer">
+      <button onclick="handleUpdateReload()" class="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-black text-xs shadow-md active:scale-95 transition-all cursor-pointer">
         <span>Refresh</span> <i data-lucide="refresh-cw" class="w-3 h-3 inline ml-1"></i>
       </button>
       <button onclick="dismissUpdateBanner()" class="w-7 h-7 rounded-xl bg-white/20 hover:bg-white/30 text-white font-bold text-xs flex items-center justify-center transition-all cursor-pointer" title="Tutup">
@@ -2517,7 +2530,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.13.8';
+    const CLIENT_VERSION = '2.13.10';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -3689,11 +3702,32 @@
         banner.classList.add('-translate-y-4', 'opacity-0');
         setTimeout(() => banner.classList.add('hidden'), 300);
       }
+      try {
+        const currentTag = document.getElementById('update-version-tag')?.textContent?.replace(/^v/, '') || '';
+        if (currentTag) sessionStorage.setItem('dismissed_update_version', currentTag);
+      } catch (e) {}
+    }
+
+    function handleUpdateReload() {
+      try {
+        const currentTag = document.getElementById('update-version-tag')?.textContent?.replace(/^v/, '') || '';
+        if (currentTag) sessionStorage.setItem('dismissed_update_version', currentTag);
+        if ('caches' in window) {
+          caches.keys().then(names => Promise.all(names.map(name => caches.delete(name))));
+        }
+      } catch (e) {}
+      const url = new URL(window.location.href);
+      url.searchParams.set('_v', Date.now().toString());
+      window.location.replace(url.toString());
     }
 
     function triggerVersionUpdateBanner(newVersion) {
       if (isUpdateTriggered) return;
       if (!newVersion || !isNewerVersion(newVersion, CLIENT_VERSION)) return;
+      try {
+        const dismissed = sessionStorage.getItem('dismissed_update_version');
+        if (dismissed && !isNewerVersion(newVersion, dismissed)) return;
+      } catch (e) {}
       isUpdateTriggered = true;
 
       const banner = document.getElementById('update-banner');
@@ -6274,28 +6308,28 @@
           </div>
 
           <!-- RECTANGULAR HORIZONTAL GRID (Space-Efficient Compact 2-Col Mobile / 3-Col Desktop) -->
-          <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-1.5 sm:gap-2.5">
+          <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-2.5">
             ${pageItems.map(item => {
               registerSongCard(item);
               return `
-              <div class="group relative flex items-center gap-2 p-1.5 sm:p-2 rounded-lg bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200/80 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all active:scale-[0.99]"
+              <div class="group relative flex items-center gap-2 sm:gap-2.5 p-2 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200/80 dark:border-zinc-800/80 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all active:scale-[0.99] overflow-hidden min-h-[58px] sm:min-h-[66px]"
                    onmouseenter="triggerPrewarmDebounced('${item.videoId}')"
                    onmouseleave="cancelPrewarmDebounced('${item.videoId}')"
                    ontouchstart="triggerPrewarmDebounced('${item.videoId}')">
-                <!-- Left: Thumbnail (Rectangle / Compact) -->
-                <div class="relative w-11 h-11 sm:w-14 sm:h-14 rounded-lg overflow-hidden shrink-0 bg-slate-200 dark:bg-gray-800">
+                <!-- Left: Thumbnail (Rectangle / Compact) with duration badge -->
+                <div class="relative w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden shrink-0 bg-slate-200 dark:bg-gray-800 shadow-2xs">
                   <img src="${item.thumbnail}" onerror="this.onerror=null;this.src='https://placehold.co/150x150/18181b/white?text=Music';" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                  <span class="absolute bottom-0.5 right-0.5 px-0.5 py-0.2 rounded bg-black/80 text-[7px] sm:text-[8px] font-mono font-bold text-white shadow-xs">${formatTime(item.songDuration || 210)}</span>
+                  <span class="absolute bottom-0.5 right-0.5 px-1 py-0.2 rounded bg-black/80 text-[7px] sm:text-[8px] font-mono font-bold text-white shadow-xs">${formatTime(item.songDuration || 210)}</span>
                 </div>
                 <!-- Right: Flex Col (Title, Artist, +Queue button) -->
-                <div class="flex flex-col justify-between flex-1 min-w-0 h-11 sm:h-14 py-0.2">
+                <div class="flex flex-col justify-between flex-1 min-w-0 min-h-[48px] sm:min-h-[56px] py-0.5">
                   <div class="min-w-0">
-                    <h5 class="text-[11px] sm:text-xs font-bold text-slate-900 dark:text-white truncate" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</h5>
-                    <p class="text-[9px] sm:text-[10px] font-medium text-slate-500 dark:text-gray-400 truncate">${escapeHtml(item.artist)}</p>
+                    <h5 class="text-[11px] sm:text-xs font-bold text-slate-900 dark:text-white truncate leading-tight" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</h5>
+                    <p class="text-[9px] sm:text-[10px] font-medium text-slate-500 dark:text-gray-400 truncate mt-0.5">${escapeHtml(item.artist)}</p>
                   </div>
-                  <div class="flex items-center justify-between gap-1 pt-0.5">
+                  <div class="flex items-center pt-1">
                     <button onclick="queueTrackById('${item.videoId}')"
-                            class="py-0.5 sm:py-1 px-1.5 sm:px-2 rounded-md bg-zinc-100 hover:bg-rose-500 hover:text-white dark:bg-zinc-800 dark:hover:bg-rose-500 text-zinc-700 dark:text-zinc-200 dark:hover:text-white border border-zinc-200 dark:border-zinc-700 text-[10px] sm:text-[11px] font-medium transition-colors flex items-center gap-1 active:scale-95 cursor-pointer">
+                            class="px-2 py-0.5 rounded-md bg-zinc-100 hover:bg-rose-500 hover:text-white dark:bg-zinc-800 dark:hover:bg-rose-500 text-zinc-700 dark:text-zinc-200 dark:hover:text-white border border-zinc-200 dark:border-zinc-700 text-[10px] sm:text-[11px] font-semibold transition-all flex items-center gap-1 active:scale-95 cursor-pointer shrink-0">
                       <span>+ Queue</span>
                     </button>
                   </div>
