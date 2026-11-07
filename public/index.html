@@ -338,10 +338,7 @@
   <!-- Hidden HTML5 Silent Audio Shield Anchor for iOS/Android Background Audio Keep-Alive -->
   <audio id="silent-audio-anchor" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/w==" loop preload="none" playsinline></audio>
 
-  <!-- Embedded YouTube Audio Engine Bridge (Hidden & GPU-Isolated) -->
-  <div id="host-audio-player-wrapper" class="fixed -bottom-40 -right-40 z-[-1] pointer-events-none overflow-hidden" style="width: 2px; height: 2px; opacity: 0.001; contain: strict; will-change: auto;">
-    <div id="youtube-host-player" style="width: 100%; height: 100%;"></div>
-  </div>
+
 
   <!-- Floating Banner to unlock audio autoplay on any device (Desktop & Mobile) -->
   <div id="host-speaker-activation-banner" class="hidden fixed top-4 inset-x-4 sm:inset-x-auto sm:right-6 z-50 p-3.5 rounded-xl bg-zinc-900/95 dark:bg-zinc-100/95 backdrop-blur-md text-white dark:text-zinc-900 shadow-2xl flex items-center justify-between gap-3 border border-zinc-700 dark:border-zinc-300 animate-bounce">
@@ -385,9 +382,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.14.9)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.14.10)"
                     class="hidden sm:inline-block px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer">
-              v2.14.9
+              v2.14.10
             </button>
           </div>
           <div id="connection-btn" class="hidden md:flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
@@ -519,12 +516,17 @@
         <div class="desktop-only rounded-xl bg-white dark:bg-[#11131a] border border-zinc-200/90 dark:border-zinc-800/80 p-4 shadow-xs transition-colors duration-200 space-y-3">
           <div class="flex items-center justify-between pb-1">
             <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <span class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">Party Playback</span>
             </div>
             <span class="text-[10px] font-mono text-zinc-400 dark:text-zinc-500">
               Live
             </span>
+          </div>
+
+          <!-- Embedded YouTube Audio Engine & Video Display (Hardware-Accelerated, Zero-Stutter) -->
+          <div id="host-audio-player-wrapper" class="relative w-full aspect-video rounded-lg overflow-hidden bg-black shadow-inner border border-zinc-200 dark:border-zinc-800">
+            <div id="youtube-host-player" style="width: 100%; height: 100%;"></div>
           </div>
 
           <!-- UP NEXT PREVIEW BANNER -->
@@ -1155,7 +1157,7 @@
           <i data-lucide="sparkles" class="w-4 h-4 text-rose-500"></i>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.14.9</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.14.10</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs flex items-center justify-center"><i data-lucide="x" class="w-4 h-4"></i></button>
@@ -1164,10 +1166,23 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.14.9 -->
+        <!-- v2.14.10 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.14.9 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.14.10 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">Eliminasi Bug Lagu Mengulang (Hardware-Accelerated YouTube Display):</strong> Menempatkan YouTube player secara proporsional (16:9) di dalam kartu Party Playback desktop. Menghilangkan bug off-screen 2px yang memicu lonjakan CPU 120% di Zen Browser dan mereset lagu ke 0:00 di tengah pemutaran.</li>
+            <li><strong class="text-slate-800 dark:text-white">Perbaikan Responsif Play/Pause Cepat (Non-Dropping Debounce):</strong> Menghapus pembatalan klik saat in-flight. Menekan Space atau klik beruntun kini seketika memperbarui status lokal (0ms) dengan trailing debounce 150ms ke server sehingga ikon dan audio tidak pernah lagi bingung atau terbalik.</li>
+            <li><strong class="text-slate-800 dark:text-white">Anti-Revert Antrean & State Overwrite Serverless:</strong> Memproteksi transisi lagu baru dari penimpaan data lama Supabase (heartbeat throttle 60s & advance lock 15s) serta memperpanjang batas host vacant menjadi 3 menit.</li>
+          </ul>
+        </div>
+
+        <!-- v2.14.9 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-800/50 border border-slate-200 dark:border-gray-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-600">v2.14.9</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -2520,7 +2535,7 @@
     <div class="text-left text-xs min-w-0 flex-1">
       <div class="flex items-center gap-1.5 flex-wrap">
         <span class="font-black text-white">Versi Baru Tersedia!</span>
-        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.14.9</span>
+        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.14.10</span>
       </div>
       <p class="text-[11px] text-pink-100 opacity-90 mt-0.5">Pembaruan server siap. Muat ulang saat siap.</p>
     </div>
@@ -3061,7 +3076,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.14.9';
+    const CLIENT_VERSION = '2.14.10';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -4171,7 +4186,9 @@
         }
       } catch (e) {}
 
-      if (currentSongData.videoId !== currentLoadedVideoId && !isAlreadyLoaded) {
+      const isSameVideo = (currentLoadedVideoId === currentSongData.videoId) || isAlreadyLoaded;
+
+      if (!isSameVideo) {
         currentLoadedVideoId = currentSongData.videoId;
         window._isVideoEnded = false;
         window._lastEndedReportedVideoId = null;
@@ -5996,7 +6013,7 @@
           }
 
           // Desktop Host Watchdog: auto-trigger ended when near completion (Host speaker only)
-          if (dur > 5 && playerTime >= dur - 0.8 && isDeviceSpeakerActive() && isHostSpeakerActive && isMeHost()) {
+          if (dur > 30 && playerTime >= dur - 0.8 && isDeviceSpeakerActive() && isHostSpeakerActive && isMeHost()) {
             const vid = currentLoadedVideoId;
             if (vid && (!window._lastEndedReportedVideoId || window._lastEndedReportedVideoId !== vid)) {
               window._lastEndedReportedVideoId = vid;
@@ -7711,12 +7728,9 @@
     }
 
     // Playback Controls with 0ms Instant Optimistic UI and Anti-Spam Debounce
-    let isTogglePlayInFlight = false;
+    let pendingToggleTimer = null;
 
     async function togglePlay(explicitPaused = null) {
-      if (isTogglePlayInFlight) return;
-      isTogglePlayInFlight = true;
-
       // 1. Determine optimistic target state:
       const targetIsPaused = (typeof explicitPaused === 'boolean') ? explicitPaused : isPlaying;
 
@@ -7768,39 +7782,39 @@
         }
       }
 
-      // 4. Synchronize with Server API:
-      try {
-        const res = await fetch('/api/control/toggle', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user: currentUser,
-            elapsed: currentElapsed,
-            isPaused: targetIsPaused
-          })
-        });
-        const data = await res.json();
-        if (data && typeof data.isPaused === 'boolean') {
-          isPlaying = !data.isPaused;
-          lastTickTimestamp = Date.now();
-          if (currentSongData) currentSongData.isPaused = data.isPaused;
-          if (data.isPaused) {
-            vinyl?.classList.add('paused');
-            playIcon?.classList.remove('hidden');
-            pauseIcon?.classList.add('hidden');
-          } else {
-            vinyl?.classList.remove('paused');
-            playIcon?.classList.add('hidden');
-            pauseIcon?.classList.remove('hidden');
+      // 4. Trailing Debounce Network Dispatch (150ms):
+      // Debounces rapid Space/click toggles without dropping clicks, ensuring the stabilized final user intent is sent
+      clearTimeout(pendingToggleTimer);
+      pendingToggleTimer = setTimeout(async () => {
+        try {
+          const res = await fetch('/api/control/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user: currentUser,
+              elapsed: currentElapsed,
+              isPaused: targetIsPaused
+            })
+          });
+          const data = await res.json();
+          if (data && typeof data.isPaused === 'boolean') {
+            isPlaying = !data.isPaused;
+            lastTickTimestamp = Date.now();
+            if (currentSongData) currentSongData.isPaused = data.isPaused;
+            if (data.isPaused) {
+              vinyl?.classList.add('paused');
+              playIcon?.classList.remove('hidden');
+              pauseIcon?.classList.add('hidden');
+            } else {
+              vinyl?.classList.remove('paused');
+              playIcon?.classList.add('hidden');
+              pauseIcon?.classList.remove('hidden');
+            }
           }
+        } catch (e) {
+          console.error('Toggle error:', e);
         }
-      } catch (e) {
-        console.error('Toggle error:', e);
-      } finally {
-        setTimeout(() => {
-          isTogglePlayInFlight = false;
-        }, 250);
-      }
+      }, 150);
     }
 
     async function skipNext() {

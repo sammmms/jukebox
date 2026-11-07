@@ -33,7 +33,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.14.9';
+const APP_VERSION = '2.14.10';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -655,9 +655,9 @@ function checkServerPlaybackAutoplay(room = null) {
   if (!targetRoom.currentSong || !targetRoom.currentSong.videoId || targetRoom.currentSong.title === 'No song playing') return;
   if (targetRoom.playbackTracker.isPaused) return;
 
-  // If room has an active Host with recent heartbeat (< 45s), DEFER strictly to Host physical audio!
+  // If room has an active Host with recent heartbeat (< 3m), DEFER strictly to Host physical audio!
   const now = Date.now();
-  if (targetRoom.partyHost.name && targetRoom.partyHost.lastHeartbeat && (now - targetRoom.partyHost.lastHeartbeat < 45000)) {
+  if (targetRoom.partyHost.name && targetRoom.partyHost.lastHeartbeat && (now - targetRoom.partyHost.lastHeartbeat < 180000)) {
     return;
   }
 
@@ -1783,7 +1783,12 @@ app.post('/api/host/heartbeat', async (req, res) => {
   const { token, name } = req.body || {};
   if (room.partyHost.name && room.partyHost.token && room.partyHost.token === token) {
     room.partyHost.lastHeartbeat = Date.now();
-    await roomManager.persistRoom(room);
+    // Throttle cloud persist on routine heartbeats to avoid overwriting recent queue/playback mutations across lambdas
+    const now = Date.now();
+    if (!room._lastHeartbeatPersist || (now - room._lastHeartbeatPersist > 60000)) {
+      room._lastHeartbeatPersist = now;
+      await roomManager.persistRoom(room);
+    }
     return res.json({ success: true, partyHost: room.getPartyHostInfo() });
   }
 
@@ -2447,9 +2452,9 @@ app.post('/api/control/ended', async (req, res) => {
     return res.json({ success: true, current: room.currentSong });
   }
 
-  // Premature Ended Guard: A full track cannot end within 15 seconds of starting
+  // Premature Ended Guard: A full track cannot end within 25 seconds of starting
   const trackAgeSec = (now - (room.currentSong.startedAt || now)) / 1000;
-  if (trackAgeSec < 15 && room.currentSong.songDuration > 30) {
+  if (trackAgeSec < 25 && room.currentSong.songDuration > 30) {
     console.warn(`[Ended Guard][Room ${room.id}] Rejected premature ended report at ${trackAgeSec.toFixed(1)}s for track "${room.currentSong.title}" (duration: ${room.currentSong.songDuration}s)`);
     return res.json({ success: true, current: room.currentSong });
   }

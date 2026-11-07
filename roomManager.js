@@ -26,7 +26,7 @@ const path = require('path');
 });
 
 const IS_VERCEL = Boolean(process.env.VERCEL);
-const APP_VERSION = '2.14.9';
+const APP_VERSION = '2.14.10';
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '';
 
@@ -298,13 +298,13 @@ class Room {
   }
 
   checkHostVacant() {
-    const HOST_VACANT_TIMEOUT_MS = 45000;
+    const HOST_VACANT_TIMEOUT_MS = 180000; // 3 minutes (prevents false drops when tab is throttled/backgrounded)
     if (this.partyHost.name) {
       if (Date.now() - (this.partyHost.lastHeartbeat || 0) > HOST_VACANT_TIMEOUT_MS) {
         const oldHost = this.partyHost.name;
         this.partyHost = { name: null, token: null, claimedAt: null, lastHeartbeat: null, clientType: null };
         this.pendingTakeover = null;
-        this.addActivity('System', 'host_vacated', `Kursi Host dikosongkan karena ${oldHost} tidak merespons (timeout 45s)`);
+        this.addActivity('System', 'host_vacated', `Kursi Host dikosongkan karena ${oldHost} tidak merespons (timeout 3m)`);
         this.broadcastUpdate();
       }
     }
@@ -456,29 +456,37 @@ class Room {
     if (typeof data.isRoomSleeping === 'boolean') this.isRoomSleeping = data.isRoomSleeping;
 
     if (data.currentSong && data.currentSong.videoId) {
-      this.currentSong = {
-        ...data.currentSong,
-        songDuration: (typeof data.currentSong.songDuration === 'number' && data.currentSong.songDuration > 0) ? Math.round(data.currentSong.songDuration) : 215,
-        imageSrc: data.currentSong.thumbnail || data.currentSong.imageSrc || '',
-        isPaused: typeof data.currentSong.isPaused === 'boolean' ? data.currentSong.isPaused : true,
-        startedAt: data.currentSong.startedAt || (data.currentSong.elapsedSeconds ? (Date.now() - Math.round(data.currentSong.elapsedSeconds * 1000)) : Date.now())
-      };
-      this.playbackTracker.videoId = this.currentSong.videoId;
-      this.playbackTracker.songDuration = this.currentSong.songDuration;
-      this.playbackTracker.isPaused = this.currentSong.isPaused;
-      this.playbackTracker.lastUpdated = Date.now();
+      // Conflict Guard: If this instance advanced the track locally within 15 seconds,
+      // do not let stale remote data revert the newly advanced song!
+      const isLocalRecentAdvance = (Date.now() - (this.lastAdvanceTime || 0) < 15000);
+      if (!isLocalRecentAdvance || data.currentSong.videoId === this.currentSong?.videoId) {
+        this.currentSong = {
+          ...data.currentSong,
+          songDuration: (typeof data.currentSong.songDuration === 'number' && data.currentSong.songDuration > 0) ? Math.round(data.currentSong.songDuration) : 215,
+          imageSrc: data.currentSong.thumbnail || data.currentSong.imageSrc || '',
+          isPaused: typeof data.currentSong.isPaused === 'boolean' ? data.currentSong.isPaused : true,
+          startedAt: data.currentSong.startedAt || (data.currentSong.elapsedSeconds ? (Date.now() - Math.round(data.currentSong.elapsedSeconds * 1000)) : Date.now())
+        };
+        this.playbackTracker.videoId = this.currentSong.videoId;
+        this.playbackTracker.songDuration = this.currentSong.songDuration;
+        this.playbackTracker.isPaused = this.currentSong.isPaused;
+        this.playbackTracker.lastUpdated = Date.now();
 
-      if (this.currentSong.isPaused) {
-        this.playbackTracker.elapsed = this.currentSong.elapsedSeconds || 0;
-      } else {
-        const wallClockElapsed = Math.max(0, (Date.now() - this.currentSong.startedAt) / 1000);
-        this.playbackTracker.elapsed = wallClockElapsed;
-        this.currentSong.elapsedSeconds = wallClockElapsed;
+        if (this.currentSong.isPaused) {
+          this.playbackTracker.elapsed = this.currentSong.elapsedSeconds || 0;
+        } else {
+          const wallClockElapsed = Math.max(0, (Date.now() - this.currentSong.startedAt) / 1000);
+          this.playbackTracker.elapsed = wallClockElapsed;
+          this.currentSong.elapsedSeconds = wallClockElapsed;
+        }
       }
     }
 
     if (Array.isArray(data.partyQueue)) {
-      this.partyQueue = data.partyQueue;
+      const isLocalRecentAdvance = (Date.now() - (this.lastAdvanceTime || 0) < 15000);
+      if (!isLocalRecentAdvance) {
+        this.partyQueue = data.partyQueue;
+      }
     }
     if (Array.isArray(data.playedHistory)) {
       this.playedHistory = data.playedHistory;
