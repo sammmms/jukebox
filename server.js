@@ -33,7 +33,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.14.10';
+const APP_VERSION = '2.14.11';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -2875,7 +2875,19 @@ app.get('/api/events', async (req, res) => {
     console.warn(`[SSE][Room ${room.id}] Error sending initial payload:`, err.message);
   }
 
-  req.on('close', () => room.clients.delete(res));
+  // Active Keep-Alive Ping (Runs per-connection so it never freezes in serverless)
+  const pingTimer = setInterval(() => {
+    try {
+      res.write('data: {"type":"ping"}\n\n');
+    } catch (e) {
+      clearInterval(pingTimer);
+    }
+  }, 10000);
+
+  req.on('close', () => {
+    clearInterval(pingTimer);
+    room.clients.delete(res);
+  });
 });
 
 // Periodic SSE Keep-Alive Ping every 15s across all rooms

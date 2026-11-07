@@ -26,7 +26,7 @@ const path = require('path');
 });
 
 const IS_VERCEL = Boolean(process.env.VERCEL);
-const APP_VERSION = '2.14.10';
+const APP_VERSION = '2.14.11';
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '';
 
@@ -440,7 +440,7 @@ class Room {
     if (this.clients.size === 0) return;
     for (const client of this.clients) {
       try {
-        client.write(': ping\n\n');
+        client.write('data: {"type":"ping"}\n\n');
       } catch (e) {
         this.clients.delete(client);
       }

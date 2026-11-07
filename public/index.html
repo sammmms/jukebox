@@ -382,9 +382,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.14.10)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.14.11)"
                     class="hidden sm:inline-block px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer">
-              v2.14.10
+              v2.14.11
             </button>
           </div>
           <div id="connection-btn" class="hidden md:flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
@@ -1157,7 +1157,7 @@
           <i data-lucide="sparkles" class="w-4 h-4 text-rose-500"></i>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.14.10</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.14.11</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs flex items-center justify-center"><i data-lucide="x" class="w-4 h-4"></i></button>
@@ -1166,14 +1166,27 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.14.10 -->
+        <!-- v2.14.11 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.14.10 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.14.11 (Latest)</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
-            <li><strong class="text-slate-800 dark:text-white">Eliminasi Bug Lagu Mengulang (Hardware-Accelerated YouTube Display):</strong> Menempatkan YouTube player secara proporsional (16:9) di dalam kartu Party Playback desktop. Menghilangkan bug off-screen 2px yang memicu lonjakan CPU 120% di Zen Browser dan mereset lagu ke 0:00 di tengah pemutaran.</li>
+            <li><strong class="text-slate-800 dark:text-white">Solusi Tuntas Lagu Terulang di Detik 25-28 (SSE Watchdog &amp; State Protection):</strong> Memperbaiki bug kritis di mana ketiadaan ping SSE di Vercel memicu watchdog setiap 25 detik dan mereset status audio host. Ditambahkan connection-local ping 10s, watchdog toleransi 45s, dan proteksi mutlak pada data lagu berjalan serta status host dari penimpaan objek parsial.</li>
+            <li><strong class="text-slate-800 dark:text-white">Eliminasi Reset Fisik YouTube Player (No Destructive Stop):</strong> Menghapus pemanggilan destruktif <code>ytPlayer.stopVideo()</code> saat sinkronisasi rutin atau saat data transien belum tiba, mencegah player YouTube melompat kembali ke detik 0:00.</li>
+            <li><strong class="text-slate-800 dark:text-white">Proteksi Parsial UI State:</strong> Menjamin render antrean, riwayat, dan aktivitas hanya terjadi bila data array yang valid tersedia, mencegah antrean hilang sementara saat pembaruan status parsial.</li>
+          </ul>
+        </div>
+
+        <!-- v2.14.10 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-800/50 border border-slate-200 dark:border-gray-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-600">v2.14.10</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">Hardware-Accelerated YouTube Display:</strong> Menempatkan YouTube player secara proporsional (16:9) di dalam kartu Party Playback desktop. Menghilangkan bug off-screen 2px yang memicu lonjakan CPU 120% di Zen Browser dan mereset lagu ke 0:00 di tengah pemutaran.</li>
             <li><strong class="text-slate-800 dark:text-white">Perbaikan Responsif Play/Pause Cepat (Non-Dropping Debounce):</strong> Menghapus pembatalan klik saat in-flight. Menekan Space atau klik beruntun kini seketika memperbarui status lokal (0ms) dengan trailing debounce 150ms ke server sehingga ikon dan audio tidak pernah lagi bingung atau terbalik.</li>
             <li><strong class="text-slate-800 dark:text-white">Anti-Revert Antrean & State Overwrite Serverless:</strong> Memproteksi transisi lagu baru dari penimpaan data lama Supabase (heartbeat throttle 60s & advance lock 15s) serta memperpanjang batas host vacant menjadi 3 menit.</li>
           </ul>
@@ -2535,7 +2548,7 @@
     <div class="text-left text-xs min-w-0 flex-1">
       <div class="flex items-center gap-1.5 flex-wrap">
         <span class="font-black text-white">Versi Baru Tersedia!</span>
-        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.14.10</span>
+        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.14.11</span>
       </div>
       <p class="text-[11px] text-pink-100 opacity-90 mt-0.5">Pembaruan server siap. Muat ulang saat siap.</p>
     </div>
@@ -3076,7 +3089,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.14.10';
+    const CLIENT_VERSION = '2.14.11';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -4074,10 +4087,14 @@
         return;
       }
 
-      if (!currentSongData || !currentSongData.videoId || currentSongData.title === 'No song playing') {
+      if (!currentSongData || !currentSongData.videoId) {
+        return;
+      }
+
+      if (currentSongData.title === 'No song playing') {
         if (banner) banner.classList.add('hidden');
-        if (ytPlayer && typeof ytPlayer.stopVideo === 'function') {
-          try { ytPlayer.stopVideo(); } catch (e) {}
+        if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
+          try { ytPlayer.pauseVideo(); } catch (e) {}
         }
         if (hostAudio) {
           try { hostAudio.pause(); } catch (e) {}
@@ -5693,14 +5710,17 @@
       if (connDot) connDot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
       if (connText) connText.innerHTML = '<span class="text-emerald-600 dark:text-emerald-400 font-bold">Server Web Terhubung</span>';
 
+      // Guard against partial connection pings (no room/current/partyHost data) wiping state:
+      if (!status.room && !status.current && !status.partyHost && !status.queue) {
+        return;
+      }
+
       currentStatusData = status;
 
       // 1. HOST UI & GUEST PROFILE (Highest priority: always render immediately)
       try {
         if (status.partyHost) {
           updateHostUI(status.partyHost);
-        } else {
-          updateHostUI({ isVacant: true });
         }
         renderGuestBadge();
       } catch (err) {
@@ -5729,9 +5749,10 @@
 
       // 4. CURRENT PLAYING SONG
       try {
-        const song = status.current;
-        currentSongData = song;
-        if (song && song.title) {
+        if (status.current) {
+          const song = status.current;
+          currentSongData = song;
+          if (song && song.title) {
           updateMediaSession(song);
           const nowTitleEl = document.getElementById('now-title');
           const nowArtistEl = document.getElementById('now-artist');
@@ -5856,6 +5877,7 @@
           if (timeDurEl) timeDurEl.textContent = formatTime(songDuration);
           renderTimeline(currentElapsed);
         }
+        }
       } catch (err) {
         console.error('[updateUI] Song render error:', err);
       }
@@ -5913,21 +5935,27 @@
 
       // 8. QUEUE LIST (Upcoming only)
       try {
-        renderQueue(status.queue || [], status.selectedIndex ?? -1);
+        if (Array.isArray(status.queue)) {
+          renderQueue(status.queue, status.selectedIndex ?? -1);
+        }
       } catch (err) {
         console.error('[updateUI] Queue render error:', err);
       }
 
       // 9. HISTORY
       try {
-        renderHistory(status.history || []);
+        if (Array.isArray(status.history)) {
+          renderHistory(status.history);
+        }
       } catch (err) {
         console.error('[updateUI] History render error:', err);
       }
 
       // 10. ACTIVITY FEED
       try {
-        renderActivity(status.activity || []);
+        if (Array.isArray(status.activity)) {
+          renderActivity(status.activity);
+        }
       } catch (err) {
         console.error('[updateUI] Activity render error:', err);
       }
@@ -7970,7 +7998,10 @@
       sseSource.onopen = function() {
         lastSSEMessageTime = Date.now();
         consecutiveFetchErrors = 0;
-        updateUI({ online: true });
+        const connDot = document.getElementById('connection-dot');
+        const connText = document.getElementById('connection-text');
+        if (connDot) connDot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+        if (connText) connText.innerHTML = '<span class="text-emerald-600 dark:text-emerald-400 font-bold">Server Web Terhubung</span>';
         if (sseFallbackPollInterval) {
           clearInterval(sseFallbackPollInterval);
           sseFallbackPollInterval = null;
@@ -7982,6 +8013,10 @@
         consecutiveFetchErrors = 0;
         try {
           const data = JSON.parse(event.data);
+          if (data && data.type === 'ping') {
+            // Heartbeat ping received; socket is active and healthy
+            return;
+          }
           updateUI({ online: true, ...data });
         } catch (e) {}
       };
@@ -8010,8 +8045,8 @@
     setInterval(() => {
       if (!currentRoomId) return;
       const silenceDuration = Date.now() - lastSSEMessageTime;
-      // If no ping/message received in 25s, or sseSource is closed:
-      if (silenceDuration > 25000 || !sseSource || sseSource.readyState === 2) {
+      // If no ping/message received in 45s (3-4 pings lost), or sseSource is closed:
+      if (silenceDuration > 45000 || !sseSource || sseSource.readyState === 2) {
         fetchStatus();
         setupSSE();
       }
