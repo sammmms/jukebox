@@ -33,7 +33,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.14.8';
+const APP_VERSION = '2.14.9';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -2135,6 +2135,18 @@ app.post('/api/queue', async (req, res) => {
     });
   }
 
+  // Rapid duplicate queue guard (prevents duplicate adds within 3s)
+  const lastItem = room.partyQueue[room.partyQueue.length - 1];
+  if (lastItem && lastItem.videoId === videoId && lastItem.addedBy === songUser && (Date.now() - lastItem.addedAt < 3000)) {
+    return res.json({
+      success: true,
+      videoId,
+      title: songTitle,
+      user: songUser,
+      duplicateIgnored: true
+    });
+  }
+
   const queueItem = {
     id: Date.now() + '-' + Math.random().toString(36).slice(2, 6),
     videoId,
@@ -2361,7 +2373,8 @@ app.post('/api/control/toggle', async (req, res) => {
   if (isUsingYtmDesktop()) {
     try {
       await fetch(`${YTM_API}/api/v1/toggle-play`, { method: 'POST' });
-      playbackTracker.isPaused = !playbackTracker.isPaused;
+      const targetPaused = (typeof req.body?.isPaused === 'boolean') ? req.body.isPaused : !playbackTracker.isPaused;
+      playbackTracker.isPaused = targetPaused;
       playbackTracker.lastUpdated = Date.now();
       addActivity(user, playbackTracker.isPaused ? 'pause' : 'play', currentSong.title);
       setTimeout(broadcastUpdate, 200);
@@ -2383,8 +2396,9 @@ app.post('/api/control/toggle', async (req, res) => {
     room.currentSong.elapsedSeconds = room.playbackTracker.elapsed;
   }
 
-  room.currentSong.isPaused = !room.currentSong.isPaused;
-  room.playbackTracker.isPaused = room.currentSong.isPaused;
+  const targetPaused = (typeof req.body?.isPaused === 'boolean') ? req.body.isPaused : !room.currentSong.isPaused;
+  room.currentSong.isPaused = targetPaused;
+  room.playbackTracker.isPaused = targetPaused;
   room.playbackTracker.lastUpdated = now;
   if (!room.currentSong.isPaused) {
     room.currentSong.startedAt = now - Math.round((room.playbackTracker.elapsed || 0) * 1000);

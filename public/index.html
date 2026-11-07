@@ -385,9 +385,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.14.8)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.14.9)"
                     class="hidden sm:inline-block px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer">
-              v2.14.8
+              v2.14.9
             </button>
           </div>
           <div id="connection-btn" class="hidden md:flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
@@ -1155,7 +1155,7 @@
           <i data-lucide="sparkles" class="w-4 h-4 text-rose-500"></i>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.14.8</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.14.9</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs flex items-center justify-center"><i data-lucide="x" class="w-4 h-4"></i></button>
@@ -1164,10 +1164,23 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.14.8 -->
+        <!-- v2.14.9 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.14.8 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.14.9 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">Indikator Loading Real-Time &amp; Anti-Spam Duplikat Antrean:</strong> Menampilkan animasi spinner dan status <em>"Menambahkan..."</em> seketika saat tombol <code>+ Queue</code> ditekan, disusul indikator sukses hijau <em>"Masuk Antrean"</em>. Dilengkapi penguncian ganda di client dan filter 3 detik di server untuk mencegah penambahan lagu ganda akibat spam-klik.</li>
+            <li><strong class="text-slate-800 dark:text-white">Respon Instan 0ms Play / Pause (Space Bar &amp; Dock):</strong> Mengeliminasi jeda tampilan tombol kontrol saat menekan Space atau tombol Play/Pause dock. Ikon dan putaran piringan berganti dalam 0 milidetik (optimistic UI) dengan sinkronisasi state eksplisit yang konsisten antara browser dan server.</li>
+            <li><strong class="text-slate-800 dark:text-white">Eliminasi Total Banner Speaker Palsu Saat Buffering:</strong> Memperbaiki logika deteksi autoplay agar banner aktivasi speaker tidak pernah muncul saat speaker sudah aktif atau ketika pemutar video sedang melakukan buffering sejenak.</li>
+          </ul>
+        </div>
+
+        <!-- v2.14.8 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-800/40 border border-slate-200 dark:border-gray-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-600">v2.14.8</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -2507,7 +2520,7 @@
     <div class="text-left text-xs min-w-0 flex-1">
       <div class="flex items-center gap-1.5 flex-wrap">
         <span class="font-black text-white">Versi Baru Tersedia!</span>
-        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.14.8</span>
+        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.14.9</span>
       </div>
       <p class="text-[11px] text-pink-100 opacity-90 mt-0.5">Pembaruan server siap. Muat ulang saat siap.</p>
     </div>
@@ -3048,7 +3061,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.14.8';
+    const CLIENT_VERSION = '2.14.9';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -3464,6 +3477,7 @@
         startSilentAudioAnchor();
         requestScreenWakeLock();
         isPlaying = true;
+        if (currentSongData) currentSongData.isPaused = false;
         updateLoadingState(false);
         document.getElementById('vinyl-disc')?.classList.remove('paused');
         document.getElementById('play-icon')?.classList.add('hidden');
@@ -3474,13 +3488,12 @@
         }
       } else if (event.data === YT.PlayerState.PAUSED) {
         releaseScreenWakeLock();
-        if (currentSongData?.isPaused) {
-          isPlaying = false;
-          updateLoadingState(false);
-          document.getElementById('vinyl-disc')?.classList.add('paused');
-          document.getElementById('play-icon')?.classList.remove('hidden');
-          document.getElementById('pause-icon')?.classList.add('hidden');
-        }
+        isPlaying = false;
+        if (currentSongData) currentSongData.isPaused = true;
+        updateLoadingState(false);
+        document.getElementById('vinyl-disc')?.classList.add('paused');
+        document.getElementById('play-icon')?.classList.remove('hidden');
+        document.getElementById('pause-icon')?.classList.add('hidden');
       } else if (event.data === YT.PlayerState.ENDED) {
         window._isVideoEnded = true;
         releaseScreenWakeLock();
@@ -3615,31 +3628,11 @@
         navigator.mediaSession.playbackState = song.isPaused ? 'paused' : 'playing';
 
         navigator.mediaSession.setActionHandler('play', () => {
-          if (isMeHost()) {
-            if (isUseNativeAudioEngine()) {
-              const hostAudio = document.getElementById('host-native-audio');
-              if (hostAudio) hostAudio.play().catch(() => {});
-            } else if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
-              ytPlayer.playVideo();
-            }
-            startSilentAudioAnchor();
-            requestScreenWakeLock();
-          }
-          togglePlay();
+          togglePlay(false);
         });
 
         navigator.mediaSession.setActionHandler('pause', () => {
-          if (isMeHost()) {
-            if (isUseNativeAudioEngine()) {
-              const hostAudio = document.getElementById('host-native-audio');
-              if (hostAudio) hostAudio.pause();
-            } else if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
-              ytPlayer.pauseVideo();
-            }
-            stopSilentAudioAnchor();
-            releaseScreenWakeLock();
-          }
-          togglePlay();
+          togglePlay(true);
         });
 
         navigator.mediaSession.setActionHandler('nexttrack', () => {
@@ -4081,12 +4074,13 @@
       const state = (ytPlayer && typeof ytPlayer.getPlayerState === 'function') ? ytPlayer.getPlayerState() : -1;
       const isNativePlaying = hostAudio && !hostAudio.paused;
       
-      // Auto-unlock & banner suppression:
-      if (state === 1 || isNativePlaying || currentSongData.isPaused) {
+      // Auto-unlock & banner suppression (NEVER show banner if already unlocked, buffering, paused, or not host):
+      const isAlreadyUnlocked = isHostSpeakerActive || localStorage.getItem('jukebox_speaker_unlocked') === 'true';
+      if (isAlreadyUnlocked || state === 1 || state === 3 || isNativePlaying || currentSongData.isPaused || !isMeHost()) {
         if (banner) banner.classList.add('hidden');
         if (state === 1 || isNativePlaying) isHostSpeakerActive = true;
       } else {
-        // Autoplay blocked by browser or waiting for activation: show banner
+        // Autoplay genuinely blocked by browser on first visit
         if (banner) banner.classList.remove('hidden');
       }
 
@@ -6919,7 +6913,7 @@
                   </div>
                 </div>
                 <!-- + Queue Button -->
-                <button onclick="queueTrackById('${item.videoId}')"
+                <button data-queue-vid="${item.videoId}" onclick="queueTrackById('${item.videoId}')"
                         class="px-2.5 py-1 rounded-md bg-zinc-100 hover:bg-rose-500 hover:text-white dark:bg-zinc-800 dark:hover:bg-rose-500 text-zinc-700 dark:text-zinc-200 dark:hover:text-white border border-zinc-200 dark:border-zinc-700 text-xs font-semibold transition-all flex items-center gap-1 active:scale-95 cursor-pointer shrink-0">
                   <span>+ Queue</span>
                 </button>
@@ -7240,7 +7234,7 @@
                     <p class="text-[11px] font-medium text-slate-500 dark:text-gray-400 truncate">${escapeHtml(item.artist)}</p>
                   </div>
                 </div>
-                <button onclick="queueTrackById('${item.videoId}')"
+                <button data-queue-vid="${item.videoId}" onclick="queueTrackById('${item.videoId}')"
                         class="px-3 py-1.5 rounded-md bg-zinc-100 hover:bg-rose-500 hover:text-white dark:bg-zinc-800 dark:hover:bg-rose-500 text-zinc-700 dark:text-zinc-200 dark:hover:text-white border border-zinc-200 dark:border-zinc-700 text-xs font-medium active:scale-95 transition-colors cursor-pointer shrink-0">
                   <span>+ Queue</span>
                 </button>
@@ -7320,9 +7314,36 @@
       }
     }
 
-    // Queue Song
+    // Track in-flight additions to prevent accidental spam / duplicate clicks
+    const pendingQueueVideoIds = new Set();
+
+    // Queue Song with Instant Visual Loading Feedback & Anti-Spam Lock
     async function queueTrack(track) {
       if (!requireAuth('menambahkan lagu')) return;
+      if (!track || !track.videoId) return;
+
+      if (pendingQueueVideoIds.has(track.videoId)) {
+        return; // Prevent duplicate concurrent requests for the same track
+      }
+      pendingQueueVideoIds.add(track.videoId);
+
+      // Visual feedback: find all buttons for this track and display spinner + loading text
+      const targetBtns = document.querySelectorAll(`button[data-queue-vid="${track.videoId}"]`);
+      targetBtns.forEach(btn => {
+        btn.disabled = true;
+        if (!btn.dataset.originalHtml) {
+          btn.dataset.originalHtml = btn.innerHTML;
+        }
+        btn.innerHTML = `
+          <svg class="w-3.5 h-3.5 animate-spin text-current shrink-0" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span class="text-[11px] font-semibold">Menambahkan...</span>
+        `;
+        btn.classList.add('opacity-80', 'cursor-wait');
+      });
+
       try {
         const res = await fetch('/api/queue', {
           method: 'POST',
@@ -7339,8 +7360,19 @@
         const data = await res.json();
         if (data.success) {
           showToast(` "${track.title}" masuk antrean oleh ${currentUser}!`);
+          targetBtns.forEach(btn => {
+            btn.innerHTML = `
+              <svg class="w-3.5 h-3.5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-emerald-500 text-[11px] font-bold">Masuk Antrean</span>
+            `;
+          });
           fetchStatus();
         } else {
+          targetBtns.forEach(btn => {
+            if (btn.dataset.originalHtml) btn.innerHTML = btn.dataset.originalHtml;
+          });
           await customAlert(
             data.error || 'Lagu ini tidak dapat dimasukkan ke antrean.',
             'Lagu Ditolak',
@@ -7349,6 +7381,20 @@
         }
       } catch (err) {
         showToast('Gagal terhubung ke server Jukebox');
+        targetBtns.forEach(btn => {
+          if (btn.dataset.originalHtml) btn.innerHTML = btn.dataset.originalHtml;
+        });
+      } finally {
+        setTimeout(() => {
+          pendingQueueVideoIds.delete(track.videoId);
+          targetBtns.forEach(btn => {
+            btn.disabled = false;
+            btn.classList.remove('opacity-80', 'cursor-wait');
+            if (btn.dataset.originalHtml) {
+              btn.innerHTML = btn.dataset.originalHtml;
+            }
+          });
+        }, 1400);
       }
     }
 
@@ -7664,72 +7710,81 @@
       }
     }
 
-    // Playback Controls
-    async function togglePlay() {
+    // Playback Controls with 0ms Instant Optimistic UI and Anti-Spam Debounce
+    let isTogglePlayInFlight = false;
+
+    async function togglePlay(explicitPaused = null) {
+      if (isTogglePlayInFlight) return;
+      isTogglePlayInFlight = true;
+
+      // 1. Determine optimistic target state:
+      const targetIsPaused = (typeof explicitPaused === 'boolean') ? explicitPaused : isPlaying;
+
+      // 2. Instant Optimistic UI Feedback (0ms!):
+      isPlaying = !targetIsPaused;
+      if (currentSongData) {
+        currentSongData.isPaused = targetIsPaused;
+      }
+      const vinyl = document.getElementById('vinyl-disc');
+      const playIcon = document.getElementById('play-icon');
+      const pauseIcon = document.getElementById('pause-icon');
+      if (targetIsPaused) {
+        vinyl?.classList.add('paused');
+        playIcon?.classList.remove('hidden');
+        pauseIcon?.classList.add('hidden');
+      } else {
+        vinyl?.classList.remove('paused');
+        playIcon?.classList.add('hidden');
+        pauseIcon?.classList.remove('hidden');
+      }
+
+      // 3. Instant Local Physical Sound Feedback (0ms!):
       if (isDeviceSpeakerActive()) {
         const isNative = isUseNativeAudioEngine();
         const hostAudio = document.getElementById('host-native-audio');
-        let isPhysicallyPlaying = false;
-        if (isNative && hostAudio) {
-          isPhysicallyPlaying = !hostAudio.paused;
-        } else if (ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
-          isPhysicallyPlaying = (ytPlayer.getPlayerState() === 1);
-        }
 
-        // Case A: Room is ALREADY unpaused/playing, but local physical audio is waiting / stopped after reload
-        // Resume physical sound immediately without toggling server room state to paused!
-        if (!currentSongData?.isPaused && !isPhysicallyPlaying) {
+        if (targetIsPaused) {
+          if (isNative && hostAudio) {
+            try { hostAudio.pause(); } catch (e) {}
+          } else if (ytPlayer && typeof ytPlayer.pauseVideo === 'function') {
+            try { ytPlayer.pauseVideo(); } catch (e) {}
+          }
+          stopSilentAudioAnchor();
+          releaseScreenWakeLock();
+        } else {
           isHostSpeakerActive = true;
           try { localStorage.setItem('jukebox_speaker_unlocked', 'true'); } catch (e) {}
           const banner = document.getElementById('host-speaker-activation-banner');
           if (banner) banner.classList.add('hidden');
+          startSilentAudioAnchor();
+          requestScreenWakeLock();
 
           if (isNative && hostAudio) {
             ensureAudioContextGain();
             hostAudio.play().catch(e => console.warn('Native audio play error:', e));
           } else if (ytPlayer && typeof ytPlayer.playVideo === 'function') {
-            ytPlayer.playVideo();
-          }
-
-          isPlaying = true;
-          document.getElementById('vinyl-disc')?.classList.remove('paused');
-          document.getElementById('play-icon')?.classList.add('hidden');
-          document.getElementById('pause-icon')?.classList.remove('hidden');
-          return;
-        }
-
-        // Case B: Audio is physically playing, or room is paused -> normal toggle
-        if (isNative && hostAudio) {
-          if (isPhysicallyPlaying) {
-            hostAudio.pause();
-          } else {
-            ensureAudioContextGain();
-            hostAudio.play().catch(e => console.warn('Native audio play error:', e));
-          }
-        } else if (ytPlayer && typeof ytPlayer.getPlayerState === 'function') {
-          if (isPhysicallyPlaying) {
-            ytPlayer.pauseVideo();
-          } else {
-            ytPlayer.playVideo();
+            try { ytPlayer.playVideo(); } catch (e) {}
           }
         }
       }
 
+      // 4. Synchronize with Server API:
       try {
         const res = await fetch('/api/control/toggle', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user: currentUser, elapsed: currentElapsed })
+          body: JSON.stringify({
+            user: currentUser,
+            elapsed: currentElapsed,
+            isPaused: targetIsPaused
+          })
         });
         const data = await res.json();
-        if (data.success) {
+        if (data && typeof data.isPaused === 'boolean') {
           isPlaying = !data.isPaused;
           lastTickTimestamp = Date.now();
           if (currentSongData) currentSongData.isPaused = data.isPaused;
-          const vinyl = document.getElementById('vinyl-disc');
-          const playIcon = document.getElementById('play-icon');
-          const pauseIcon = document.getElementById('pause-icon');
-          if (!isPlaying) {
+          if (data.isPaused) {
             vinyl?.classList.add('paused');
             playIcon?.classList.remove('hidden');
             pauseIcon?.classList.add('hidden');
@@ -7741,6 +7796,10 @@
         }
       } catch (e) {
         console.error('Toggle error:', e);
+      } finally {
+        setTimeout(() => {
+          isTogglePlayInFlight = false;
+        }, 250);
       }
     }
 
@@ -8024,7 +8083,7 @@
               <span class="text-[10px] text-slate-400 dark:text-gray-500">• ${timeAgo(item.playedAt)}</span>
             </div>
           </div>
-          <button onclick="queueTrackById('${item.videoId}')"
+          <button data-queue-vid="${item.videoId}" onclick="queueTrackById('${item.videoId}')"
                   class="px-2.5 py-1.5 rounded-lg bg-slate-200/80 dark:bg-gray-800/80 hover:bg-pink-500/20 text-slate-700 dark:text-gray-300 hover:text-pink-600 dark:hover:text-pink-400 border border-slate-300 dark:border-gray-700/60 text-[11px] font-bold active:scale-95 transition-all flex items-center gap-1 shrink-0 cursor-pointer">
             <span>+ Putar Lagi</span>
           </button>
