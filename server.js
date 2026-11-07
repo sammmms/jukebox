@@ -33,7 +33,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.14.7';
+const APP_VERSION = '2.14.8';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -2386,6 +2386,9 @@ app.post('/api/control/toggle', async (req, res) => {
   room.currentSong.isPaused = !room.currentSong.isPaused;
   room.playbackTracker.isPaused = room.currentSong.isPaused;
   room.playbackTracker.lastUpdated = now;
+  if (!room.currentSong.isPaused) {
+    room.currentSong.startedAt = now - Math.round((room.playbackTracker.elapsed || 0) * 1000);
+  }
   room.addActivity(user, room.currentSong.isPaused ? 'pause' : 'play', room.currentSong.title);
   await roomManager.persistRoom(room);
   room.broadcastUpdate(dynamicPublicUrl);
@@ -2490,11 +2493,6 @@ app.post('/api/player/sync', async (req, res) => {
   }
   if (videoId && room.currentSong.videoId === videoId) {
     if (typeof elapsed === 'number' && elapsed >= 0) {
-      const trackAgeSec = (Date.now() - (room.currentSong.startedAt || Date.now())) / 1000;
-      // Stale track guard: only reject if track started less than 3s ago and elapsed reported is > 10s
-      if (trackAgeSec < 3 && elapsed > 10) {
-        return res.json({ success: true, rejected: 'stale_track_elapsed' });
-      }
       room.playbackTracker.elapsed = elapsed;
       room.currentSong.elapsedSeconds = elapsed;
       // Calibrate startedAt so all serverless instances compute wall-clock elapsed accurately

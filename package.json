@@ -1,6 +1,6 @@
 {
   "name": "jukebox",
-  "version": "2.14.7",
+  "version": "2.14.8",
   "description": "Collaborative, real-time social jukebox & karaoke hub for house parties and hangouts",
   "main": "server.js",
   "engines": {

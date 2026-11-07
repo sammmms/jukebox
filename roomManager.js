@@ -26,7 +26,7 @@ const path = require('path');
 });
 
 const IS_VERCEL = Boolean(process.env.VERCEL);
-const APP_VERSION = '2.14.7';
+const APP_VERSION = '2.14.8';
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '';
 
@@ -61,7 +61,8 @@ class Room {
       ...options.currentSong,
       songDuration: (typeof options.currentSong.songDuration === 'number' && options.currentSong.songDuration > 0) ? Math.round(options.currentSong.songDuration) : 215,
       imageSrc: options.currentSong.thumbnail || options.currentSong.imageSrc || '',
-      isPaused: typeof options.currentSong.isPaused === 'boolean' ? options.currentSong.isPaused : true
+      isPaused: typeof options.currentSong.isPaused === 'boolean' ? options.currentSong.isPaused : true,
+      startedAt: options.currentSong.startedAt || (options.currentSong.elapsedSeconds ? (Date.now() - Math.round(options.currentSong.elapsedSeconds * 1000)) : Date.now())
     } : { ...DEFAULT_STARTER_TRACK };
 
     // Queues & History
@@ -99,6 +100,12 @@ class Room {
       songDuration: this.currentSong.songDuration || 215,
       lastUpdated: Date.now()
     };
+
+    if (!this.playbackTracker.isPaused && this.currentSong.startedAt) {
+      const wallClockElapsed = Math.max(0, (Date.now() - this.currentSong.startedAt) / 1000);
+      this.playbackTracker.elapsed = wallClockElapsed;
+      this.currentSong.elapsedSeconds = wallClockElapsed;
+    }
 
     // SSE Clients listening to this room
     this.clients = new Set();
@@ -454,7 +461,7 @@ class Room {
         songDuration: (typeof data.currentSong.songDuration === 'number' && data.currentSong.songDuration > 0) ? Math.round(data.currentSong.songDuration) : 215,
         imageSrc: data.currentSong.thumbnail || data.currentSong.imageSrc || '',
         isPaused: typeof data.currentSong.isPaused === 'boolean' ? data.currentSong.isPaused : true,
-        startedAt: data.currentSong.startedAt || Date.now()
+        startedAt: data.currentSong.startedAt || (data.currentSong.elapsedSeconds ? (Date.now() - Math.round(data.currentSong.elapsedSeconds * 1000)) : Date.now())
       };
       this.playbackTracker.videoId = this.currentSong.videoId;
       this.playbackTracker.songDuration = this.currentSong.songDuration;
