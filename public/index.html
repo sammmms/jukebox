@@ -356,9 +356,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.14.15)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.14.16)"
                     class="hidden sm:inline-block px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer">
-              v2.14.15
+              v2.14.16
             </button>
           </div>
           <div id="connection-btn" class="hidden md:flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
@@ -487,15 +487,22 @@
       <div class="col-left space-y-4 sm:space-y-5">
 
         <!-- DESKTOP-ONLY: PARTY STATUS & UP NEXT CARD -->
-        <div class="desktop-only rounded-xl bg-white dark:bg-[#11131a] border border-zinc-200/90 dark:border-zinc-800/80 p-4 shadow-xs transition-colors duration-200 space-y-3">
+        <div id="party-playback-card" class="desktop-only rounded-xl bg-white dark:bg-[#11131a] border border-zinc-200/90 dark:border-zinc-800/80 p-4 shadow-xs transition-colors duration-200 space-y-3">
           <div class="flex items-center justify-between pb-1">
             <div class="flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <span class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">Party Playback</span>
             </div>
-            <span class="text-[10px] font-mono text-zinc-400 dark:text-zinc-500">
-              Live
-            </span>
+            <div class="flex items-center gap-2">
+              <button onclick="togglePictureInPicture()" id="pip-btn-playback" title="Buka Picture-in-Picture (PiP)"
+                      class="px-2 py-0.5 rounded-md text-[10px] font-mono font-medium bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 transition-all cursor-pointer flex items-center gap-1 active:scale-95">
+                <svg class="w-3 h-3 text-pink-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                <span>PiP</span>
+              </button>
+              <span class="text-[10px] font-mono text-zinc-400 dark:text-zinc-500">
+                Live
+              </span>
+            </div>
           </div>
 
           <!-- Embedded YouTube Audio Engine & Video Display (Hardware-Accelerated, Zero-Stutter) -->
@@ -1131,7 +1138,7 @@
           <i data-lucide="sparkles" class="w-4 h-4 text-rose-500"></i>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.14.15</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.14.16</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs flex items-center justify-center"><i data-lucide="x" class="w-4 h-4"></i></button>
@@ -1140,10 +1147,23 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.14.15 -->
+        <!-- v2.14.16 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.14.15 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.14.16 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">Picture-in-Picture (PiP) Floating Player:</strong> Menghadirkan pemutar melayang Picture-in-Picture mandiri (didukung oleh Document Picture-in-Picture API &amp; Video PiP fallback). Dilengkapi cover album dengan vinyl spin animasi, progress bar live synced, lirik karaoke real-time, dan kontrol playback interaktif (Restart, Play/Pause, Skip).</li>
+            <li><strong class="text-slate-800 dark:text-white">Fokus Instan Kembali ke Halaman Web:</strong> Saat kartu pemutar PiP atau tombol &quot;Buka Web ↗&quot; ditekan, browser otomatis memfokuskan tab Party Jukebox dan menggulirkan halaman langsung ke kartu pemutar party.</li>
+            <li><strong class="text-slate-800 dark:text-white">Navigasi Sentuh Cepat pada Bottom Bar:</strong> Mengetuk cover atau judul lagu di bottom player bar kini langsung menggulirkan halaman secara halus ke pemutar Party Playback.</li>
+          </ul>
+        </div>
+
+        <!-- v2.14.15 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-800/50 border border-slate-200 dark:border-gray-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-600">v2.14.15</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -2248,9 +2268,9 @@
     <!-- Main Player Bar Content (Responsive: Ultra-Compact Single Row on mobile, 3-column row on desktop) -->
     <div class="max-w-7xl mx-auto px-2.5 sm:px-6 py-1.5 sm:py-2 flex items-center justify-between gap-2 md:gap-4">
       
-      <!-- LEFT: Track Thumbnail & Metadata -->
-      <div class="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1 md:max-w-[36%]">
-        <div class="relative w-9 h-9 sm:w-11 sm:h-11 shrink-0">
+      <!-- LEFT: Track Thumbnail & Metadata (Clickable to scroll back to player) -->
+      <div onclick="scrollToPlayer()" title="Klik untuk langsung kembali ke pemutar / halaman party ↗" class="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1 md:max-w-[36%] cursor-pointer group select-none">
+        <div class="relative w-9 h-9 sm:w-11 sm:h-11 shrink-0 group-hover:scale-105 transition-transform">
           <img id="now-thumbnail" src="https://via.placeholder.com/150" alt="Cover"
                class="w-full h-full object-cover rounded-lg sm:rounded-xl shadow-xs border border-zinc-200 dark:border-zinc-800 relative z-10">
           <div id="vinyl-disc" class="hidden sm:flex absolute -right-2 top-0 w-11 h-11 rounded-full border border-slate-800 dark:border-gray-900 bg-black/90 z-0 vinyl-spin paused items-center justify-center shadow-xs">
@@ -2271,10 +2291,10 @@
               </svg>
               <span id="audio-loading-text">Loading</span>
             </span>
-            <h3 id="now-title" class="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-100 truncate leading-tight">No song playing</h3>
+            <h3 id="now-title" class="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-100 truncate leading-tight group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors">No song playing</h3>
           </div>
           <div class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-400 truncate mt-0.5">
-            <p id="now-artist" class="truncate font-medium max-w-[110px] sm:max-w-none">Party Jukebox</p>
+            <p id="now-artist" class="truncate font-medium max-w-[110px] sm:max-w-none group-hover:text-zinc-700 dark:group-hover:text-zinc-200">Party Jukebox</p>
             <span class="opacity-40 shrink-0">•</span>
             <span class="font-mono shrink-0"><span id="time-elapsed">0:00</span> / <span id="time-duration">0:00</span></span>
             <span id="now-added-by" class="hidden sm:inline text-[10px] text-zinc-400 truncate font-semibold"></span>
@@ -2282,7 +2302,7 @@
         </div>
       </div>
 
-      <!-- CENTER: Controls (Play/Pause, Skip, Lirik, Queue Sheet) -->
+      <!-- CENTER: Controls (Play/Pause, Skip, Lirik, PiP, Queue Sheet) -->
       <div class="flex items-center gap-1 sm:gap-2 shrink-0">
         <!-- Restart Track Button (Desktop Only) -->
         <button onclick="restartTrack()" title="Ulangi dari Awal"
@@ -2310,6 +2330,13 @@
         <button onclick="openLyrics()" title="Lihat Lirik"
                 class="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg bg-pink-500/10 hover:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/30 text-xs font-medium active:scale-95 transition-all flex items-center gap-1 cursor-pointer shrink-0">
           <i data-lucide="mic" class="w-3.5 h-3.5"></i><span class="hidden sm:inline">Lirik</span>
+        </button>
+
+        <!-- Picture-in-Picture Toggle Button -->
+        <button onclick="togglePictureInPicture()" id="pip-btn-bottombar" title="Buka Picture-in-Picture (PiP)"
+                class="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 text-xs font-medium active:scale-95 transition-all flex items-center gap-1 cursor-pointer shrink-0">
+          <svg class="w-3.5 h-3.5 text-pink-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+          <span class="hidden sm:inline">PiP</span>
         </button>
 
         <!-- Mobile Queue Bottom Sheet Trigger Button -->
@@ -2589,7 +2616,7 @@
     <div class="text-left text-xs min-w-0 flex-1">
       <div class="flex items-center gap-1.5 flex-wrap">
         <span class="font-black text-white">Versi Baru Tersedia!</span>
-        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.14.15</span>
+        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.14.16</span>
       </div>
       <p class="text-[11px] text-pink-100 opacity-90 mt-0.5">Pembaruan server siap. Muat ulang saat siap.</p>
     </div>
@@ -3316,7 +3343,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.14.15';
+    const CLIENT_VERSION = '2.14.16';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -3512,7 +3539,352 @@
       }).catch(() => {});
       currentElapsed = 0;
       renderTimeline(0);
+      syncPiPPlayerUI();
       showToast('⏮️ Memutar lagu dari awal');
+    }
+
+    // ============================================================
+    // PICTURE-IN-PICTURE (PiP) & QUICK PLAYER NAVIGATION
+    // ============================================================
+    let pipWindow = null;
+    let isPiPActive = false;
+    let pipCanvas = null;
+    let pipVideo = null;
+
+    function scrollToPlayer() {
+      const target = document.getElementById('party-playback-card') || document.getElementById('host-audio-player-wrapper') || document.getElementById('app-wrapper');
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        target.classList.add('ring-2', 'ring-rose-500', 'ring-offset-2', 'transition-all');
+        setTimeout(() => {
+          target.classList.remove('ring-2', 'ring-rose-500', 'ring-offset-2');
+        }, 1500);
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    function updatePiPButtonsState(isActive) {
+      isPiPActive = isActive;
+      const pbBtn = document.getElementById('pip-btn-playback');
+      const bbBtn = document.getElementById('pip-btn-bottombar');
+      [pbBtn, bbBtn].forEach(btn => {
+        if (!btn) return;
+        if (isActive) {
+          btn.classList.add('bg-rose-500/15', 'text-rose-600', 'dark:text-rose-400', 'border-rose-500/30');
+          btn.classList.remove('text-zinc-600', 'dark:text-zinc-300', 'text-zinc-700');
+          btn.setAttribute('title', 'Tutup Picture-in-Picture');
+        } else {
+          btn.classList.remove('bg-rose-500/15', 'text-rose-600', 'dark:text-rose-400', 'border-rose-500/30');
+          btn.classList.add('text-zinc-600', 'dark:text-zinc-300');
+          btn.setAttribute('title', 'Buka Picture-in-Picture (PiP)');
+        }
+      });
+    }
+
+    async function togglePictureInPicture() {
+      if (isPiPActive) {
+        closePictureInPicture();
+        return;
+      }
+      await openPictureInPicture();
+    }
+
+    function closePictureInPicture() {
+      if (pipWindow && !pipWindow.closed) {
+        try { pipWindow.close(); } catch (e) {}
+        pipWindow = null;
+      }
+      if (document.pictureInPictureElement) {
+        try { document.exitPictureInPicture(); } catch (e) {}
+      }
+      isPiPActive = false;
+      updatePiPButtonsState(false);
+    }
+
+    async function openPictureInPicture() {
+      // 1. Document Picture-in-Picture API (Chrome 111+, Chromium)
+      if ('documentPictureInPicture' in window && typeof window.documentPictureInPicture.requestWindow === 'function') {
+        try {
+          if (pipWindow && !pipWindow.closed) {
+            pipWindow.focus();
+            return;
+          }
+
+          pipWindow = await window.documentPictureInPicture.requestWindow({
+            width: 380,
+            height: 310
+          });
+
+          pipWindow.document.title = 'Party Jukebox PiP Player';
+
+          const style = pipWindow.document.createElement('style');
+          style.textContent = `
+            * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+            body { background: #0c0e14; color: #f4f4f5; height: 100vh; display: flex; flex-direction: column; overflow: hidden; user-select: none; }
+            .header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.08); }
+            .room-tag { font-size: 11px; font-weight: 700; color: #e4e4e7; display: flex; align-items: center; gap: 6px; }
+            .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981; }
+            .focus-btn { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: rgba(244,63,94,0.15); color: #fb7185; border: 1px solid rgba(244,63,94,0.3); cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 4px; }
+            .focus-btn:hover { background: rgba(244,63,94,0.3); color: #fff; transform: scale(1.02); }
+            .main-card { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px 14px; cursor: pointer; gap: 6px; }
+            .main-card:hover .title { color: #fb7185; }
+            .cover-wrap { position: relative; width: 84px; height: 84px; }
+            .cover-img { width: 84px; height: 84px; border-radius: 12px; object-fit: cover; position: relative; z-index: 2; box-shadow: 0 4px 14px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); }
+            .vinyl { position: absolute; top: 0; right: -14px; width: 84px; height: 84px; border-radius: 50%; background: #000; border: 2px solid #27272a; z-index: 1; display: flex; align-items: center; justify-content: center; animation: spin 4s linear infinite; }
+            .vinyl.paused { animation-play-state: paused; }
+            .vinyl-inner { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, #f43f5e, #ec4899); border: 2px solid rgba(255,255,255,0.3); }
+            @keyframes spin { 100% { transform: rotate(360deg); } }
+            .track-info { text-align: center; max-width: 100%; }
+            .title { font-size: 13px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; transition: color 0.15s; }
+            .artist { font-size: 11px; color: #a1a1aa; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; }
+            .lyrics-box { font-size: 10px; color: #f43f5e; background: rgba(244,63,94,0.08); border: 1px solid rgba(244,63,94,0.2); padding: 2px 8px; border-radius: 999px; max-width: 320px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-style: italic; }
+            .timeline { width: 100%; margin-top: 2px; }
+            .progress-bg { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+            .progress-fill { height: 100%; background: #f43f5e; width: 0%; transition: width 0.3s; }
+            .time-row { display: flex; justify-content: space-between; font-size: 10px; font-family: monospace; color: #71717a; margin-top: 2px; }
+            .controls { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 8px 12px 10px; background: rgba(255,255,255,0.02); border-top: 1px solid rgba(255,255,255,0.06); }
+            .btn-ctrl { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: #e4e4e7; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; }
+            .btn-ctrl:hover { background: rgba(255,255,255,0.18); transform: scale(1.05); }
+            .btn-play { background: #fff; border: none; color: #000; width: 38px; height: 38px; }
+            .btn-play:hover { background: #f4f4f5; transform: scale(1.06); }
+            .hint-bar { text-align: center; font-size: 9px; color: #52525b; padding-bottom: 3px; }
+          `;
+          pipWindow.document.head.appendChild(style);
+
+          pipWindow.document.body.innerHTML = `
+            <div class="header">
+              <div class="room-tag"><span class="live-dot"></span><span id="pip-room-name">Party Jukebox</span></div>
+              <button class="focus-btn" id="pip-focus-top-btn" title="Kembali ke tab browser">
+                <span>Buka Web</span>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9\"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              </button>
+            </div>
+            <div class="main-card" id="pip-card" title="Klik untuk langsung kembali ke halaman party ↗">
+              <div class="cover-wrap">
+                <img class="cover-img" id="pip-cover-img" src="https://via.placeholder.com/150" />
+                <div class="vinyl" id="pip-vinyl"><div class="vinyl-inner"></div></div>
+              </div>
+              <div class="track-info">
+                <div class="title" id="pip-title">No song playing</div>
+                <div class="artist" id="pip-artist">Party Jukebox</div>
+              </div>
+              <div class="lyrics-box" id="pip-lyrics-box" style="display:none;"></div>
+              <div class="timeline">
+                <div class="progress-bg"><div class="progress-fill" id="pip-progress-fill" style="width:0%"></div></div>
+                <div class="time-row">
+                  <span id="pip-time-cur">0:00</span>
+                  <span id="pip-time-total">0:00</span>
+                </div>
+              </div>
+            </div>
+            <div class="controls">
+              <button class="btn-ctrl" id="pip-btn-restart" title="Ulangi dari Awal">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.2 3.16-1.98 5.12-1.98 3.65 0 6.69 2.45 7.6 5.8l2.36-.78C21.17 10.87 17.21 8 12.5 8z"/></svg>
+              </button>
+              <button class="btn-ctrl btn-play" id="pip-btn-play" title="Play / Pause">
+                <svg id="pip-play-svg" width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                <svg id="pip-pause-svg" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+              </button>
+              <button class="btn-ctrl" id="pip-btn-skip" title="Skip Lagu">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+              </button>
+            </div>
+            <div class="hint-bar">Klik player untuk langsung ke halaman party</div>
+          `;
+
+          const focusBtn = pipWindow.document.getElementById('pip-focus-top-btn');
+          const card = pipWindow.document.getElementById('pip-card');
+          const restartBtn = pipWindow.document.getElementById('pip-btn-restart');
+          const playBtn = pipWindow.document.getElementById('pip-btn-play');
+          const skipBtn = pipWindow.document.getElementById('pip-btn-skip');
+
+          function bringToPage(e) {
+            if (e) e.stopPropagation();
+            window.focus();
+            scrollToPlayer();
+          }
+
+          if (focusBtn) focusBtn.onclick = bringToPage;
+          if (card) card.onclick = bringToPage;
+
+          if (restartBtn) restartBtn.onclick = (e) => { e.stopPropagation(); restartTrack(); };
+          if (playBtn) playBtn.onclick = (e) => { e.stopPropagation(); togglePlay(); };
+          if (skipBtn) skipBtn.onclick = (e) => { e.stopPropagation(); skipNext(); };
+
+          pipWindow.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+              e.preventDefault();
+              togglePlay();
+            } else if (e.code === 'ArrowRight') {
+              e.preventDefault();
+              skipNext();
+            }
+          });
+
+          pipWindow.addEventListener('pagehide', () => {
+            pipWindow = null;
+            isPiPActive = false;
+            updatePiPButtonsState(false);
+          });
+
+          isPiPActive = true;
+          updatePiPButtonsState(true);
+          syncPiPPlayerUI();
+          showToast('🪟 Picture-in-Picture Aktif! Klik jendela PiP untuk kembali ke halaman web.');
+          return;
+        } catch (err) {
+          console.warn('[PiP] Document PiP error, falling back to Video PiP:', err);
+        }
+      }
+
+      // 2. Video Picture-in-Picture Fallback (Safari, iOS, Firefox)
+      openCanvasVideoPiP();
+    }
+
+    async function openCanvasVideoPiP() {
+      try {
+        if (!pipCanvas) {
+          pipCanvas = document.createElement('canvas');
+          pipCanvas.width = 640;
+          pipCanvas.height = 360;
+        }
+        if (!pipVideo) {
+          pipVideo = document.createElement('video');
+          pipVideo.muted = true;
+          pipVideo.playsInline = true;
+          pipVideo.style.position = 'fixed';
+          pipVideo.style.bottom = '-9999px';
+          pipVideo.style.opacity = '0';
+          document.body.appendChild(pipVideo);
+        }
+
+        renderCanvasPiPFrame();
+        const stream = pipCanvas.captureStream(15);
+        pipVideo.srcObject = stream;
+        await pipVideo.play();
+
+        if (pipVideo.requestPictureInPicture) {
+          await pipVideo.requestPictureInPicture();
+          isPiPActive = true;
+          updatePiPButtonsState(true);
+
+          pipVideo.addEventListener('leavepictureinpicture', () => {
+            isPiPActive = false;
+            updatePiPButtonsState(false);
+          }, { once: true });
+
+          showToast('🪟 Video Picture-in-Picture Aktif!');
+          return;
+        }
+      } catch (err) {
+        console.warn('[PiP] Video PiP fallback error:', err);
+      }
+
+      // Final fallback
+      scrollToPlayer();
+      showToast('📍 Menampilkan Pemutar Party');
+    }
+
+    function renderCanvasPiPFrame() {
+      if (!pipCanvas) return;
+      const ctx = pipCanvas.getContext('2d');
+      const w = pipCanvas.width;
+      const h = pipCanvas.height;
+
+      ctx.fillStyle = '#090a0f';
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = '#fb7185';
+      ctx.font = 'bold 16px -apple-system, sans-serif';
+      ctx.fillText('🎵 Party Jukebox', 24, 36);
+
+      const thumbEl = document.getElementById('now-thumbnail');
+      if (thumbEl && thumbEl.complete && thumbEl.naturalWidth > 0) {
+        try {
+          ctx.save();
+          ctx.beginPath();
+          ctx.roundRect(24, 60, 160, 160, 16);
+          ctx.clip();
+          ctx.drawImage(thumbEl, 24, 60, 160, 160);
+          ctx.restore();
+        } catch (e) {
+          ctx.fillStyle = '#222';
+          ctx.fillRect(24, 60, 160, 160);
+        }
+      }
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 22px -apple-system, sans-serif';
+      const songTitle = (currentSongData && currentSongData.title) || 'No song playing';
+      ctx.fillText(songTitle.length > 28 ? songTitle.slice(0, 26) + '...' : songTitle, 204, 110);
+
+      ctx.fillStyle = '#a1a1aa';
+      ctx.font = '16px -apple-system, sans-serif';
+      const songArtist = (currentSongData && currentSongData.artist) || 'Party Jukebox';
+      ctx.fillText(songArtist.length > 32 ? songArtist.slice(0, 30) + '...' : songArtist, 204, 145);
+
+      ctx.fillStyle = '#f43f5e';
+      ctx.font = '14px -apple-system, sans-serif';
+      ctx.fillText('Klik jendela untuk kembali ke halaman web ↗', 204, 190);
+
+      const pct = songDuration > 0 ? Math.min(currentElapsed / songDuration, 1) : 0;
+      ctx.fillStyle = '#27272a';
+      ctx.fillRect(24, 280, w - 48, 8);
+      ctx.fillStyle = '#f43f5e';
+      ctx.fillRect(24, 280, (w - 48) * pct, 8);
+
+      ctx.fillStyle = '#71717a';
+      ctx.font = '13px monospace';
+      ctx.fillText(formatTime(Math.floor(currentElapsed)), 24, 310);
+      ctx.fillText(formatTime(songDuration), w - 70, 310);
+    }
+
+    function syncPiPPlayerUI() {
+      if (!pipWindow || pipWindow.closed) return;
+      try {
+        const doc = pipWindow.document;
+        const roomEl = doc.getElementById('pip-room-name');
+        const coverEl = doc.getElementById('pip-cover-img');
+        const vinylEl = doc.getElementById('pip-vinyl');
+        const titleEl = doc.getElementById('pip-title');
+        const artistEl = doc.getElementById('pip-artist');
+        const playSvg = doc.getElementById('pip-play-svg');
+        const pauseSvg = doc.getElementById('pip-pause-svg');
+
+        if (roomEl) roomEl.textContent = currentRoomName || (currentRoomId ? `Party #${currentRoomId}` : 'Party Jukebox');
+
+        if (currentSongData && currentSongData.title) {
+          if (titleEl) titleEl.textContent = currentSongData.title;
+          const effectiveAddedBy = (currentSongData.addedBy && currentSongData.addedBy !== 'Autoplay / Host')
+            ? currentSongData.addedBy
+            : (currentSongData.videoId ? localStorage.getItem('jukebox_addedby_' + currentSongData.videoId) : null) || currentSongData.addedBy || '';
+          
+          const artistStr = (currentSongData.artist || currentSongData.album || 'Party Jukebox') + (effectiveAddedBy ? ` • by ${effectiveAddedBy}` : '');
+          if (artistEl) artistEl.textContent = artistStr;
+          if (coverEl && currentSongData.imageSrc) coverEl.src = currentSongData.imageSrc;
+        } else {
+          if (titleEl) titleEl.textContent = 'Belum ada lagu diputar';
+          if (artistEl) artistEl.textContent = 'Pilih lagu dari antrean';
+        }
+
+        if (vinylEl) {
+          if (isPlaying) vinylEl.classList.remove('paused');
+          else vinylEl.classList.add('paused');
+        }
+
+        if (playSvg && pauseSvg) {
+          if (isPlaying) {
+            playSvg.style.display = 'none';
+            pauseSvg.style.display = 'block';
+          } else {
+            playSvg.style.display = 'block';
+            pauseSvg.style.display = 'none';
+          }
+        }
+      } catch (e) {
+        console.warn('[PiP] sync UI error:', e);
+      }
     }
 
     function togglePinyinDisplay() {
@@ -6008,6 +6380,7 @@
           if (nowTitleEl) nowTitleEl.textContent = song.title;
           if (nowArtistEl) nowArtistEl.textContent = song.artist || song.album || '';
           if (nowThumbEl) nowThumbEl.src = song.imageSrc || 'https://via.placeholder.com/150';
+          syncPiPPlayerUI();
           
           const addedByEl = document.getElementById('now-added-by');
           if (addedByEl) {
@@ -6242,6 +6615,16 @@
       const percent = songDuration > 0 ? Math.min((elapsedSec / songDuration) * 100, 100) : 0;
       document.getElementById('progress-bar').style.width = `${percent}%`;
       document.getElementById('time-elapsed').textContent = formatTime(Math.floor(elapsedSec));
+      if (pipWindow && !pipWindow.closed) {
+        try {
+          const pipFill = pipWindow.document.getElementById('pip-progress-fill');
+          const pipCur = pipWindow.document.getElementById('pip-time-cur');
+          const pipTotal = pipWindow.document.getElementById('pip-time-total');
+          if (pipFill) pipFill.style.width = `${percent}%`;
+          if (pipCur) pipCur.textContent = formatTime(Math.floor(elapsedSec));
+          if (pipTotal) pipTotal.textContent = formatTime(songDuration);
+        } catch (e) {}
+      }
     }
 
     // Client Ticker (with 0ms frame-perfect Host Audio Engine sync)
@@ -8061,6 +8444,7 @@
         playIcon?.classList.add('hidden');
         pauseIcon?.classList.remove('hidden');
       }
+      syncPiPPlayerUI();
 
       // 3. Instant Local Physical Sound Feedback (0ms!):
       if (isDeviceSpeakerActive()) {
@@ -8148,6 +8532,7 @@
           renderTimeline(0);
           updateMediaSession(next);
           loadLyricsForSong(next);
+          syncPiPPlayerUI();
           if (isDeviceSpeakerActive()) {
             syncHostAudioEngine();
           }
@@ -8639,6 +9024,22 @@
               });
             }
           }
+        }
+
+        // 3. Update Real-Time Lyrics in Picture-in-Picture window
+        if (pipWindow && !pipWindow.closed) {
+          try {
+            const pipLyrics = pipWindow.document.getElementById('pip-lyrics-box');
+            if (pipLyrics) {
+              const line = (activeIdx >= 0 && currentLyrics.lines) ? currentLyrics.lines[activeIdx] : null;
+              if (line && line.text) {
+                pipLyrics.textContent = `🎤 ${line.text}`;
+                pipLyrics.style.display = 'block';
+              } else {
+                pipLyrics.style.display = 'none';
+              }
+            }
+          } catch (e) {}
         }
       }
     }
