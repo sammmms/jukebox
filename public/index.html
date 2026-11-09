@@ -3082,12 +3082,13 @@
 
     function notifyLeave() {
       if (!currentRoomId || !currentDeviceId) return;
+      const leaveUrl = `/api/room/leave?room=${encodeURIComponent(currentRoomId)}`;
       const payload = JSON.stringify({ deviceId: currentDeviceId, roomId: currentRoomId });
       if (navigator.sendBeacon) {
         const blob = new Blob([payload], { type: 'application/json' });
-        navigator.sendBeacon('/api/room/leave', blob);
+        navigator.sendBeacon(leaveUrl, blob);
       } else {
-        fetch('/api/room/leave', {
+        fetch(leaveUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

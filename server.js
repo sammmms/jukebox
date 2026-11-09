@@ -91,7 +91,7 @@ const roomManager = new RoomManager(DATA_DIR);
 // Middleware: Automatic Room Resolution for all /api endpoints
 app.use('/api', async (req, res, next) => {
   try {
-    if (req.path.startsWith('/rooms') || req.path.startsWith('/auth') || req.path === '/version' || req.path.startsWith('/audio/stream')) {
+    if (req.path.startsWith('/rooms') || req.path === '/room/leave' || req.path.startsWith('/auth') || req.path === '/version' || req.path.startsWith('/audio/stream')) {
       return next();
     }
     const rawId = req.headers['x-room-id'] || req.query.room || req.body?.room;
@@ -1638,20 +1638,27 @@ app.post('/api/room/presence', async (req, res) => {
 
 // Device Leave / Disconnect Endpoint (Supports navigator.sendBeacon & fetch keepalive)
 app.post('/api/room/leave', express.text({ type: '*/*' }), async (req, res) => {
+  let roomId = req.query.room || req.headers['x-room-id'] || req.roomId || null;
   let deviceId = req.headers['x-device-id'] || null;
-  if (!deviceId && req.body) {
-    if (typeof req.body === 'object' && req.body.deviceId) {
-      deviceId = req.body.deviceId;
+  if (req.body) {
+    if (typeof req.body === 'object') {
+      if (req.body.deviceId) deviceId = req.body.deviceId;
+      if (req.body.roomId && !roomId) roomId = req.body.roomId;
     } else if (typeof req.body === 'string') {
       try {
         const parsed = JSON.parse(req.body);
-        deviceId = parsed.deviceId || null;
+        if (parsed.deviceId) deviceId = parsed.deviceId;
+        if (parsed.roomId && !roomId) roomId = parsed.roomId;
       } catch (e) {}
     }
   }
-  if (req.room && deviceId) {
-    req.room.removeDevice(deviceId);
-    await roomManager.persistRoom(req.room);
+  let targetRoom = req.room;
+  if (!targetRoom && roomId) {
+    targetRoom = await roomManager.getOrHydrateRoom(roomId);
+  }
+  if (targetRoom && deviceId) {
+    targetRoom.removeDevice(deviceId);
+    await roomManager.persistRoom(targetRoom);
   }
   res.json({ success: true });
 });
