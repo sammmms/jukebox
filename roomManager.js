@@ -26,7 +26,7 @@ const path = require('path');
 });
 
 const IS_VERCEL = Boolean(process.env.VERCEL);
-const APP_VERSION = '2.14.13';
+const APP_VERSION = '2.14.14';
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '';
 
@@ -131,10 +131,11 @@ class Room {
   registerDevicePresence(deviceId, name, email, mode = 'check') {
     if (!deviceId) return { success: false, error: 'deviceId required' };
     const now = Date.now();
+    const HEARTBEAT_TIMEOUT_MS = 25000;
 
-    // 1. Clean stale devices (> 60s without ping)
+    // 1. Clean stale devices (> 25s without ping)
     for (const [dId, dev] of this.activeDevices.entries()) {
-      if (dId !== deviceId && (now - dev.lastHeartbeat > 60000)) {
+      if (dId !== deviceId && (now - dev.lastHeartbeat > HEARTBEAT_TIMEOUT_MS)) {
         this.activeDevices.delete(dId);
       }
     }
@@ -172,6 +173,7 @@ class Room {
           activeNames: duplicates.map(d => d.dev.name)
         };
       }
+      const isNew = !selfDevice;
       // No duplicate, register self
       this.activeDevices.set(deviceId, {
         deviceId,
@@ -182,6 +184,9 @@ class Room {
         replaced: false
       });
       this.knownDJs.add(baseName);
+      if (isNew) {
+        this.addActivity(baseName, 'join', 'ke pesta');
+      }
       this.broadcastUpdate();
       return { isDuplicate: false, finalName: baseName };
     }
@@ -232,6 +237,34 @@ class Room {
     }
 
     // Heartbeat update
+    if (mode === 'heartbeat') {
+      let shouldBroadcast = false;
+      if (!selfDevice) {
+        this.activeDevices.set(deviceId, {
+          deviceId,
+          name: cleanName,
+          baseName,
+          email: email || '',
+          lastHeartbeat: now,
+          replaced: false
+        });
+        this.knownDJs.add(cleanName);
+        this.addActivity(cleanName, 'join', 'ke pesta');
+        shouldBroadcast = true;
+      } else {
+        selfDevice.lastHeartbeat = now;
+        if (selfDevice.name !== cleanName) {
+          selfDevice.name = cleanName;
+          selfDevice.baseName = baseName;
+          shouldBroadcast = true;
+        }
+      }
+      if (shouldBroadcast) {
+        this.broadcastUpdate();
+      }
+      return { success: true, finalName: selfDevice ? selfDevice.name : cleanName };
+    }
+
     if (selfDevice) {
       selfDevice.lastHeartbeat = now;
       return { success: true, finalName: selfDevice.name };
@@ -247,8 +280,53 @@ class Room {
   }
 
   unregisterDevice(deviceId) {
-    if (!deviceId) return;
-    this.activeDevices.delete(deviceId);
+    return this.removeDevice(deviceId);
+  }
+
+  removeDevice(deviceId) {
+    if (!deviceId) return null;
+    const dev = this.activeDevices.get(deviceId);
+    if (dev) {
+      this.activeDevices.delete(deviceId);
+      this.touch();
+      this.broadcastUpdate();
+      return dev;
+    }
+    return null;
+  }
+
+  getActiveMembers() {
+    const now = Date.now();
+    const HEARTBEAT_TIMEOUT_MS = 25000;
+    const hostName = (this.partyHost && this.partyHost.name) ? this.partyHost.name.toLowerCase() : null;
+    const active = [];
+    const seenNames = new Set();
+
+    for (const [deviceId, dev] of this.activeDevices.entries()) {
+      if (dev.replaced) continue;
+      if (now - dev.lastHeartbeat > HEARTBEAT_TIMEOUT_MS) {
+        this.activeDevices.delete(deviceId);
+        continue;
+      }
+      const cleanName = dev.name;
+      if (!seenNames.has(cleanName.toLowerCase())) {
+        seenNames.add(cleanName.toLowerCase());
+        active.push({
+          name: cleanName,
+          email: dev.email || '',
+          isHost: Boolean(hostName && cleanName.toLowerCase() === hostName),
+          lastHeartbeat: dev.lastHeartbeat
+        });
+      }
+    }
+
+    active.sort((a, b) => {
+      if (a.isHost) return -1;
+      if (b.isHost) return 1;
+      return a.name.localeCompare(b.name);
+    });
+
+    return active;
   }
 
   getCalculatedElapsed() {
@@ -413,6 +491,7 @@ class Room {
       partyHost: this.getPartyHostInfo(),
       djs: Array.from(this.knownDJs),
       djProfiles: Object.fromEntries(this.djProfiles),
+      activeMembers: this.getActiveMembers(),
       isRoomSleeping: this.isRoomSleeping,
       volume: { state: this.currentVolume, isMuted: this.isMuted },
       activity: this.activityLogs.slice(0, 30),

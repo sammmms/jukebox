@@ -356,9 +356,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.14.13)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.14.14)"
                     class="hidden sm:inline-block px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer">
-              v2.14.13
+              v2.14.14
             </button>
           </div>
           <div id="connection-btn" class="hidden md:flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
@@ -1131,7 +1131,7 @@
           <i data-lucide="sparkles" class="w-4 h-4 text-rose-500"></i>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.14.13</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.14.14</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs flex items-center justify-center"><i data-lucide="x" class="w-4 h-4"></i></button>
@@ -1140,10 +1140,23 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.14.13 -->
+        <!-- v2.14.14 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.14.13 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.14.14 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">Background Scroll Lock &amp; Foreground Focus:</strong> Scroll pada background body dan HTML otomatis terkunci saat modal/dialog apa pun terbuka. Event roda mouse (wheel) dan sentuhan (touchmove) di luar kartu dialog dicegah merembet ke halaman belakang sehingga fokus scrolling sepenuhnya berada pada dialog foreground.</li>
+            <li><strong class="text-slate-800 dark:text-white">Member Aktif di Party Settings (Heartbeat Presence):</strong> Menu Pengaturan Room kini menampilkan daftar anggota yang sedang membuka party secara realtime. Menggunakan heartbeat berkala 10 detik dan deteksi kepergian instan (beacon <code>/api/room/leave</code> saat tab ditutup serta timeout 25 detik), memastikan sesi yang sudah ditutup tidak lagi menggantung di daftar aktif.</li>
+            <li><strong class="text-slate-800 dark:text-white">Notifikasi Real-Time Member Bergabung:</strong> Saat ada anggota baru yang bergabung ke party, notifikasi toast instan dan catatan aktivitas otomatis disiarkan ke seluruh anggota lain di ruangan tersebut.</li>
+          </ul>
+        </div>
+
+        <!-- v2.14.13 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-800/50 border border-slate-200 dark:border-gray-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-600">v2.14.13</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -2002,6 +2015,23 @@
         </div>
       </div>
 
+      <!-- Section 2.2: Active Party Members (Realtime Heartbeat Presence) -->
+      <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-700 dark:text-gray-200 flex items-center gap-1.5">
+            <i data-lucide="users" class="w-3.5 h-3.5 text-emerald-500 inline mr-1"></i> Member Aktif di Party
+          </span>
+          <span id="settings-active-count-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="settings-active-count-text">0 Online</span>
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-500 dark:text-gray-400">Daftar pengguna yang saat ini sedang membuka room party ini secara realtime.</p>
+        <div id="settings-active-members-list" class="space-y-1.5 max-h-44 overflow-y-auto pr-1">
+          <!-- Dynamically populated via renderActiveMembers() -->
+        </div>
+      </div>
+
       <!-- Section 2.5: Audio Engine Configuration -->
       <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800 space-y-2.5">
         <div class="flex items-center justify-between">
@@ -2546,7 +2576,7 @@
     <div class="text-left text-xs min-w-0 flex-1">
       <div class="flex items-center gap-1.5 flex-wrap">
         <span class="font-black text-white">Versi Baru Tersedia!</span>
-        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.14.13</span>
+        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.14.14</span>
       </div>
       <p class="text-[11px] text-pink-100 opacity-90 mt-0.5">Pembaruan server siap. Muat ulang saat siap.</p>
     </div>
@@ -2691,6 +2721,7 @@
         fetchRoomsList();
         modal.classList.remove('opacity-0', 'pointer-events-none');
         modal.classList.add('opacity-100');
+        syncModalScrollLock();
         setTimeout(refreshLucideIcons, 0);
       }
     }
@@ -2700,6 +2731,7 @@
       if (modal) {
         modal.classList.remove('opacity-100');
         modal.classList.add('opacity-0', 'pointer-events-none');
+        setTimeout(syncModalScrollLock, 50);
       }
     }
 
@@ -2746,6 +2778,7 @@
       }
       modal.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
       modal.classList.add('opacity-100');
+      syncModalScrollLock();
       setTimeout(() => {
         const input = document.getElementById('gate-join-code-input');
         if (input) input.focus();
@@ -2762,6 +2795,7 @@
       if (modal) {
         modal.classList.add('opacity-0', 'pointer-events-none');
         setTimeout(() => modal.classList.add('hidden'), 300);
+        setTimeout(syncModalScrollLock, 50);
       }
     }
 
@@ -2970,6 +3004,7 @@
 
       modal.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
       modal.classList.add('opacity-100');
+      syncModalScrollLock();
       refreshLucideIcons();
     }
 
@@ -2978,6 +3013,7 @@
       if (modal) {
         modal.classList.add('opacity-0', 'pointer-events-none');
         setTimeout(() => modal.classList.add('hidden'), 300);
+        setTimeout(syncModalScrollLock, 50);
       }
     }
 
@@ -3022,6 +3058,168 @@
         console.warn('[Presence Check Error]', err);
       }
     }
+
+    let presenceHeartbeatTimer = null;
+    let currentActiveMembers = [];
+    let previousActiveMemberNames = new Set();
+    let isInitialPresenceLoad = true;
+
+    function startPresenceHeartbeat() {
+      if (presenceHeartbeatTimer) clearInterval(presenceHeartbeatTimer);
+      presenceHeartbeatTimer = setInterval(() => {
+        if (currentRoomId && currentUser) {
+          checkDevicePresence('heartbeat');
+        }
+      }, 10000);
+    }
+
+    function stopPresenceHeartbeat() {
+      if (presenceHeartbeatTimer) {
+        clearInterval(presenceHeartbeatTimer);
+        presenceHeartbeatTimer = null;
+      }
+    }
+
+    function notifyLeave() {
+      if (!currentRoomId || !currentDeviceId) return;
+      const payload = JSON.stringify({ deviceId: currentDeviceId, roomId: currentRoomId });
+      if (navigator.sendBeacon) {
+        const blob = new Blob([payload], { type: 'application/json' });
+        navigator.sendBeacon('/api/room/leave', blob);
+      } else {
+        fetch('/api/room/leave', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Room-Id': currentRoomId,
+            'X-Device-Id': currentDeviceId
+          },
+          body: payload,
+          keepalive: true
+        }).catch(() => {});
+      }
+    }
+
+    window.addEventListener('beforeunload', notifyLeave);
+    window.addEventListener('pagehide', notifyLeave);
+
+    function renderActiveMembers(members = []) {
+      const listEl = document.getElementById('settings-active-members-list');
+      const countEl = document.getElementById('settings-active-count-text');
+      if (!listEl) return;
+
+      const count = Array.isArray(members) ? members.length : 0;
+      if (countEl) countEl.textContent = `${count} Online`;
+
+      if (!members || members.length === 0) {
+        listEl.innerHTML = `
+          <div class="py-3 px-2 text-center text-xs text-slate-400 dark:text-gray-500 rounded-xl bg-white/50 dark:bg-black/20 border border-dashed border-slate-200 dark:border-gray-800">
+            Belum ada member aktif terdeteksi.
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = members.map(m => {
+        const isMe = (m.name && currentUser && m.name.toLowerCase() === currentUser.toLowerCase());
+        const color = getUserColor(m.name);
+        const letter = (m.name || '?').charAt(0).toUpperCase();
+
+        return `
+          <div class="flex items-center justify-between p-2 rounded-xl ${isMe ? 'bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30' : 'bg-white dark:bg-zinc-800/60 border border-slate-200/80 dark:border-zinc-700/60'} transition-all">
+            <div class="flex items-center gap-2 min-w-0 flex-1">
+              <div class="w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center shrink-0 ${color.pill}">
+                <span>${letter}</span>
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="text-xs font-bold text-slate-900 dark:text-white truncate">${escapeHtml(m.name)}</span>
+                  ${isMe ? '<span class="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-pink-500 text-white shrink-0">Kamu</span>' : ''}
+                  ${m.isHost ? '<span class="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/40 flex items-center gap-0.5 shrink-0"><i data-lucide="crown" class="w-2.5 h-2.5 inline"></i> Host</span>' : ''}
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0 pl-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span class="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">Aktif</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      refreshLucideIcons();
+    }
+
+    // ============================================================
+    // MODAL SCROLL LOCK & FOREGROUND FOCUS ENGINE
+    // ============================================================
+    const ALL_MODAL_SELECTORS = [
+      '#party-gate-modal',
+      '#rooms-modal',
+      '#duplicate-user-modal',
+      '#mobile-volume-modal',
+      '#settings-modal',
+      '#dj-modal',
+      '#playlist-modal',
+      '#changelog-modal',
+      '#shortcuts-modal',
+      '#lyrics-modal',
+      '#mobile-queue-sheet',
+      '#custom-dialog-modal'
+    ];
+
+    function isAnyModalOpen() {
+      return ALL_MODAL_SELECTORS.some(sel => {
+        const el = document.querySelector(sel);
+        if (!el) return false;
+        const isHidden = el.classList.contains('hidden');
+        const isZeroOpacity = el.classList.contains('opacity-0');
+        const isPointerNone = el.classList.contains('pointer-events-none');
+        return !isHidden && !isZeroOpacity && !isPointerNone;
+      });
+    }
+
+    function syncModalScrollLock() {
+      const locked = isAnyModalOpen();
+      if (locked) {
+        document.documentElement.classList.add('overflow-hidden');
+        document.body.classList.add('overflow-hidden');
+      } else {
+        document.documentElement.classList.remove('overflow-hidden');
+        document.body.classList.remove('overflow-hidden');
+      }
+    }
+
+    // Passive-false wheel & touch prevention on background when modal is open
+    document.addEventListener('wheel', (e) => {
+      if (!isAnyModalOpen()) return;
+      const scrollable = e.target.closest('.overflow-y-auto, .overflow-y-scroll, textarea');
+      if (!scrollable) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    document.addEventListener('touchmove', (e) => {
+      if (!isAnyModalOpen()) return;
+      const scrollable = e.target.closest('.overflow-y-auto, .overflow-y-scroll, textarea');
+      if (!scrollable) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    try {
+      const modalObserver = new MutationObserver(() => {
+        syncModalScrollLock();
+      });
+      document.addEventListener('DOMContentLoaded', () => {
+        ALL_MODAL_SELECTORS.forEach(sel => {
+          const el = document.querySelector(sel);
+          if (el) {
+            modalObserver.observe(el, { attributes: true, attributeFilter: ['class', 'style'] });
+          }
+        });
+      });
+    } catch (e) {}
 
     function updateUserDisplay() {
       const mobileNameEl = document.getElementById('mobile-header-user-name');
@@ -3104,7 +3302,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.14.13';
+    const CLIENT_VERSION = '2.14.14';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -3263,12 +3461,18 @@
 
     function openMobileVolumeModal() {
       const modal = document.getElementById('mobile-volume-modal');
-      if (modal) modal.classList.remove('hidden');
+      if (modal) {
+        modal.classList.remove('hidden');
+        syncModalScrollLock();
+      }
     }
 
     function closeMobileVolumeModal() {
       const modal = document.getElementById('mobile-volume-modal');
-      if (modal) modal.classList.add('hidden');
+      if (modal) {
+        modal.classList.add('hidden');
+        setTimeout(syncModalScrollLock, 50);
+      }
     }
 
     function restartTrack() {
@@ -5149,13 +5353,16 @@
       if (hostUrlText && originUrl) hostUrlText.textContent = originUrl.textContent;
 
       updateAudioEngineUI();
+      renderActiveMembers(currentActiveMembers);
 
       modal.classList.remove('hidden');
+      syncModalScrollLock();
     }
 
     function closeSettingsModal() {
       const modal = document.getElementById('settings-modal');
       if (modal) modal.classList.add('hidden');
+      syncModalScrollLock();
     }
 
     function openDJModal(mandatory = false) {
@@ -5229,6 +5436,7 @@
       }
 
       modal.classList.remove('hidden');
+      syncModalScrollLock();
       requestAnimationFrame(() => {
         modal.classList.remove('opacity-0', 'pointer-events-none');
         modal.classList.add('opacity-100');
@@ -5252,6 +5460,7 @@
             modal.classList.add('hidden');
           }
         }, 300);
+        setTimeout(syncModalScrollLock, 50);
       }
       if (card) {
         card.classList.remove('scale-100');
@@ -5368,6 +5577,7 @@
           modal.classList.add('opacity-0', 'pointer-events-none');
           card.classList.add('scale-95');
           setTimeout(() => modal.classList.add('hidden'), 200);
+          setTimeout(syncModalScrollLock, 50);
           confirmBtn.onclick = null;
           cancelBtn.onclick = null;
           modal.onclick = null;
@@ -5405,6 +5615,7 @@
         document.addEventListener('keydown', handleKey);
 
         modal.classList.remove('hidden');
+        syncModalScrollLock();
         requestAnimationFrame(() => {
           modal.classList.remove('opacity-0', 'pointer-events-none');
           card.classList.remove('scale-95');
@@ -5981,6 +6192,27 @@
         }
       } catch (err) {
         console.error('[updateUI] Activity render error:', err);
+      }
+
+      // 11. ACTIVE MEMBERS IN PARTY
+      try {
+        if (Array.isArray(status.activeMembers)) {
+          currentActiveMembers = status.activeMembers;
+          renderActiveMembers(status.activeMembers);
+
+          // Realtime notice to other members when someone joins
+          if (!isInitialPresenceLoad) {
+            for (const m of status.activeMembers) {
+              if (m.name && !previousActiveMemberNames.has(m.name) && (!currentUser || m.name.toLowerCase() !== currentUser.toLowerCase())) {
+                showToast(`👋 ${m.name} baru saja bergabung ke party!`);
+              }
+            }
+          }
+          previousActiveMemberNames = new Set(status.activeMembers.map(m => m.name));
+          isInitialPresenceLoad = false;
+        }
+      } catch (err) {
+        console.error('[updateUI] Active members render error:', err);
       }
     }
 
@@ -7525,12 +7757,18 @@
       updatePlaylistSelectionUI();
 
       const modal = document.getElementById('playlist-modal');
-      if (modal) modal.classList.remove('hidden');
+      if (modal) {
+        modal.classList.remove('hidden');
+        syncModalScrollLock();
+      }
     }
 
     function closePlaylistModal() {
       const modal = document.getElementById('playlist-modal');
-      if (modal) modal.classList.add('hidden');
+      if (modal) {
+        modal.classList.add('hidden');
+        setTimeout(syncModalScrollLock, 50);
+      }
       currentPlaylistData = null;
       playlistSelectedTracks.clear();
     }
@@ -8005,6 +8243,7 @@
           try { sseSource.close(); } catch (e) {}
           sseSource = null;
         }
+        stopPresenceHeartbeat();
         return;
       }
       if (sseSource) {
@@ -8016,6 +8255,7 @@
         sseReconnectTimer = null;
       }
 
+      startPresenceHeartbeat();
       sseSource = new EventSource('/api/events?room=' + encodeURIComponent(currentRoomId));
 
       sseSource.onopen = function() {
@@ -8087,6 +8327,7 @@
       if (modal) {
         modal.classList.remove('opacity-0', 'pointer-events-none');
         modal.classList.add('opacity-100');
+        syncModalScrollLock();
       }
     }
 
@@ -8095,6 +8336,7 @@
       if (modal) {
         modal.classList.remove('opacity-100');
         modal.classList.add('opacity-0', 'pointer-events-none');
+        setTimeout(syncModalScrollLock, 50);
       }
     }
 
@@ -8202,6 +8444,7 @@
       const modal = document.getElementById('lyrics-modal');
       modal.classList.remove('opacity-0', 'pointer-events-none');
       modal.classList.add('opacity-100');
+      syncModalScrollLock();
 
       document.getElementById('lyrics-title').textContent = currentSongData.title;
       document.getElementById('lyrics-artist').textContent = currentSongData.artist || '';
@@ -8235,6 +8478,7 @@
       const modal = document.getElementById('lyrics-modal');
       modal.classList.remove('opacity-100');
       modal.classList.add('opacity-0', 'pointer-events-none');
+      setTimeout(syncModalScrollLock, 50);
     }
 
     function escapeHtml(str) {
@@ -8386,6 +8630,7 @@
       if (!modal) return;
       modal.classList.remove('pointer-events-none', 'opacity-0');
       modal.classList.add('pointer-events-auto', 'opacity-100');
+      syncModalScrollLock();
     }
 
     function closeShortcutsModal() {
@@ -8393,6 +8638,7 @@
       if (!modal) return;
       modal.classList.remove('pointer-events-auto', 'opacity-100');
       modal.classList.add('pointer-events-none', 'opacity-0');
+      setTimeout(syncModalScrollLock, 50);
     }
 
     function openMobileQueueSheet() {
@@ -8407,6 +8653,7 @@
       backdrop?.classList.add('opacity-100');
       panel.classList.remove('translate-y-full');
       panel.classList.add('translate-y-0');
+      syncModalScrollLock();
     }
 
     function closeMobileQueueSheet() {
@@ -8422,6 +8669,7 @@
       setTimeout(() => {
         sheet.classList.remove('pointer-events-auto', 'opacity-100');
         sheet.classList.add('pointer-events-none', 'opacity-0');
+        syncModalScrollLock();
       }, 300);
     }
 

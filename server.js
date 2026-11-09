@@ -33,7 +33,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.14.13';
+const APP_VERSION = '2.14.14';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -1636,6 +1636,26 @@ app.post('/api/room/presence', async (req, res) => {
   res.json(result);
 });
 
+// Device Leave / Disconnect Endpoint (Supports navigator.sendBeacon & fetch keepalive)
+app.post('/api/room/leave', express.text({ type: '*/*' }), async (req, res) => {
+  let deviceId = req.headers['x-device-id'] || null;
+  if (!deviceId && req.body) {
+    if (typeof req.body === 'object' && req.body.deviceId) {
+      deviceId = req.body.deviceId;
+    } else if (typeof req.body === 'string') {
+      try {
+        const parsed = JSON.parse(req.body);
+        deviceId = parsed.deviceId || null;
+      } catch (e) {}
+    }
+  }
+  if (req.room && deviceId) {
+    req.room.removeDevice(deviceId);
+    await roomManager.persistRoom(req.room);
+  }
+  res.json({ success: true });
+});
+
 app.get('/api/version', (req, res) => {
   res.json({
     version: APP_VERSION,
@@ -1905,6 +1925,7 @@ app.get('/api/status', async (req, res) => {
     partyHost: room.getPartyHostInfo(),
     djs: Array.from(room.knownDJs),
     djProfiles: Object.fromEntries(room.djProfiles),
+    activeMembers: room.getActiveMembers(),
     isRoomSleeping: room.isRoomSleeping,
     volume: { state: room.currentVolume, isMuted: room.isMuted },
     activity: room.activityLogs.slice(0, 30),
