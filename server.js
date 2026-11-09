@@ -33,7 +33,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.14.14';
+const APP_VERSION = '2.14.15';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -918,6 +918,13 @@ async function fetchLyrics(title, artist, duration) {
 function addActivity(user, action, details) {
   if (user && typeof user === 'string' && user !== 'System' && user !== 'Someone' && user !== 'Anonymous' && user !== 'Autoplay / Host') {
     knownDJs.add(user.trim());
+  }
+  if (action === 'join') {
+    const u = String(user || '').toLowerCase();
+    const hasRecent = activityLogs.some(
+      log => (log.user || log.dj || '').toLowerCase() === u && (log.type === 'join' || log.action === 'join') && (Date.now() - log.timestamp < 15 * 60 * 1000)
+    );
+    if (hasRecent) return null;
   }
   const item = {
     id: Date.now() + '-' + Math.random().toString(36).slice(2, 6),

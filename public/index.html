@@ -356,9 +356,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.14.14)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.14.15)"
                     class="hidden sm:inline-block px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer">
-              v2.14.14
+              v2.14.15
             </button>
           </div>
           <div id="connection-btn" class="hidden md:flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
@@ -1131,7 +1131,7 @@
           <i data-lucide="sparkles" class="w-4 h-4 text-rose-500"></i>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.14.14</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.14.15</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs flex items-center justify-center"><i data-lucide="x" class="w-4 h-4"></i></button>
@@ -1140,10 +1140,23 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.14.14 -->
+        <!-- v2.14.15 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.14.14 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.14.15 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">Eliminasi Spam Aktivitas Bergabung pada Heartbeat:</strong> Heartbeat berkala kehadiran member dioptimalkan murni sebagai pembaruan status online tanpa memicu log aktivitas 'bergabung ke pesta'.</li>
+            <li><strong class="text-slate-800 dark:text-white">Deduplikasi &amp; Pembersihan Otomatis Riwayat Room:</strong> Ditambahkan filter deduplikasi 15 menit pada aktivitas bergabung serta pembersih riwayat otomatis untuk menghapus spam duplikasi log yang sempat tersimpan.</li>
+            <li><strong class="text-slate-800 dark:text-white">Notifikasi Toast Bergabung Sekali Saja:</strong> Toast notifikasi kedatangan member dibatasi maksimal satu kali per sesi browser sehingga tidak memicu pop-up berulang saat status jaringan berfluktuasi.</li>
+          </ul>
+        </div>
+
+        <!-- v2.14.14 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-800/50 border border-slate-200 dark:border-gray-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-600">v2.14.14</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -2576,7 +2589,7 @@
     <div class="text-left text-xs min-w-0 flex-1">
       <div class="flex items-center gap-1.5 flex-wrap">
         <span class="font-black text-white">Versi Baru Tersedia!</span>
-        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.14.14</span>
+        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.14.15</span>
       </div>
       <p class="text-[11px] text-pink-100 opacity-90 mt-0.5">Pembaruan server siap. Muat ulang saat siap.</p>
     </div>
@@ -3061,7 +3074,7 @@
 
     let presenceHeartbeatTimer = null;
     let currentActiveMembers = [];
-    let previousActiveMemberNames = new Set();
+    let allSeenMemberNames = new Set();
     let isInitialPresenceLoad = true;
 
     function startPresenceHeartbeat() {
@@ -3303,7 +3316,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.14.14';
+    const CLIENT_VERSION = '2.14.15';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -6201,16 +6214,23 @@
           currentActiveMembers = status.activeMembers;
           renderActiveMembers(status.activeMembers);
 
-          // Realtime notice to other members when someone joins
+          // Realtime notice to other members when someone joins (shown at most once per session per member)
           if (!isInitialPresenceLoad) {
             for (const m of status.activeMembers) {
-              if (m.name && !previousActiveMemberNames.has(m.name) && (!currentUser || m.name.toLowerCase() !== currentUser.toLowerCase())) {
-                showToast(`👋 ${m.name} baru saja bergabung ke party!`);
+              const norm = (m.name || '').trim().toLowerCase();
+              if (norm && !allSeenMemberNames.has(norm)) {
+                allSeenMemberNames.add(norm);
+                if (!currentUser || norm !== currentUser.toLowerCase()) {
+                  showToast(`👋 ${m.name} bergabung ke party!`);
+                }
               }
             }
+          } else {
+            for (const m of status.activeMembers) {
+              if (m.name) allSeenMemberNames.add(m.name.trim().toLowerCase());
+            }
+            isInitialPresenceLoad = false;
           }
-          previousActiveMemberNames = new Set(status.activeMembers.map(m => m.name));
-          isInitialPresenceLoad = false;
         }
       } catch (err) {
         console.error('[updateUI] Active members render error:', err);

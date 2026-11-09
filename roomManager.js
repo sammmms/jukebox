@@ -26,7 +26,7 @@ const path = require('path');
 });
 
 const IS_VERCEL = Boolean(process.env.VERCEL);
-const APP_VERSION = '2.14.14';
+const APP_VERSION = '2.14.15';
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '';
 
@@ -69,6 +69,7 @@ class Room {
     this.partyQueue = Array.isArray(options.partyQueue) ? options.partyQueue : [];
     this.playedHistory = Array.isArray(options.playedHistory) ? options.playedHistory : [];
     this.activityLogs = Array.isArray(options.activityLogs) ? options.activityLogs : [];
+    this.cleanDuplicateActivityLogs();
 
     // Host & DJ State
     this.partyHost = options.partyHost || {
@@ -131,9 +132,9 @@ class Room {
   registerDevicePresence(deviceId, name, email, mode = 'check') {
     if (!deviceId) return { success: false, error: 'deviceId required' };
     const now = Date.now();
-    const HEARTBEAT_TIMEOUT_MS = 25000;
+    const HEARTBEAT_TIMEOUT_MS = 45000;
 
-    // 1. Clean stale devices (> 25s without ping)
+    // 1. Clean stale devices (> 45s without ping)
     for (const [dId, dev] of this.activeDevices.entries()) {
       if (dId !== deviceId && (now - dev.lastHeartbeat > HEARTBEAT_TIMEOUT_MS)) {
         this.activeDevices.delete(dId);
@@ -236,7 +237,7 @@ class Room {
       return { success: true, finalName, isDuplicate: false, duplicateIndex: nextN };
     }
 
-    // Heartbeat update
+    // Heartbeat update (Strictly silent: NEVER log join activity)
     if (mode === 'heartbeat') {
       let shouldBroadcast = false;
       if (!selfDevice) {
@@ -249,7 +250,6 @@ class Room {
           replaced: false
         });
         this.knownDJs.add(cleanName);
-        this.addActivity(cleanName, 'join', 'ke pesta');
         shouldBroadcast = true;
       } else {
         selfDevice.lastHeartbeat = now;
@@ -297,7 +297,7 @@ class Room {
 
   getActiveMembers() {
     const now = Date.now();
-    const HEARTBEAT_TIMEOUT_MS = 25000;
+    const HEARTBEAT_TIMEOUT_MS = 45000;
     const hostName = (this.partyHost && this.partyHost.name) ? this.partyHost.name.toLowerCase() : null;
     const active = [];
     const seenNames = new Set();
@@ -404,8 +404,35 @@ class Room {
     }
   }
 
+  cleanDuplicateActivityLogs() {
+    if (!Array.isArray(this.activityLogs)) return;
+    const filtered = [];
+    const lastJoinTimeByUser = new Map();
+    for (const log of this.activityLogs) {
+      if (log.type === 'join' || log.action === 'join') {
+        const u = (log.user || log.dj || '').trim().toLowerCase();
+        const prevTime = lastJoinTimeByUser.get(u);
+        const curTime = typeof log.timestamp === 'number' ? log.timestamp : 0;
+        if (prevTime !== undefined && Math.abs(prevTime - curTime) < 15 * 60 * 1000) {
+          continue; // Drop duplicate join logs within 15 minutes
+        }
+        lastJoinTimeByUser.set(u, curTime);
+      }
+      filtered.push(log);
+    }
+    this.activityLogs = filtered;
+  }
+
   addActivity(dj, type, details) {
     this.touch();
+    // Prevent duplicate join spam
+    if (type === 'join') {
+      const u = String(dj || '').toLowerCase();
+      const hasRecent = this.activityLogs.some(
+        log => (log.user || log.dj || '').toLowerCase() === u && (log.type === 'join' || log.action === 'join') && (Date.now() - log.timestamp < 15 * 60 * 1000)
+      );
+      if (hasRecent) return;
+    }
     this.activityLogs.unshift({
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       user: dj,
@@ -572,6 +599,7 @@ class Room {
     }
     if (Array.isArray(data.activityLogs)) {
       this.activityLogs = data.activityLogs;
+      this.cleanDuplicateActivityLogs();
     }
     if (data.partyHost) {
       this.partyHost = data.partyHost;
