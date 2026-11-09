@@ -356,9 +356,9 @@
             <span id="current-view-badge" class="hidden sm:inline px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
               Auto
             </span>
-            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.14.12)"
+            <button onclick="openChangelogModal()" title="View Version & Changelog (v2.14.13)"
                     class="hidden sm:inline-block px-1.5 py-0.2 rounded text-[10px] font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer">
-              v2.14.12
+              v2.14.13
             </button>
           </div>
           <div id="connection-btn" class="hidden md:flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
@@ -1131,7 +1131,7 @@
           <i data-lucide="sparkles" class="w-4 h-4 text-rose-500"></i>
           <div>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white">Party Jukebox Release Notes</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.14.12</span></p>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Current version: <span class="font-mono font-bold text-pink-600 dark:text-pink-400">v2.14.13</span></p>
           </div>
         </div>
         <button onclick="closeChangelogModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs flex items-center justify-center"><i data-lucide="x" class="w-4 h-4"></i></button>
@@ -1140,10 +1140,22 @@
       <!-- Content (Scrollable list of releases) -->
       <div class="flex-1 overflow-y-auto py-3 space-y-3.5 text-xs pr-1">
         
-        <!-- v2.14.12 -->
+        <!-- v2.14.13 -->
         <div class="p-3 rounded-xl bg-pink-500/5 dark:bg-pink-500/10 border border-pink-500/30 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.14.12 (Latest)</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30">v2.14.13 (Latest)</span>
+            <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
+          </div>
+          <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
+            <li><strong class="text-slate-800 dark:text-white">Akses Tamu Instan Tanpa Login via Link Room:</strong> Membuka link room (e.g. <code>?room=RJDCPA</code>) kini memungkinkan tamu langsung mencari lagu, menambahkan antrean, dan memberikan upvote tanpa terhalang popup login Google. Nama tamu otomatis dibuat secara unik (e.g. "Tamu 123").</li>
+            <li><strong class="text-slate-800 dark:text-white">Gerbang OAuth Eksklusif untuk Buat &amp; Join Room Mandiri:</strong> Pengunjung yang mengakses halaman utama tanpa link diarahkan ke gerbang party di mana membuat room baru atau masuk room via kode wajib login resmi Google OAuth. Klaim kursi Host juga tetap terlindungi dengan login Google.</li>
+          </ul>
+        </div>
+
+        <!-- v2.14.12 -->
+        <div class="p-3 rounded-xl bg-slate-50 dark:bg-gray-800/50 border border-slate-200 dark:border-gray-700/60 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-extrabold bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-gray-600">v2.14.12</span>
             <span class="text-[10px] text-slate-400 dark:text-gray-500 font-medium">Nov 2026</span>
           </div>
           <ul class="list-disc list-inside space-y-1 text-slate-600 dark:text-gray-300">
@@ -1752,16 +1764,16 @@
   <div id="dj-modal" onclick="if (event.target === this && !isDJModalMandatory) closeDJModal()" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300 opacity-0 pointer-events-none cursor-pointer">
     <div class="relative w-full max-w-sm sm:max-w-md rounded-2xl bg-white dark:bg-[#121520] border border-slate-200 dark:border-gray-800 shadow-2xl p-6 transition-all duration-300 transform scale-95" id="dj-modal-card">
       
-      <!-- Close Button (Only shown if a valid user is already selected) -->
-      <button id="dj-modal-close-btn" onclick="closeDJModal()" class="hidden absolute top-4 right-4 w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-500 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer text-xs active:scale-95 flex items-center justify-center"><i data-lucide="x" class="w-4 h-4"></i></button>
+      <!-- Close Button -->
+      <button id="dj-modal-close-btn" onclick="closeDJModal()" class="absolute top-4 right-4 w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-500 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer text-xs active:scale-95"><i data-lucide="x" class="w-4 h-4"></i></button>
 
       <div class="text-center mb-4">
         <div id="dj-modal-icon" class="w-12 h-12 mx-auto mb-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center border border-zinc-200 dark:border-zinc-700">
           <i data-lucide="music" class="w-6 h-6 text-zinc-900 dark:text-zinc-100"></i>
         </div>
-        <h3 id="dj-modal-title" class="text-lg font-black text-slate-900 dark:text-white tracking-tight">Masuk ke Party Jukebox</h3>
+        <h3 id="dj-modal-title" class="text-lg font-black text-slate-900 dark:text-white tracking-tight">Masuk dengan Google</h3>
         <p id="dj-modal-subtitle" class="text-xs text-slate-500 dark:text-gray-400 mt-1 max-w-xs mx-auto">
-          Wajib masuk dengan Google (OAuth) untuk request lagu, upvote antrean, dan bergabung ke pesta.
+          Masuk dengan akun Google untuk membuat room, join room tanpa link, atau menjadi Host.
         </p>
       </div>
 
@@ -1786,7 +1798,7 @@
         </div>
       </div>
 
-      <!-- Mandatory Google OAuth 2.0 Sign In Section -->
+      <!-- Google OAuth Sign In Section -->
       <div class="space-y-3 pt-1">
         <a href="/auth/google" onclick="onGoogleLoginClick()" class="w-full py-3 px-4 rounded-xl font-bold text-xs bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-sm flex items-center justify-center gap-2.5 transition-all cursor-pointer active:scale-95">
           <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24">
@@ -1798,7 +1810,7 @@
           <span>Masuk dengan Google (OAuth)</span>
         </a>
         <p class="text-[11px] text-center text-zinc-500 dark:text-zinc-400 leading-relaxed">
-          Semua peserta dan host terdaftar resmi melalui Google OAuth. Tanpa tamu anonim.
+          Tamu yang bergabung melalui link room dapat langsung menambahkan lagu tanpa login.
         </p>
       </div>
 
@@ -2534,7 +2546,7 @@
     <div class="text-left text-xs min-w-0 flex-1">
       <div class="flex items-center gap-1.5 flex-wrap">
         <span class="font-black text-white">Versi Baru Tersedia!</span>
-        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.14.12</span>
+        <span id="update-version-tag" class="px-1.5 py-0.2 rounded-md bg-white/25 text-[10px] font-mono font-extrabold">v2.14.13</span>
       </div>
       <p class="text-[11px] text-pink-100 opacity-90 mt-0.5">Pembaruan server siap. Muat ulang saat siap.</p>
     </div>
@@ -2778,6 +2790,8 @@
     }
 
     async function joinPartyByCode(explicitCode = null) {
+      if (!requireAuth('masuk ke room party')) return;
+
       const input = document.getElementById('gate-join-code-input');
       const rawCode = explicitCode || (input ? input.value : '');
       const code = String(rawCode || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
@@ -2819,6 +2833,8 @@
     }
 
     async function createPartyFromGate() {
+      if (!requireAuth('membuat room party')) return;
+
       const nameInput = document.getElementById('gate-create-name-input');
       const codeInput = document.getElementById('gate-create-code-input');
       const name = nameInput ? nameInput.value.trim() : '';
@@ -3063,11 +3079,24 @@
     } catch (e) {
       currentUserProfile = null;
     }
-    let currentUser = (currentUserProfile && currentUserProfile.name) ? currentUserProfile.name : (localStorage.getItem('jukebox_user') || '');
-    const isAuthenticatedUser = Boolean(currentUserProfile && currentUserProfile.name);
-    if (!isAuthenticatedUser) {
-      currentUser = '';
+    const isAuthenticatedUser = Boolean(currentUserProfile && currentUserProfile.name && currentUserProfile.googleId);
+
+    function getOrCreateGuestName() {
+      let guest = '';
+      try {
+        guest = localStorage.getItem('jukebox_guest_name') || localStorage.getItem('jukebox_user') || '';
+      } catch (e) {}
+      if (!guest || !guest.trim() || guest === 'Host' || guest.toLowerCase().includes('null') || guest.toLowerCase().includes('undefined')) {
+        guest = 'Tamu ' + Math.floor(100 + Math.random() * 900);
+        try {
+          localStorage.setItem('jukebox_guest_name', guest);
+          localStorage.setItem('jukebox_user', guest);
+        } catch (e) {}
+      }
+      return guest.trim();
     }
+
+    let currentUser = isAuthenticatedUser ? currentUserProfile.name : getOrCreateGuestName();
     let knownDJs = [];
     try {
       const parsed = JSON.parse(localStorage.getItem('jukebox_known_djs') || '[]');
@@ -3075,7 +3104,7 @@
     } catch (e) {
       knownDJs = [];
     }
-    const CLIENT_VERSION = '2.14.12';
+    const CLIENT_VERSION = '2.14.13';
     let isUpdateTriggered = false;
     let isPinyinVisible = localStorage.getItem('jukebox_pinyin_enabled') !== 'false';
     let currentLyricsLanguage = 'chinese';
@@ -5050,12 +5079,13 @@
       localStorage.removeItem('jukebox_user_profile');
       localStorage.removeItem('jukebox_user');
       localStorage.removeItem('jukebox_host_token');
-      currentUser = '';
+      currentUser = getOrCreateGuestName();
       renderGuestBadge();
       showToast('Berhasil keluar dari akun Google');
       closeSettingsModal();
-      isDJModalMandatory = true;
-      openDJModal(true);
+      if (!currentRoomId) {
+        openPartyGateModal(true);
+      }
     }
 
     function openSettingsModal() {
@@ -5161,15 +5191,19 @@
         }
       }
 
+      if (closeBtn) closeBtn.classList.remove('hidden');
+
+      const targetRoom = currentRoomId || initialUrlRoom || '';
+      const googleLinks = modal.querySelectorAll('a[href^="/auth/google"]');
+      googleLinks.forEach(link => {
+        link.href = targetRoom ? `/auth/google?room=${encodeURIComponent(targetRoom)}` : '/auth/google';
+      });
+
       if (mandatory) {
-        if (closeBtn) closeBtn.classList.add('hidden');
-        if (title) title.innerText = 'Selamat Datang di Party Jukebox!';
-        if (subtitle) subtitle.innerText = isVacant
-          ? 'Belum ada Host untuk sesi ini. Masukkan nama kamu dan ambil alih kursi Host, atau masuk sebagai tamu!'
-          : `Host room saat ini: ${currentPartyHost.name}. Masukkan nama kamu untuk mulai request lagu!`;
+        if (title) title.innerText = 'Masuk dengan Google';
+        if (subtitle) subtitle.innerText = 'Wajib masuk dengan Google untuk membuat room, join room tanpa link, atau menjadi Host.';
         if (input) input.value = '';
       } else {
-        if (closeBtn) closeBtn.classList.remove('hidden');
         if (title) title.innerText = 'Edit Nama Panggilan Kamu';
         if (subtitle) subtitle.innerText = 'Ubah nama yang muncul pada request lagu dan upvote kamu.';
         if (input) input.value = currentUser || '';
@@ -5248,6 +5282,9 @@
       const cleanUser = user.trim().slice(0, 25);
       currentUser = cleanUser;
       localStorage.setItem('jukebox_user', cleanUser);
+      if (!isAuthenticatedUser) {
+        localStorage.setItem('jukebox_guest_name', cleanUser);
+      }
 
       // Add to local known profiles
       if (!Array.isArray(knownDJs)) knownDJs = [];
@@ -7305,9 +7342,9 @@
     function requireAuth(actionName = 'melakukan aksi ini') {
       let profile = null;
       try { profile = JSON.parse(localStorage.getItem('jukebox_user_profile') || 'null'); } catch (e) {}
-      if (!profile || !profile.name || !currentUser) {
+      if (!profile || !profile.name || !profile.googleId) {
         showToast(`⚠️ Wajib masuk dengan Google untuk ${actionName}.`, 'warning');
-        isDJModalMandatory = true;
+        isDJModalMandatory = false;
         openDJModal(true);
         return false;
       }
@@ -7325,8 +7362,8 @@
     }
 
     function queueTrackById(videoId) {
-      if (!requireAuth('menambahkan lagu')) return;
       if (!videoId) return;
+      if (!currentUser) currentUser = getOrCreateGuestName();
       const item = songCardRegistry.get(videoId);
       if (item) {
         return queueTrack(item);
@@ -7336,8 +7373,8 @@
 
     // Queue Song (With safe JSON decode helper - fallback)
     function queueTrackEncoded(encodedStr) {
-      if (!requireAuth('menambahkan lagu')) return;
       try {
+        if (!currentUser) currentUser = getOrCreateGuestName();
         const item = JSON.parse(decodeURIComponent(encodedStr));
         return queueTrack(item);
       } catch (e) {
@@ -7350,8 +7387,8 @@
 
     // Queue Song with Instant Visual Loading Feedback & Anti-Spam Lock
     async function queueTrack(track) {
-      if (!requireAuth('menambahkan lagu')) return;
       if (!track || !track.videoId) return;
+      if (!currentUser) currentUser = getOrCreateGuestName();
 
       if (pendingQueueVideoIds.has(track.videoId)) {
         return; // Prevent duplicate concurrent requests for the same track
@@ -7602,13 +7639,13 @@
 
     // Paste Link Submit
     async function submitPaste() {
-      if (!requireAuth('menambahkan lagu')) return;
       const pasteInput = document.getElementById('paste-input');
       const input = pasteInput ? pasteInput.value.trim() : '';
       if (!input) {
         showToast('Tempel link YouTube terlebih dahulu');
         return;
       }
+      if (!currentUser) currentUser = getOrCreateGuestName();
 
       const submitBtn = document.getElementById('paste-submit-btn');
       const originalHtml = submitBtn ? submitBtn.innerHTML : '';
@@ -7866,7 +7903,7 @@
 
     // Upvote Song
     async function upvoteSong(videoId, title) {
-      if (!requireAuth('memberikan vote')) return;
+      if (!currentUser) currentUser = getOrCreateGuestName();
       try {
         const res = await fetch('/api/upvote', {
           method: 'POST',
@@ -8465,22 +8502,23 @@
       }
     }
 
-    // Mandatory OAuth entry check: all users must authenticate via Google
-    if (!currentUser || !isAuthenticatedUser) {
-      currentUser = '';
-      openDJModal(true);
-    } else {
-      selectUser(currentUser, false);
-      if (localStorage.getItem('jukebox_auto_claim_host_after_login') === 'true') {
-        try { localStorage.removeItem('jukebox_auto_claim_host_after_login'); } catch (e) {}
-        setTimeout(() => {
-          if (!currentPartyHost || currentPartyHost.isVacant) {
-            claimHost(currentUser, false);
-          }
-        }, 700);
-      }
-      initPartySystem();
+    // Initial user setup: Guests via link can queue directly without login.
+    // Bare root visitors without a link will be prompted to login via party gate modal.
+    if (!currentUser) {
+      currentUser = getOrCreateGuestName();
     }
+    selectUser(currentUser, false);
+
+    if (isAuthenticatedUser && localStorage.getItem('jukebox_auto_claim_host_after_login') === 'true') {
+      try { localStorage.removeItem('jukebox_auto_claim_host_after_login'); } catch (e) {}
+      setTimeout(() => {
+        if (!currentPartyHost || currentPartyHost.isVacant) {
+          claimHost(currentUser, false);
+        }
+      }, 700);
+    }
+
+    initPartySystem();
 
     renderDefaultRecommendations();
 
