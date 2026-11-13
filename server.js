@@ -1698,6 +1698,25 @@ app.post('/api/host/engine', (req, res) => {
   });
 });
 
+// 0.05 Playback Mode Switch Endpoint (1 Device / Host Speaker vs Listen Together)
+app.post('/api/room/playback-mode', async (req, res) => {
+  const { mode, user } = req.body || {};
+  if (!['host_only', 'listen_together'].includes(mode)) {
+    return res.status(400).json({ error: 'Mode must be "host_only" or "listen_together"' });
+  }
+  const room = req.room;
+  room.playbackMode = mode;
+  room.touch();
+  room.addActivity(
+    user || 'Host',
+    'mode_change',
+    `mengubah mode playback ke ${mode === 'listen_together' ? 'Dengar Bersama (Listen Together)' : '1 Device (Speaker Host)'}`
+  );
+  await roomManager.persistRoom(room);
+  room.broadcastUpdate(dynamicPublicUrl);
+  res.json({ success: true, playbackMode: room.playbackMode });
+});
+
 // 0.1 Host Management Endpoints
 app.get('/api/host', (req, res) => {
   res.json({ partyHost: req.room.getPartyHostInfo() });
@@ -1912,6 +1931,7 @@ app.get('/api/status', async (req, res) => {
     version: APP_VERSION,
     isVercel: IS_VERCEL,
     isDeviceReplaced: isReplaced,
+    playbackMode: room.playbackMode || 'host_only',
     room: {
       id: room.id,
       code: room.id,
@@ -1919,6 +1939,7 @@ app.get('/api/status', async (req, res) => {
       creator: room.creator,
       listeners: room.clients.size,
       activeDJsCount: room.activeDevices ? room.activeDevices.size : 0,
+      playbackMode: room.playbackMode || 'host_only',
       isIdle: room.isIdle()
     },
     host: {

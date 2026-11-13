@@ -26,7 +26,7 @@ const path = require('path');
 });
 
 const IS_VERCEL = Boolean(process.env.VERCEL);
-const APP_VERSION = '2.14.17';
+const APP_VERSION = '2.15.0';
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '';
 
@@ -52,6 +52,7 @@ class Room {
     this.createdAt = options.createdAt || Date.now();
     this.lastActive = options.lastActive || Date.now();
     this.isRoomSleeping = Boolean(options.isRoomSleeping);
+    this.playbackMode = options.playbackMode || 'host_only'; // 'host_only' (1 Device) or 'listen_together' (Discord style)
 
     // Connected devices & presence (Map<deviceId, { deviceId, name, baseName, email, lastHeartbeat, replaced }>)
     this.activeDevices = new Map();
@@ -498,8 +499,10 @@ class Room {
         name: this.name,
         creator: this.creator,
         listeners: this.clients.size,
-        activeDJsCount: this.activeDevices ? this.activeDevices.size : 0
+        activeDJsCount: this.activeDevices ? this.activeDevices.size : 0,
+        playbackMode: this.playbackMode || 'host_only'
       },
+      playbackMode: this.playbackMode || 'host_only',
       current: {
         ...this.currentSong,
         currentElapsed: elapsed,
@@ -560,6 +563,7 @@ class Room {
     if (data.createdAt) this.createdAt = data.createdAt;
     if (data.lastActive) this.lastActive = data.lastActive;
     if (typeof data.isRoomSleeping === 'boolean') this.isRoomSleeping = data.isRoomSleeping;
+    if (data.playbackMode) this.playbackMode = data.playbackMode;
 
     if (data.currentSong && data.currentSong.videoId) {
       // Conflict Guard: If this instance advanced the track locally within 15 seconds,
@@ -644,6 +648,7 @@ class Room {
       createdAt: this.createdAt,
       lastActive: this.lastActive,
       isRoomSleeping: this.isRoomSleeping,
+      playbackMode: this.playbackMode || 'host_only',
       currentSong: this.currentSong,
       partyQueue: this.partyQueue,
       playedHistory: this.playedHistory,

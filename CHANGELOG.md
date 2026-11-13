@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.15.0] - 2026-11-12
+
+### Added
+- **Playback Mode Architecture (Single Device vs Listen Together / Discord Style):**
+  - Added multi-device synchronized playback mode (`listen_together`), enabling all party participants to listen to music simultaneously on their own smartphones/laptops in lockstep with the room's master timeline.
+  - Retained `host_only` (Single Device / Party Speaker) mode where only the designated Host physical speaker outputs audio, while guests act in quiet remote control mode.
+  - Implemented `POST /api/room/playback-mode` with real-time SSE broadcast synchronization across all connected clients.
+  - Added room-level and client-level independent toggles: guests in "Listen Together" mode can individually mute/unmute their personal device speaker from both desktop and mobile bottom bars.
+  - Added smart drift compensation for guest listeners (tolerates micro-jitter < 2.0s without stuttering, auto-seeks when drift exceeds 2.0s).
+  - Protected track advance authority: in multi-listener sessions, only the Host or server watchdog triggers `/api/control/ended` to prevent race conditions and duplicate skips.
+  - Localized volume adjustment in Listen Together: guest volume sliders adjust local audio gain without mutating global room volume.
+
+### Changed
+- **Audio Playback Engine Clean-Up:**
+  - Standardized primary playback engine to YouTube Web Player (`YT.Player` / IFrame API) for 100% cloud-native stability and zero server bandwidth overhead.
+  - Deprecated and safely hid the Native Audio ("Extract" via backend `yt-dlp`) option from the user settings modal while keeping the underlying implementation fully intact and labeled as internal legacy.
+
+---
+
 ## [2.11.7] - 2026-11-04
 
 ### Added
