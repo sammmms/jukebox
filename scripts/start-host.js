@@ -5,7 +5,7 @@
  * 
  * Memungkinkan siapapun yang meng-clone repo ini untuk langsung menjadi HOST pesta:
  * 1. Mengecek koneksi YouTube Music Desktop (port 26538)
- * 2. Menjalankan server Jukebox lokal (port 3000)
+ * 2. Menjalankan server Party Jukebox lokal (port 3000)
  * 3. Mengaktifkan Cloudflare Tunnel ke domain publik https://dj.wsnsam.my.id
  *
  * Cara pakai:
@@ -146,7 +146,7 @@ async function main() {
     console.log(`${c.gray}   (Host bisa mengaktifkan link publik internet sewaktu-waktu langsung dari UI web).${c.reset}`);
   }
 
-  console.log(`\n${c.cyan}🎶 [3/3] Menjalankan Server Jukebox Standalone...${c.reset}`);
+  console.log(`\n${c.cyan}🎶 [3/3] Menjalankan Server Party Jukebox Standalone...${c.reset}`);
   const serverProcess = spawn('node', ['server.js'], {
     cwd: ROOT_DIR,
     stdio: 'inherit'

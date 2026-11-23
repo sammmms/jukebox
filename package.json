@@ -1,7 +1,7 @@
 {
-  "name": "jukebox",
+  "name": "party-jukebox",
   "version": "2.15.0",
-  "description": "Collaborative, real-time social jukebox & karaoke hub for house parties and hangouts",
+  "description": "Collaborative, real-time Party Jukebox & karaoke hub for house parties and hangouts",
   "main": "server.js",
   "engines": {
     "node": "22.x"

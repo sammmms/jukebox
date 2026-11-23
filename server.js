@@ -2850,9 +2850,10 @@ app.get('/api/audio/stream/:videoId', async (req, res) => {
 
 // 8. Lyrics Endpoint
 app.get('/api/lyrics', async (req, res) => {
-  const title = req.query.title || currentSong.title;
-  const artist = req.query.artist || currentSong.artist;
-  const duration = Number(req.query.duration) || currentSong.songDuration;
+  const activeSong = req.room?.currentSong || currentSong;
+  const title = req.query.title || activeSong.title;
+  const artist = req.query.artist || activeSong.artist;
+  const duration = Number(req.query.duration) || activeSong.songDuration;
 
   if (!title || title === 'No song playing') {
     return res.json({ hasLyrics: false, error: 'Tidak ada lagu yang sedang diputar' });

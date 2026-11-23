@@ -4,20 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Party Jukebox</title>
-  <meta name="description" content="Collaborative, real-time social jukebox & karaoke hub for house parties and hangouts.">
+  <meta name="description" content="Collaborative, real-time Party Jukebox & karaoke hub for house parties and hangouts.">
   
   <!-- Open Graph / Facebook / WhatsApp / Telegram -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://dj.wsnsam.my.id/">
   <meta property="og:title" content="Party Jukebox">
-  <meta property="og:description" content="Collaborative, real-time social jukebox & karaoke hub for house parties and hangouts.">
+  <meta property="og:description" content="Collaborative, real-time Party Jukebox & karaoke hub for house parties and hangouts.">
   <meta property="og:image" content="https://dj.wsnsam.my.id/banner.jpg">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="https://dj.wsnsam.my.id/">
   <meta name="twitter:title" content="Party Jukebox">
-  <meta name="twitter:description" content="Collaborative, real-time social jukebox & karaoke hub for house parties and hangouts.">
+  <meta name="twitter:description" content="Collaborative, real-time Party Jukebox & karaoke hub for house parties and hangouts.">
   <meta name="twitter:image" content="https://dj.wsnsam.my.id/banner.jpg">
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -377,7 +377,7 @@
             <span>Klaim Host</span>
           </button>
         </div>
-        <button onclick="openSettingsModal()" id="mobile-settings-btn" title="Pengaturan & Profil Akun"
+        <button onclick="openSettingsModal()" id="mobile-settings-btn" title="Profil Akun & Preferensi"
                 class="flex items-center gap-1 px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs font-medium cursor-pointer active:scale-95">
           <i data-lucide="user" class="w-3 h-3 text-zinc-400"></i>
           <span id="mobile-header-user-name" class="max-w-[70px] truncate text-[11px]">DJ Sam</span>
@@ -464,7 +464,7 @@
         <!-- RIGHT: GUEST PROFILE -->
         <div class="flex items-center gap-1.5 ml-auto shrink-0">
           <span class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Kamu:</span>
-          <button id="guest-profile-badge" onclick="openSettingsModal()" title="Profil Akun Google & Pengaturan"
+          <button id="guest-profile-badge" onclick="openSettingsModal()" title="Profil Akun Google & Preferensi"
                   class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 hover:border-zinc-400 dark:hover:border-zinc-700 transition-all cursor-pointer">
             <span id="guest-name-text">DJ Sam</span>
             <i data-lucide="user" class="w-3 h-3 text-zinc-400 dark:text-zinc-500"></i>
@@ -1071,7 +1071,7 @@
   </div>
 
   <!-- ============================================================
-       MULTI-PARTY ROOMS & SHARING MODAL
+       MULTI-PARTY ROOMS & SHARING MODAL (All Room Configurations)
        ============================================================ -->
   <div id="rooms-modal" onclick="if (event.target === this) closeRoomsModal()" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 transition-all duration-200 opacity-0 pointer-events-none cursor-pointer">
     <div class="bg-white dark:bg-[#11131a] rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-2xl w-full max-w-lg p-5 sm:p-6 space-y-4 text-zinc-900 dark:text-zinc-100 cursor-default max-h-[90vh] overflow-y-auto">
@@ -1081,9 +1081,9 @@
         <div>
           <div class="flex items-center gap-2">
             <i data-lucide="radio" class="w-4 h-4 text-rose-500"></i>
-            <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">Party Room</h2>
+            <h2 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">Party Room &amp; Konfigurasi</h2>
           </div>
-          <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Kode room &amp; bagikan link ke teman</p>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Bagikan room, atur host speaker, mode pemutaran, dan member aktif</p>
         </div>
         <button onclick="closeRoomsModal()" class="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 flex items-center justify-center text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors cursor-pointer">
           <i data-lucide="x" class="w-4 h-4"></i>
@@ -1118,11 +1118,87 @@
                 <span id="modal-copy-text">Salin Link</span>
               </button>
             </div>
+            <div class="flex items-center gap-1.5">
+              <button onclick="toggleQuickTunnel()" id="party-tunnel-btn" class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-pink-500/10 text-pink-600 dark:text-pink-400 border border-pink-500/30 active:scale-95 transition-all cursor-pointer">
+                Link Publik
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- SECTION 2: Ganti / Buka Party Lain -->
+      <!-- SECTION 2: Host Speaker Management -->
+      <div class="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/30 p-3.5 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-700 dark:text-gray-200 flex items-center gap-1.5">
+            <i data-lucide="crown" class="w-3.5 h-3.5 text-amber-500 inline mr-1"></i> Status Host Speaker
+          </span>
+          <span id="party-host-pill" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 border border-amber-500/30">
+            Host: Memuat...
+          </span>
+        </div>
+        <div id="party-host-controls" class="pt-1 flex flex-wrap items-center gap-2">
+          <!-- Dynamically populated buttons (Klaim, Ambil Alih, Lepas) -->
+        </div>
+      </div>
+
+      <!-- SECTION 3: Mode Pemutaran Musik (Single Device vs Listen Together) -->
+      <div class="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/30 p-3.5 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-700 dark:text-gray-200 flex items-center gap-1.5">
+            <i data-lucide="radio" class="w-3.5 h-3.5 text-pink-500 inline mr-1"></i> Mode Pemutaran Musik
+          </span>
+          <span id="playback-mode-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+            1 Device (Host)
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-500 dark:text-gray-400">Pilih apakah musik diputar dari 1 speaker utama (Host) atau bersama-sama di perangkat masing-masing.</p>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <button type="button" onclick="setPlaybackMode('host_only')" id="btn-mode-host-only"
+                  class="p-2.5 rounded-xl border text-left transition-all flex flex-col gap-1 cursor-pointer">
+            <div class="flex items-center justify-between font-bold">
+              <span class="flex items-center gap-1.5"><i data-lucide="volume-2" class="w-3.5 h-3.5 text-amber-500"></i> 1 Device (Host)</span>
+              <span id="check-mode-host-only" class="text-pink-500"><i data-lucide="check" class="w-4 h-4"></i></span>
+            </div>
+            <span class="text-[10px] text-slate-500 dark:text-gray-400 leading-snug">Hanya 1 perangkat Host yang memutar suara (speaker pesta)</span>
+          </button>
+          <button type="button" onclick="setPlaybackMode('listen_together')" id="btn-mode-listen-together"
+                  class="p-2.5 rounded-xl border text-left transition-all flex flex-col gap-1 cursor-pointer">
+            <div class="flex items-center justify-between font-bold">
+              <span class="flex items-center gap-1.5"><i data-lucide="headphones" class="w-3.5 h-3.5 text-emerald-500"></i> Dengar Bersama</span>
+              <span id="check-mode-listen-together" class="text-pink-500 hidden"><i data-lucide="check" class="w-4 h-4"></i></span>
+            </div>
+            <span class="text-[10px] text-slate-500 dark:text-gray-400 leading-snug">Semua orang mendengar musik serempak (Discord style)</span>
+          </button>
+        </div>
+
+        <!-- [INTERNAL / LEGACY] Audio Extractor Engine (Preserved internally, hidden from primary UI) -->
+        <div id="legacy-native-audio-container" class="hidden" aria-hidden="true" style="display:none !important;">
+          <button type="button" onclick="setAudioEngine('native')" id="btn-engine-native"></button>
+          <button type="button" onclick="setAudioEngine('youtube')" id="btn-engine-youtube"></button>
+          <span id="check-engine-native"></span>
+          <span id="check-engine-youtube"></span>
+        </div>
+      </div>
+
+      <!-- SECTION 4: Active Party Members (Realtime Heartbeat Presence) -->
+      <div class="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/30 p-3.5 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-700 dark:text-gray-200 flex items-center gap-1.5">
+            <i data-lucide="users" class="w-3.5 h-3.5 text-emerald-500 inline mr-1"></i> Member Aktif di Party
+          </span>
+          <span id="party-active-count-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="party-active-count-text">0 Online</span>
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-500 dark:text-gray-400">Daftar pengguna yang saat ini sedang membuka room party ini secara realtime.</p>
+        <div id="party-active-members-list" class="space-y-1.5 max-h-44 overflow-y-auto pr-1">
+          <!-- Dynamically populated via renderActiveMembers() -->
+        </div>
+      </div>
+
+      <!-- SECTION 5: Ganti / Buka Party Lain -->
       <div class="space-y-2.5 border-t border-zinc-100 dark:border-zinc-800/80 pt-3">
         <button onclick="closeRoomsModal(); openPartyGateModal(false);"
                 class="w-full py-2.5 rounded-xl text-xs font-semibold bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 active:scale-[0.99] transition-all cursor-pointer flex items-center justify-center gap-2">
@@ -2023,7 +2099,7 @@
   </div>
 
   <!-- ============================================================
-       MODAL: SETTINGS & ROOM MANAGEMENT (Mobile Drawer / Config Page)
+       MODAL: USER PROFILE & PREFERENCES
        ============================================================ -->
   <div id="settings-modal" onclick="if (event.target === this) closeSettingsModal()" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300 cursor-pointer">
     <div class="relative w-full max-w-sm sm:max-w-md rounded-3xl bg-white dark:bg-[#121520] border border-slate-200 dark:border-gray-800 shadow-2xl p-5 max-h-[90vh] flex flex-col space-y-4 overflow-y-auto">
@@ -2031,10 +2107,10 @@
       <!-- Header -->
       <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-gray-800 shrink-0">
         <div class="flex items-center gap-2">
-          <i data-lucide="settings" class="w-5 h-5 text-zinc-500"></i>
+          <i data-lucide="user" class="w-5 h-5 text-zinc-500"></i>
           <div>
-            <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">Pengaturan & Room Party</h3>
-            <p class="text-[11px] text-slate-500 dark:text-gray-400">Konfigurasi perangkat, profil, dan tampilan</p>
+            <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">Profil &amp; Preferensi</h3>
+            <p class="text-[11px] text-slate-500 dark:text-gray-400">Kelola profil DJ, tampilan, dan info aplikasi</p>
           </div>
         </div>
         <button onclick="closeSettingsModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center shrink-0 active:scale-95 transition-all text-xs flex items-center justify-center"><i data-lucide="x" class="w-4 h-4"></i></button>
@@ -2056,7 +2132,7 @@
           </div>
           <div class="min-w-0 flex-1">
             <div id="settings-user-name" class="text-xs font-extrabold text-slate-900 dark:text-white truncate">DJ Sam</div>
-            <div class="text-[10px] text-slate-400 truncate">Ditampilkan pada request lagu & vote</div>
+            <div class="text-[10px] text-slate-400 truncate">Ditampilkan pada request lagu &amp; vote</div>
           </div>
         </div>
         <div id="settings-google-auth-container" class="pt-1.5 border-t border-slate-200/80 dark:border-gray-800/80 flex items-center justify-between text-xs">
@@ -2064,104 +2140,10 @@
         </div>
       </div>
 
-      <!-- Section 2: Host Speaker Management -->
-      <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800 space-y-2.5">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-slate-700 dark:text-gray-200 flex items-center gap-1.5">
-            <i data-lucide="crown" class="w-3.5 h-3.5 text-amber-500 inline mr-1"></i> Status Host Speaker
-          </span>
-          <span id="settings-host-pill" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 border border-amber-500/30">
-            Host: Memuat...
-          </span>
-        </div>
-        <div id="settings-host-controls" class="pt-1 flex flex-wrap items-center gap-2">
-          <!-- Dynamically populated buttons (Klaim, Ambil Alih, Lepas) -->
-        </div>
-      </div>
-
-      <!-- Section 2.2: Active Party Members (Realtime Heartbeat Presence) -->
-      <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800 space-y-2.5">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-slate-700 dark:text-gray-200 flex items-center gap-1.5">
-            <i data-lucide="users" class="w-3.5 h-3.5 text-emerald-500 inline mr-1"></i> Member Aktif di Party
-          </span>
-          <span id="settings-active-count-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span id="settings-active-count-text">0 Online</span>
-          </span>
-        </div>
-        <p class="text-[11px] text-slate-500 dark:text-gray-400">Daftar pengguna yang saat ini sedang membuka room party ini secara realtime.</p>
-        <div id="settings-active-members-list" class="space-y-1.5 max-h-44 overflow-y-auto pr-1">
-          <!-- Dynamically populated via renderActiveMembers() -->
-        </div>
-      </div>
-
-      <!-- Section 2.5: Playback Mode (Single Device vs Listen Together) -->
-      <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800 space-y-2.5">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-slate-700 dark:text-gray-200 flex items-center gap-1.5">
-            <i data-lucide="radio" class="w-3.5 h-3.5 text-pink-500 inline mr-1"></i> Mode Pemutaran Musik
-          </span>
-          <span id="playback-mode-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
-            1 Device (Host)
-          </span>
-        </div>
-        <p class="text-[11px] text-slate-500 dark:text-gray-400">Pilih apakah musik diputar dari 1 speaker utama (Host) atau bersama-sama di perangkat masing-masing.</p>
-        <div class="grid grid-cols-2 gap-2 text-xs">
-          <button type="button" onclick="setPlaybackMode('host_only')" id="btn-mode-host-only"
-                  class="p-2.5 rounded-xl border text-left transition-all flex flex-col gap-1 cursor-pointer">
-            <div class="flex items-center justify-between font-bold">
-              <span class="flex items-center gap-1.5"><i data-lucide="volume-2" class="w-3.5 h-3.5 text-amber-500"></i> 1 Device (Host)</span>
-              <span id="check-mode-host-only" class="text-pink-500"><i data-lucide="check" class="w-4 h-4"></i></span>
-            </div>
-            <span class="text-[10px] text-slate-500 dark:text-gray-400 leading-snug">Hanya 1 perangkat Host yang memutar suara (speaker pesta)</span>
-          </button>
-          <button type="button" onclick="setPlaybackMode('listen_together')" id="btn-mode-listen-together"
-                  class="p-2.5 rounded-xl border text-left transition-all flex flex-col gap-1 cursor-pointer">
-            <div class="flex items-center justify-between font-bold">
-              <span class="flex items-center gap-1.5"><i data-lucide="headphones" class="w-3.5 h-3.5 text-emerald-500"></i> Dengar Bersama</span>
-              <span id="check-mode-listen-together" class="text-pink-500 hidden"><i data-lucide="check" class="w-4 h-4"></i></span>
-            </div>
-            <span class="text-[10px] text-slate-500 dark:text-gray-400 leading-snug">Semua orang mendengar musik serempak (Discord style)</span>
-          </button>
-        </div>
-
-        <!-- [INTERNAL / LEGACY] Audio Extractor Engine (Preserved internally, hidden from primary UI) -->
-        <div id="legacy-native-audio-container" class="hidden" aria-hidden="true" style="display:none !important;">
-          <button type="button" onclick="setAudioEngine('native')" id="btn-engine-native"></button>
-          <button type="button" onclick="setAudioEngine('youtube')" id="btn-engine-youtube"></button>
-          <span id="check-engine-native"></span>
-          <span id="check-engine-youtube"></span>
-        </div>
-      </div>
-
-      <!-- Section 3: Room QR Code & Public Sharing Link -->
-      <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800 space-y-2.5">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-slate-700 dark:text-gray-200 flex items-center gap-1.5">
-            <i data-lucide="share-2" class="w-3.5 h-3.5 text-zinc-500 inline mr-1"></i> Bagikan Room Party
-          </span>
-        </div>
-        <div class="flex items-center gap-3">
-          <img id="settings-qr-img" src="" alt="QR" class="w-16 h-16 rounded-lg bg-white p-1 border border-slate-200 shrink-0">
-          <div class="min-w-0 flex-1 text-xs space-y-1.5">
-            <p id="settings-host-url" class="text-[11px] font-mono font-bold text-pink-600 dark:text-pink-400 truncate"></p>
-            <div class="flex flex-wrap items-center gap-1.5">
-              <button onclick="copyHostUrl()" class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-slate-200 dark:bg-gray-800 text-slate-700 dark:text-gray-300 hover:bg-slate-300 active:scale-95 transition-all">
-                Salin Link
-              </button>
-              <button onclick="toggleQuickTunnel()" id="settings-tunnel-btn" class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-pink-500/10 text-pink-600 dark:text-pink-400 border border-pink-500/30 active:scale-95 transition-all">
-                Link Publik
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Section 4: Tampilan & Tema -->
+      <!-- Section 2: Tampilan & Tema -->
       <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800 space-y-2.5">
         <span class="text-xs font-bold text-slate-700 dark:text-gray-200 flex items-center gap-1.5">
-          <i data-lucide="palette" class="w-3.5 h-3.5 text-zinc-500 inline mr-1"></i> Tampilan & Tema Warna
+          <i data-lucide="palette" class="w-3.5 h-3.5 text-zinc-500 inline mr-1"></i> Tampilan &amp; Tema Warna
         </span>
         <div class="space-y-2">
           <!-- View switcher -->
@@ -2179,9 +2161,9 @@
         </div>
       </div>
 
-      <!-- Section 5: Version & Release Notes -->
+      <!-- Section 3: Version & Release Notes -->
       <div class="pt-1 flex items-center justify-between text-xs text-slate-400">
-        <span>Party Jukebox v2.11.14</span>
+        <span>Party Jukebox v2.15.0</span>
         <button onclick="openChangelogModal(); closeSettingsModal();" class="font-bold text-pink-600 dark:text-pink-400 hover:underline">
           Lihat Catatan Rilis
         </button>
@@ -2795,6 +2777,52 @@
       setTimeout(refreshLucideIcons, 0);
     }
 
+    function renderPartyHostSection() {
+      const hostPill = document.getElementById('party-host-pill');
+      const hostControls = document.getElementById('party-host-controls');
+      const isVacant = !currentPartyHost || currentPartyHost.isVacant || !currentPartyHost.name;
+      const me = isMeHost();
+
+      if (hostPill) {
+        if (isVacant) {
+          hostPill.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-600 border border-rose-500/30';
+          hostPill.textContent = 'Host: Vacant';
+        } else {
+          hostPill.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 border border-amber-500/30';
+          hostPill.textContent = `Host: ${currentPartyHost.name}${me ? ' (Kamu)' : ''}`;
+        }
+      }
+
+      if (hostControls) {
+        if (isVacant) {
+          hostControls.innerHTML = `
+            <button onclick="claimHostPrompt(); closeRoomsModal();" class="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-pink-500 text-white font-black text-xs shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+              <i data-lucide="crown" class="w-4 h-4"></i>
+              <span>Klaim Jadi Host</span>
+            </button>
+          `;
+        } else if (me) {
+          hostControls.innerHTML = `
+            <div class="flex items-center justify-between w-full gap-2">
+              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold bg-emerald-500/15 text-emerald-600 border border-emerald-500/30">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Speaker Aktif di HP ini</span>
+              </span>
+              <button onclick="releaseHost(); closeRoomsModal();" class="py-1.5 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 text-xs font-bold border border-rose-500/30 active:scale-95 transition-all cursor-pointer">
+                <span class="flex items-center gap-1.5"><i data-lucide="log-out" class="w-3.5 h-3.5"></i> Lepas Host</span>
+              </button>
+            </div>
+          `;
+        } else {
+          hostControls.innerHTML = `
+            <button onclick="claimHostPrompt(true); closeRoomsModal();" class="flex-1 py-2 px-3 rounded-xl bg-pink-500/15 hover:bg-pink-500/25 text-pink-600 font-bold text-xs border border-pink-500/30 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+              <i data-lucide="crown" class="w-4 h-4"></i> <span>Ambil Alih Host Speaker</span>
+            </button>
+          `;
+        }
+      }
+    }
+
     function openRoomsModal() {
       if (!currentRoomId) {
         openPartyGateModal(true);
@@ -2804,6 +2832,10 @@
       if (modal) {
         updateShareLinks();
         fetchRoomsList();
+        renderPartyHostSection();
+        updateAudioEngineUI();
+        updatePlaybackModeUI();
+        renderActiveMembers(currentActiveMembers);
         modal.classList.remove('opacity-0', 'pointer-events-none');
         modal.classList.add('opacity-100');
         syncModalScrollLock();
@@ -3190,8 +3222,8 @@
     window.addEventListener('pagehide', notifyLeave);
 
     function renderActiveMembers(members = []) {
-      const listEl = document.getElementById('settings-active-members-list');
-      const countEl = document.getElementById('settings-active-count-text');
+      const listEl = document.getElementById('party-active-members-list');
+      const countEl = document.getElementById('party-active-count-text');
       if (!listEl) return;
 
       const count = Array.isArray(members) ? members.length : 0;
@@ -4360,7 +4392,7 @@
       try {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: song.title || 'Party Jukebox',
-          artist: song.artist || 'Karaoke & Jukebox',
+          artist: song.artist || 'Karaoke & Party Jukebox',
           album: 'Party Room',
           artwork: [
             { src: song.thumbnail || song.imageSrc || '/banner.jpg', sizes: '96x96', type: 'image/jpeg' },
@@ -5264,12 +5296,6 @@
         modalQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(currentHostShareUrl)}`;
       }
 
-      const settingsHostUrl = document.getElementById('settings-host-url');
-      if (settingsHostUrl) settingsHostUrl.textContent = currentHostShareUrl;
-
-      const settingsQr = document.getElementById('settings-qr-img');
-      if (settingsQr) settingsQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(currentHostShareUrl)}`;
-
       setTimeout(refreshLucideIcons, 0);
     }
 
@@ -5353,7 +5379,7 @@
         const text = document.getElementById('copy-host-text');
         icon.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i>'; refreshLucideIcons();
         text.textContent = 'Disalin!';
-        showToast(' Link Wi-Fi Jukebox disalin ke clipboard!');
+        showToast(' Link Wi-Fi Party Jukebox disalin ke clipboard!');
         setTimeout(() => {
           icon.innerHTML = '<i data-lucide="copy" class="w-3.5 h-3.5"></i>'; refreshLucideIcons();
           text.textContent = 'Salin Link';
@@ -5889,66 +5915,9 @@
       if (!modal) return;
 
       renderGuestBadge();
-
-      // Render Host Speaker status inside settings
-      const hostPill = document.getElementById('settings-host-pill');
-      const hostControls = document.getElementById('settings-host-controls');
-      const isVacant = !currentPartyHost || currentPartyHost.isVacant || !currentPartyHost.name;
-      const me = isMeHost();
-
-      if (hostPill) {
-        if (isVacant) {
-          hostPill.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-600 border border-rose-500/30';
-          hostPill.textContent = 'Host: Vacant';
-        } else {
-          hostPill.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 border border-amber-500/30';
-          hostPill.textContent = `Host: ${currentPartyHost.name}${me ? ' (Kamu)' : ''}`;
-        }
-      }
-
-      if (hostControls) {
-        if (isVacant) {
-          hostControls.innerHTML = `
-            <button onclick="claimHostPrompt(); closeSettingsModal();" class="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-pink-500 text-white font-black text-xs shadow-sm active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
-              <i data-lucide="crown" class="w-4 h-4"></i>
-              <span>Klaim Jadi Host</span>
-            </button>
-          `;
-          refreshLucideIcons();
-        } else if (me) {
-          hostControls.innerHTML = `
-            <div class="flex items-center justify-between w-full gap-2">
-              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold bg-emerald-500/15 text-emerald-600 border border-emerald-500/30">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Speaker Aktif di HP ini</span>
-              </span>
-              <button onclick="releaseHost(); closeSettingsModal();" class="py-1.5 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 text-xs font-bold border border-rose-500/30 active:scale-95 transition-all cursor-pointer">
-                <span class="flex items-center gap-1.5"><i data-lucide="log-out" class="w-3.5 h-3.5"></i> Lepas Host</span>
-              </button>
-            </div>
-          `;
-        } else {
-          hostControls.innerHTML = `
-            <button onclick="claimHostPrompt(true); closeSettingsModal();" class="flex-1 py-2 px-3 rounded-xl bg-pink-500/15 hover:bg-pink-500/25 text-pink-600 font-bold text-xs border border-pink-500/30 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
-              <i data-lucide="crown" class="w-4 h-4"></i> <span>Ambil Alih Host Speaker</span>
-            </button>
-          `;
-        }
-      }
-
-      // Sync Room Sharing info
-      const qrImg = document.getElementById('settings-qr-img');
-      const hostUrlText = document.getElementById('settings-host-url');
-      const originQr = document.getElementById('host-qr-img');
-      const originUrl = document.getElementById('host-url-text');
-      if (qrImg && originQr) qrImg.src = originQr.src;
-      if (hostUrlText && originUrl) hostUrlText.textContent = originUrl.textContent;
-
-      updateAudioEngineUI();
-      renderActiveMembers(currentActiveMembers);
-
       modal.classList.remove('hidden');
       syncModalScrollLock();
+      setTimeout(refreshLucideIcons, 0);
     }
 
     function closeSettingsModal() {
@@ -6547,6 +6516,7 @@
       try {
         if (status.partyHost) {
           updateHostUI(status.partyHost);
+          renderPartyHostSection();
         }
         renderGuestBadge();
       } catch (err) {
@@ -8297,7 +8267,7 @@
           );
         }
       } catch (err) {
-        showToast('Gagal terhubung ke server Jukebox');
+        showToast('Gagal terhubung ke server Party Jukebox');
         targetBtns.forEach(btn => {
           if (btn.dataset.originalHtml) btn.innerHTML = btn.dataset.originalHtml;
         });
@@ -8601,7 +8571,7 @@
         }
       } catch (err) {
         await customAlert(
-          'Gagal menghubungi server Jukebox. Periksa koneksi ke host.',
+          'Gagal menghubungi server Party Jukebox. Periksa koneksi ke host.',
           'Koneksi Gagal',
           'radio'
         );

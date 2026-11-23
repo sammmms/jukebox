@@ -5,7 +5,7 @@
 # 🎵 Party Jukebox
 ### Connect. Queue. Sing Together.
 
-> **Collaborative, real-time social jukebox & karaoke hub for house parties, roadtrips, and hangouts.**  
+> **Collaborative, real-time Party Jukebox & karaoke hub for house parties, roadtrips, and hangouts.**  
 > Host your music in the cloud or on local speakers, while friends control the queue, vote, read synchronized karaoke lyrics, and DJ from their smartphones—**zero app installation and zero login required for guests!**
 
 [![Live Demo](https://img.shields.io/badge/Live_Demo-dj.wsnsam.my.id-f43f5e?style=for-the-badge&logo=vercel)](https://dj.wsnsam.my.id)
@@ -110,7 +110,7 @@ npm install
 ### 🎧 Step 2: Run Locally
 
 ```bash
-# Jalankan server Jukebox
+# Jalankan server Party Jukebox
 npm start
 ```
 
