@@ -26,7 +26,7 @@ const path = require('path');
 });
 
 const IS_VERCEL = Boolean(process.env.VERCEL);
-const APP_VERSION = '2.15.0';
+const APP_VERSION = '2.15.1';
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '';
 
@@ -102,6 +102,9 @@ class Room {
       songDuration: this.currentSong.songDuration || 215,
       lastUpdated: Date.now()
     };
+    this.lastLocalMutation = 0;
+    this.lastAdvanceTime = 0;
+    this._persistPromise = null;
 
     if (!this.playbackTracker.isPaused && this.currentSong.startedAt) {
       const wallClockElapsed = Math.max(0, (Date.now() - this.currentSong.startedAt) / 1000);
@@ -566,10 +569,11 @@ class Room {
     if (data.playbackMode) this.playbackMode = data.playbackMode;
 
     if (data.currentSong && data.currentSong.videoId) {
-      // Conflict Guard: If this instance advanced the track locally within 15 seconds,
-      // do not let stale remote data revert the newly advanced song!
+      // Conflict Guard: If this instance advanced or mutated the track locally recently,
+      // do not let stale remote data revert the newly advanced/added song!
       const isLocalRecentAdvance = (Date.now() - (this.lastAdvanceTime || 0) < 15000);
-      if (!isLocalRecentAdvance || data.currentSong.videoId === this.currentSong?.videoId) {
+      const isLocalRecentMutation = (Date.now() - (this.lastLocalMutation || 0) < 5000);
+      if ((!isLocalRecentAdvance && !isLocalRecentMutation) || data.currentSong.videoId === this.currentSong?.videoId) {
         this.currentSong = {
           ...data.currentSong,
           songDuration: (typeof data.currentSong.songDuration === 'number' && data.currentSong.songDuration > 0) ? Math.round(data.currentSong.songDuration) : 215,
@@ -594,7 +598,8 @@ class Room {
 
     if (Array.isArray(data.partyQueue)) {
       const isLocalRecentAdvance = (Date.now() - (this.lastAdvanceTime || 0) < 15000);
-      if (!isLocalRecentAdvance) {
+      const isLocalRecentMutation = (Date.now() - (this.lastLocalMutation || 0) < 5000);
+      if (!isLocalRecentAdvance && !isLocalRecentMutation) {
         this.partyQueue = data.partyQueue;
       }
     }
@@ -760,13 +765,21 @@ class RoomManager {
     const now = Date.now();
     // Fast path:
     // 1. In long-running Node server (!IS_VERCEL), in-memory room is canonical living state.
-    // 2. In serverless (IS_VERCEL): If forceSync is requested (all mutations), NEVER use memory; fetch fresh from Supabase.
-    //    If !forceSync, only reuse in-memory if synced within 150ms during the same burst.
+    //    Never let a status poll overwrite a recent local mutation or in-flight persist.
+    // 2. In serverless (IS_VERCEL): If forceSync is requested (all mutations), fetch fresh from Supabase,
+    //    but wait for any in-flight persist on this room first so we don't read stale data.
+    if (room && !IS_VERCEL) {
+      if (!forceSync || room._persistPromise || (now - (room.lastLocalMutation || 0) < 5000)) {
+        return room;
+      }
+    }
     if (!forceSync && room) {
-      if (!IS_VERCEL) return room;
       if (now - (room.lastRemoteSync || 0) < 150) {
         return room;
       }
+    }
+    if (room && room._persistPromise) {
+      try { await room._persistPromise; } catch (e) {}
     }
 
     // Attempt remote hydration from Supabase
@@ -892,29 +905,38 @@ class RoomManager {
       console.warn(`[RoomManager] Failed saving room ${room.id}:`, e.message);
     }
 
-    // 2. Cloud Supabase sync
+    // 2. Cloud Supabase sync (serialized per room so concurrent writes never interleave out of order)
     if (SUPABASE_URL && SUPABASE_KEY) {
-      const payload = JSON.stringify({
-        id: room.id,
-        name: room.name,
-        creator: room.creator,
-        data: room.toJSON(),
-        updated_at: new Date().toISOString()
+      const prevPersist = room._persistPromise || Promise.resolve();
+      const nextPersist = prevPersist.catch(() => {}).then(() => {
+        const payload = JSON.stringify({
+          id: room.id,
+          name: room.name,
+          creator: room.creator,
+          data: room.toJSON(),
+          updated_at: new Date().toISOString()
+        });
+        return fetch(`${SUPABASE_URL}/rest/v1/jukebox_rooms`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'resolution=merge-duplicates'
+          },
+          body: payload
+        }).then(() => {
+          room.lastRemoteSync = Date.now();
+        }).catch(err => {
+          console.warn(`[Supabase][Room ${room.id}] Persist error:`, err.message);
+        });
+      }).finally(() => {
+        if (room._persistPromise === nextPersist) {
+          room._persistPromise = null;
+        }
       });
-      return fetch(`${SUPABASE_URL}/rest/v1/jukebox_rooms`, {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'resolution=merge-duplicates'
-        },
-        body: payload
-      }).then(() => {
-        room.lastRemoteSync = Date.now();
-      }).catch(err => {
-        console.warn(`[Supabase][Room ${room.id}] Persist error:`, err.message);
-      });
+      room._persistPromise = nextPersist;
+      return nextPersist;
     }
     return Promise.resolve();
   }

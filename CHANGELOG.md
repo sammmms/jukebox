@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.15.1] - 2026-11-24
+
+### Fixed
+- **Queue, Starter Track, & Embed Validation Reliability:**
+  - Updated `validateYouTubeMusicTrack` in `server.js` to detect HTTP `401`/`403` from YouTube `oembed` as `embedRestricted` so non-embeddable videos trigger auto-recovery or return a clear validation error instead of failing during playback.
+  - Updated `isStarterSong` in `POST /api/queue` and `POST /api/playlist/queue` so paused starter tracks (`Party Jukebox`) are replaced immediately when the first song is added, and standardized `/api/playlist/queue` item schema (`id`, `addedAt`, `upvotes`, `votedUsers`).
+  - Serialized per-room Supabase persistence (`_persistPromise`) and added `lastLocalMutation` conflict guards in `roomManager.js` to prevent stale remote reads from overwriting recent queue additions or skips.
+- **Double-Skip Prevention & Playback Sync:**
+  - Added `_isAdvancing` concurrency lock, `expectedVideoId` stale-request guard, and rapid duplicate cooldown in `advanceNextTrack`, plus `isSkippingTrack` lock in `skipNext()`.
+  - Restricted `onYTPlayerError` auto-skip to the active Host (`isMeHost()`) and deduplicated per `videoId` across error codes `2, 5, 100, 101, 150`.
+  - Fixed YouTube IFrame loading and playback stalls (`syncHostAudioEngine`, `togglePlay`, `tickPlayback` watchdog, and 450ms async `loadVideoById` play nudge) as well as `_loadingSrc` cleanup on native HTML5 audio.
+
+---
+
 ## [2.15.0] - 2026-11-12
 
 ### Added

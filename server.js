@@ -33,7 +33,7 @@ const qrcode = require('qrcode-terminal');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const APP_VERSION = '2.15.0';
+const APP_VERSION = '2.15.1';
 
 let pinyinLib = null;
 try { pinyinLib = require('pinyin-pro'); } catch (e) {}
@@ -544,7 +544,7 @@ async function getAutoplayNextTrack(prevSong, historyList = null) {
 
 let lastAdvanceTime = 0;
 
-async function advanceNextTrack(targetRoomOrSkipped = null, skippedByUser = null) {
+async function advanceNextTrack(targetRoomOrSkipped = null, skippedByUser = null, options = {}) {
   let targetRoom;
   let skipped;
   if (targetRoomOrSkipped && typeof targetRoomOrSkipped === 'object' && targetRoomOrSkipped.id) {
@@ -556,85 +556,105 @@ async function advanceNextTrack(targetRoomOrSkipped = null, skippedByUser = null
   }
   if (!targetRoom) return null;
 
-  const now = Date.now();
-  if (now - (targetRoom.lastAdvanceTime || 0) < 1500 && !skipped) {
-    console.log(`[advanceNextTrack][Room ${targetRoom.id}] Ignored rapid duplicate advance within 1.5s`);
+  // If a caller specified which videoId they intended to skip/end, ignore stale requests if already on a different song
+  const expectedVideoId = options && options.expectedVideoId;
+  if (expectedVideoId && targetRoom.currentSong && targetRoom.currentSong.videoId && targetRoom.currentSong.videoId !== expectedVideoId) {
+    console.log(`[advanceNextTrack][Room ${targetRoom.id}] Ignored stale advance for ${expectedVideoId} (current is ${targetRoom.currentSong.videoId})`);
     return targetRoom.currentSong;
   }
+
+  // Prevent concurrent advances on the same room from double-shifting the queue
+  if (targetRoom._isAdvancing) {
+    console.log(`[advanceNextTrack][Room ${targetRoom.id}] Ignored concurrent advance while already advancing`);
+    return targetRoom.currentSong;
+  }
+
+  const now = Date.now();
+  const minCooldownMs = skipped ? (expectedVideoId ? 250 : 800) : 1500;
+  if (now - (targetRoom.lastAdvanceTime || 0) < minCooldownMs) {
+    console.log(`[advanceNextTrack][Room ${targetRoom.id}] Ignored rapid duplicate advance within ${minCooldownMs}ms`);
+    return targetRoom.currentSong;
+  }
+
+  targetRoom._isAdvancing = true;
   targetRoom.lastAdvanceTime = now;
   lastAdvanceTime = now;
 
-  const prevSong = targetRoom.currentSong;
-  if (prevSong && prevSong.videoId && prevSong.title !== 'No song playing') {
-    targetRoom.addPlayedHistory(prevSong);
-  }
-
-  if (targetRoom.partyQueue.length > 0) {
-    const nextItem = targetRoom.partyQueue.shift();
-    let dur = nextItem.songDuration || 0;
-    if (!dur) {
-      const fallback = AUTOPLAY_FALLBACK_TRACKS.find(t => t.videoId === nextItem.videoId);
-      if (fallback && fallback.songDuration) dur = fallback.songDuration;
+  try {
+    const prevSong = targetRoom.currentSong;
+    if (prevSong && prevSong.videoId && prevSong.title !== 'No song playing') {
+      targetRoom.addPlayedHistory(prevSong);
     }
-    if (!dur || dur <= 0) dur = 215;
-    targetRoom.currentSong = {
-      videoId: nextItem.videoId,
-      title: nextItem.title,
-      artist: nextItem.artist || '',
-      thumbnail: nextItem.thumbnail || '',
-      imageSrc: nextItem.thumbnail || '',
-      songDuration: dur,
-      elapsedSeconds: 0,
-      currentElapsed: 0,
-      isPaused: false,
-      addedBy: nextItem.addedBy || 'Host',
-      startedAt: Date.now()
-    };
-  } else {
-    // AUTOPLAY: Queue is empty -> fetch YouTube recommendation automatically!
-    const autoTrack = await getAutoplayNextTrack(prevSong, targetRoom.playedHistory);
-    targetRoom.currentSong = {
-      videoId: autoTrack.videoId,
-      title: autoTrack.title,
-      artist: autoTrack.artist || '',
-      thumbnail: autoTrack.thumbnail || '',
-      imageSrc: autoTrack.thumbnail || '',
-      songDuration: autoTrack.songDuration || 240,
-      elapsedSeconds: 0,
-      currentElapsed: 0,
-      isPaused: false,
-      addedBy: autoTrack.addedBy || 'Autoplay / YouTube Algorithm',
-      startedAt: Date.now()
-    };
-    targetRoom.addActivity('System', 'autoplay', `memutar "${autoTrack.title}" (Autoplay)`);
-  }
 
-  targetRoom.playbackTracker.videoId = targetRoom.currentSong.videoId;
-  targetRoom.playbackTracker.elapsed = 0;
-  targetRoom.playbackTracker.lastReportedElapsed = -1;
-  targetRoom.playbackTracker.isPaused = targetRoom.currentSong.isPaused;
-  targetRoom.playbackTracker.songDuration = targetRoom.currentSong.songDuration;
-  targetRoom.playbackTracker.lastUpdated = Date.now();
-
-  await roomManager.persistRoom(targetRoom);
-  if (skipped) {
-    targetRoom.addActivity(skipped, 'skip', targetRoom.currentSong.title || 'song');
-  }
-  targetRoom.broadcastUpdate(dynamicPublicUrl);
-  setTimeout(() => prewarmUpcomingTracks(targetRoom), 500);
-
-  // Asynchronously resolve song duration if still missing
-  if ((!targetRoom.currentSong.songDuration || targetRoom.currentSong.songDuration <= 0) && targetRoom.currentSong.videoId) {
-    fetchDirectAudioUrl(targetRoom.currentSong.videoId).then(async info => {
-      if (info && info.duration > 0 && targetRoom.currentSong.videoId === info.videoId) {
-        targetRoom.currentSong.songDuration = info.duration;
-        targetRoom.playbackTracker.songDuration = info.duration;
-        await roomManager.persistRoom(targetRoom);
-        targetRoom.broadcastUpdate(dynamicPublicUrl);
+    if (targetRoom.partyQueue.length > 0) {
+      const nextItem = targetRoom.partyQueue.shift();
+      let dur = nextItem.songDuration || 0;
+      if (!dur) {
+        const fallback = AUTOPLAY_FALLBACK_TRACKS.find(t => t.videoId === nextItem.videoId);
+        if (fallback && fallback.songDuration) dur = fallback.songDuration;
       }
-    }).catch(() => {});
+      if (!dur || dur <= 0) dur = 215;
+      targetRoom.currentSong = {
+        videoId: nextItem.videoId,
+        title: nextItem.title,
+        artist: nextItem.artist || '',
+        thumbnail: nextItem.thumbnail || '',
+        imageSrc: nextItem.thumbnail || '',
+        songDuration: dur,
+        elapsedSeconds: 0,
+        currentElapsed: 0,
+        isPaused: false,
+        addedBy: nextItem.addedBy || 'Host',
+        startedAt: Date.now()
+      };
+    } else {
+      // AUTOPLAY: Queue is empty -> fetch YouTube recommendation automatically!
+      const autoTrack = await getAutoplayNextTrack(prevSong, targetRoom.playedHistory);
+      targetRoom.currentSong = {
+        videoId: autoTrack.videoId,
+        title: autoTrack.title,
+        artist: autoTrack.artist || '',
+        thumbnail: autoTrack.thumbnail || '',
+        imageSrc: autoTrack.thumbnail || '',
+        songDuration: autoTrack.songDuration || 240,
+        elapsedSeconds: 0,
+        currentElapsed: 0,
+        isPaused: false,
+        addedBy: autoTrack.addedBy || 'Autoplay / YouTube Algorithm',
+        startedAt: Date.now()
+      };
+      targetRoom.addActivity('System', 'autoplay', `memutar "${autoTrack.title}" (Autoplay)`);
+    }
+
+    targetRoom.playbackTracker.videoId = targetRoom.currentSong.videoId;
+    targetRoom.playbackTracker.elapsed = 0;
+    targetRoom.playbackTracker.lastReportedElapsed = -1;
+    targetRoom.playbackTracker.isPaused = targetRoom.currentSong.isPaused;
+    targetRoom.playbackTracker.songDuration = targetRoom.currentSong.songDuration;
+    targetRoom.playbackTracker.lastUpdated = Date.now();
+
+    await roomManager.persistRoom(targetRoom);
+    if (skipped) {
+      targetRoom.addActivity(skipped, 'skip', targetRoom.currentSong.title || 'song');
+    }
+    targetRoom.broadcastUpdate(dynamicPublicUrl);
+    setTimeout(() => prewarmUpcomingTracks(targetRoom), 500);
+
+    // Asynchronously resolve song duration if still missing (standalone server only)
+    if (!IS_VERCEL && (!targetRoom.currentSong.songDuration || targetRoom.currentSong.songDuration <= 0) && targetRoom.currentSong.videoId) {
+      fetchDirectAudioUrl(targetRoom.currentSong.videoId).then(async info => {
+        if (info && info.duration > 0 && targetRoom.currentSong.videoId === info.videoId) {
+          targetRoom.currentSong.songDuration = info.duration;
+          targetRoom.playbackTracker.songDuration = info.duration;
+          await roomManager.persistRoom(targetRoom);
+          targetRoom.broadcastUpdate(dynamicPublicUrl);
+        }
+      }).catch(() => {});
+    }
+    return targetRoom.currentSong;
+  } finally {
+    targetRoom._isAdvancing = false;
   }
-  return targetRoom.currentSong;
 }
 
 // Server-Side Master Autoplay & Song Completion Watchdog (Runs for standalone instances)
@@ -1116,6 +1136,9 @@ async function validateYouTubeMusicTrack(videoId) {
     });
     if (oembedRes.status === 404) {
       return { valid: false, error: 'Lagu/video tidak ditemukan di YouTube (404 Not Found), telah dihapus, atau disetel privat.' };
+    }
+    if (oembedRes.status === 401 || oembedRes.status === 403) {
+      return { valid: false, embedRestricted: true, error: 'Video ini dibatasi izin embed oleh pemiliknya di YouTube.' };
     }
     if (oembedRes.ok) oembedData = await oembedRes.json();
   } catch (err) {}
@@ -2016,25 +2039,34 @@ app.post('/api/playlist/queue', async (req, res) => {
   }
 
   const effectiveUser = user || 'Guest';
-  const newItems = tracks.map(t => ({
+  const now = Date.now();
+  const newItems = tracks.map((t, idx) => ({
+    id: now + '-' + idx + '-' + Math.random().toString(36).slice(2, 6),
     videoId: t.videoId,
     title: t.title,
     artist: t.artist || '',
     thumbnail: t.thumbnail || `https://i.ytimg.com/vi/${t.videoId}/hqdefault.jpg`,
     songDuration: t.songDuration || 0,
     addedBy: effectiveUser,
-    votes: 0,
-    voters: []
+    addedAt: now,
+    upvotes: 0,
+    votedUsers: []
   }));
 
   const room = req.room;
+  const isStarterSong = (
+    !room.currentSong ||
+    !room.currentSong.videoId ||
+    room.currentSong.title === 'No song playing' ||
+    (room.currentSong.addedBy === 'Party Jukebox' && (room.currentSong.isPaused || (room.playbackTracker.elapsed || 0) === 0) && room.partyQueue.length === 0)
+  );
   room.partyQueue.push(...newItems);
   await roomManager.persistRoom(room);
 
   room.addActivity(effectiveUser, 'playlist', `menambahkan ${newItems.length} lagu dari playlist "${playlistTitle || 'YouTube'}"`);
 
-  // If no song currently playing, immediately start playing first song
-  if (!room.currentSong || !room.currentSong.videoId || room.currentSong.title === 'No song playing') {
+  // If no song currently playing (or still on starter track), immediately start playing first song
+  if (isStarterSong) {
     await advanceNextTrack(room, 'Playlist Auto Play');
   } else {
     room.broadcastUpdate(dynamicPublicUrl);
@@ -2148,7 +2180,7 @@ app.post('/api/queue', async (req, res) => {
   const isStarterSong = (
     !room.currentSong.videoId ||
     room.currentSong.title === 'No song playing' ||
-    (room.currentSong.addedBy === 'Party Jukebox' && (room.playbackTracker.elapsed || 0) === 0 && room.partyQueue.length === 0)
+    (room.currentSong.addedBy === 'Party Jukebox' && (room.currentSong.isPaused || (room.playbackTracker.elapsed || 0) === 0) && room.partyQueue.length === 0)
   );
 
   if (isStarterSong) {
@@ -2175,7 +2207,7 @@ app.post('/api/queue', async (req, res) => {
     await roomManager.persistRoom(room);
     room.broadcastUpdate(dynamicPublicUrl);
 
-    if (!room.currentSong.songDuration || room.currentSong.songDuration <= 0) {
+    if (!IS_VERCEL && (!room.currentSong.songDuration || room.currentSong.songDuration <= 0)) {
       fetchDirectAudioUrl(room.currentSong.videoId).then(info => {
         const dur = typeof info === 'object' ? info.duration : 0;
         if (dur > 0 && room.currentSong.videoId === videoId) {
@@ -2229,7 +2261,7 @@ app.post('/api/queue', async (req, res) => {
   // Controlled Proactive Pre-Warm via FIFO queue
   enqueuePrewarm(queueItem.videoId);
 
-  if (!queueItem.songDuration || queueItem.songDuration <= 0) {
+  if (!IS_VERCEL && (!queueItem.songDuration || queueItem.songDuration <= 0)) {
     fetchDirectAudioUrl(queueItem.videoId).then(info => {
       const dur = typeof info === 'object' ? info.duration : 0;
       if (dur > 0 && (!queueItem.songDuration || queueItem.songDuration <= 0)) {
@@ -2471,7 +2503,7 @@ app.post('/api/control/toggle', async (req, res) => {
 });
 
 app.post('/api/control/next', async (req, res) => {
-  const { user } = req.body;
+  const { user, expectedVideoId } = req.body || {};
 
   if (isUsingYtmDesktop()) {
     try {
@@ -2485,7 +2517,7 @@ app.post('/api/control/next', async (req, res) => {
     } catch (e) {}
   }
 
-  const skipped = await advanceNextTrack(req.room, user);
+  const skipped = await advanceNextTrack(req.room, user, { expectedVideoId });
   res.json({ success: true, current: skipped });
 });
 
