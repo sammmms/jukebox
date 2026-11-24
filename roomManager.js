@@ -617,10 +617,16 @@ class Room {
       this.pendingTakeover = data.pendingTakeover;
     }
     if (typeof data.currentVolume === 'number') {
-      this.currentVolume = data.currentVolume;
+      const isLocalRecentMutation = (Date.now() - (this.lastLocalMutation || 0) < 5000);
+      if (!isLocalRecentMutation) {
+        this.currentVolume = data.currentVolume;
+      }
     }
     if (typeof data.isMuted === 'boolean') {
-      this.isMuted = data.isMuted;
+      const isLocalRecentMutation = (Date.now() - (this.lastLocalMutation || 0) < 5000);
+      if (!isLocalRecentMutation) {
+        this.isMuted = data.isMuted;
+      }
     }
     if (Array.isArray(data.knownDJs)) {
       for (const dj of data.knownDJs) {

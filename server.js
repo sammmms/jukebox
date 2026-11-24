@@ -2570,6 +2570,16 @@ app.post('/api/control/volume', async (req, res) => {
   // Immediate ACK to client with updated volume
   res.json({ success: true, volume: vol });
 
+  const now = Date.now();
+  if (now - lastVolumeActivityLogTime > 3000) {
+    lastVolumeActivityLogTime = now;
+    req.room.addActivity(user || 'Host', 'volume', `set volume to ${vol}%`);
+  }
+  if (IS_VERCEL) {
+    req.room.broadcastUpdate(dynamicPublicUrl);
+    return;
+  }
+
   // Debounce osascript system volume and SSE broadcast to prevent event-loop freezing and desync jitter
   clearTimeout(serverVolumeDebounce);
   serverVolumeDebounce = setTimeout(async () => {
@@ -2583,11 +2593,6 @@ app.post('/api/control/volume', async (req, res) => {
       }).catch(() => {});
     }
 
-    const now = Date.now();
-    if (now - lastVolumeActivityLogTime > 3000) {
-      lastVolumeActivityLogTime = now;
-      addActivity(user, 'volume', `set volume to ${vol}%`);
-    }
     req.room.broadcastUpdate(dynamicPublicUrl);
   }, 120);
 });

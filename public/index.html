@@ -3576,7 +3576,7 @@
       const gainVal = num / 100;
       
       const hostAudio = document.getElementById('host-native-audio');
-      if (hostAudio) {
+      if (hostAudio && isUseNativeAudioEngine()) {
         try { hostAudio.volume = gainVal; } catch (e) {}
         ensureAudioContextGain();
         if (gainNode) {
@@ -3585,7 +3585,12 @@
       }
 
       if (ytPlayer && typeof ytPlayer.setVolume === 'function') {
-        try { ytPlayer.setVolume(num); } catch (e) {}
+        try {
+          if (num > 0 && isDeviceSpeakerActive() && typeof ytPlayer.unMute === 'function') {
+            ytPlayer.unMute();
+          }
+          ytPlayer.setVolume(num);
+        } catch (e) {}
       }
     }
 
@@ -6741,7 +6746,8 @@
       // 5. SPEAKER VOLUME
       try {
         if (status.volume && typeof status.volume.state === 'number') {
-          if (Date.now() - lastUserVolumeInteraction > 1500) {
+          const isLocalGuestListenTogether = (getPlaybackMode() === 'listen_together' && !isMeHost());
+          if (!isLocalGuestListenTogether && (Date.now() - lastUserVolumeInteraction > 3000)) {
             updateVolumeUI(status.volume.state);
           }
         }
@@ -7083,17 +7089,20 @@
 
       // Immediate 0ms local response (labels, icon, local Web Audio gain)
       updateVolumeUI(num);
+      try { localStorage.setItem('jukebox_local_volume', String(num)); } catch (e) {}
 
       // Debounce remote network API call to 350ms to prevent flooding osascript and SSE desync
       clearTimeout(volumeDebounceTimeout);
       volumeDebounceTimeout = setTimeout(async () => {
         try {
           if (isMeHost() || getPlaybackMode() === 'host_only') {
+            lastUserVolumeInteraction = Date.now();
             await fetch('/api/control/volume', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ volume: num, user: currentUser })
             });
+            lastUserVolumeInteraction = Date.now();
           }
         } catch (e) {
           console.error(e);
@@ -7110,15 +7119,21 @@
 
     // Attach release change event to instantly commit debounced volume without lag
     document.addEventListener('DOMContentLoaded', () => {
-      const commitVol = (e) => {
-        const val = Number(e.target.value);
+      const commitVol = async (e) => {
+        let val = Number(e.target.value);
+        if (isVolumeSnapEnabled) val = Math.round(val / 10) * 10;
+        val = Math.max(0, Math.min(100, val));
+        lastUserVolumeInteraction = Date.now();
         clearTimeout(volumeDebounceTimeout);
         if (isMeHost() || getPlaybackMode() === 'host_only') {
-          fetch('/api/control/volume', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ volume: val, user: currentUser })
-          }).catch(() => {});
+          try {
+            await fetch('/api/control/volume', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ volume: val, user: currentUser })
+            });
+            lastUserVolumeInteraction = Date.now();
+          } catch (err) {}
         }
       };
       document.getElementById('volume-slider')?.addEventListener('change', commitVol);
@@ -9564,7 +9579,8 @@
       // 6. ArrowUp: Volume +10%
       if (e.key === 'ArrowUp') {
         e.preventDefault();
-        const newVol = Math.min(100, Math.round((currentVolume + 10) / 10) * 10);
+        const curVol = Number(document.getElementById('volume-slider')?.value ?? 70);
+        const newVol = Math.min(100, Math.round((curVol + 10) / 10) * 10);
         handleVolumeInput(newVol);
         showToast(` Volume: ${newVol}%`);
         return;
@@ -9573,7 +9589,8 @@
       // 7. ArrowDown: Volume -10%
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        const newVol = Math.max(0, Math.round((currentVolume - 10) / 10) * 10);
+        const curVol = Number(document.getElementById('volume-slider')?.value ?? 70);
+        const newVol = Math.max(0, Math.round((curVol - 10) / 10) * 10);
         handleVolumeInput(newVol);
         showToast(` Volume: ${newVol}%`);
         return;
